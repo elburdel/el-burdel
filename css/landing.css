@@ -1,0 +1,229 @@
+/* ─── TELÓN ─── */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.curtain-left,
+.curtain-right {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: var(--negro);
+  transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
+}
+
+.curtain-left {
+  left: 0;
+  border-right: 2px solid rgba(200,150,0,0.3);
+}
+
+.curtain-right {
+  right: 0;
+  border-left: 2px solid rgba(200,150,0,0.3);
+}
+
+.curtain-logo {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  animation: curtain-logo-fade 0.6s ease forwards;
+}
+
+.curtain-img {
+  width: 260px;
+  max-width: 80vw;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 30px rgba(200,150,0,0.4));
+}
+
+@keyframes curtain-logo-fade {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.curtain.open .curtain-left {
+  transform: translateX(-100%);
+}
+
+.curtain.open .curtain-right {
+  transform: translateX(100%);
+}
+
+.curtain.open .curtain-logo {
+  animation: curtain-logo-out 0.4s ease forwards;
+}
+
+@keyframes curtain-logo-out {
+  to { opacity: 0; transform: scale(1.06); }
+}
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  position: relative;
+  border-bottom: 1px solid rgba(200,150,0,0.08);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center top, rgba(139,26,26,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: hero-reveal 0.8s ease 1.4s both;
+}
+
+@keyframes hero-reveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-bombitas {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hero-logo img {
+  width: 320px;
+  max-width: 85vw;
+  filter: drop-shadow(0 0 40px rgba(200,150,0,0.35));
+}
+
+.hero-sub {
+  font-size: 13px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  margin-top: 4px;
+}
+
+.hero-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 14px 36px;
+  background: var(--rojo);
+  color: var(--crema);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 3px;
+  border: 1px solid rgba(200,150,0,0.25);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.hero-btn:hover {
+  background: var(--rojo-claro);
+  transform: translateY(-1px);
+}
+
+/* ─── GAMES GRID ─── */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.12);
+  border-radius: 8px;
+  padding: 24px 16px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+.game-card:hover {
+  border-color: rgba(200,150,0,0.5);
+  background: #161208;
+  transform: translateY(-2px);
+}
+
+.game-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.game-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dorado);
+  margin-bottom: 6px;
+}
+
+.game-desc {
+  font-size: 13px;
+  color: var(--crema-3);
+  line-height: 1.4;
+}
+
+/* ─── MEDIA ─── */
+.media-grid,
+.clips-grid,
+.ranking-list {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-placeholder {
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(122,96,64,0.4);
+  border: 1px dashed rgba(200,150,0,0.15);
+  padding: 24px 40px;
+  border-radius: 6px;
+}
+
+/* ─── TABLÓN ─── */
+.tablon {
+  padding: 48px 20px;
+  text-align: center;
+  background: var(--negro-3);
+  border-top: 1px solid rgba(200,150,0,0.08);
+  border-bottom: 1px solid rgba(200,150,0,0.08);
+}
+
+.tablon-msg {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-style: italic;
+  color: var(--crema-2);
+  max-width: 600px;
+  margin: 12px auto 0;
+  line-height: 1.5;
+}
+
+@media (min-width: 600px) {
+  .games-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
