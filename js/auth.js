@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // UID del admin (reemplazá con tu UID real después del primer login)
-const ADMIN_UID = "REEMPLAZAR_CON_TU_UID";
+const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
 
 // Formatea el nick: primera letra mayúscula, resto minúscula, solo alfanumérico
 function formatNick(nick) {
