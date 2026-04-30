@@ -22,7 +22,7 @@ function formatNick(nick) {
   return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
 }
 
-// Validaciones
+// Validaciones locales (sin tocar DB)
 function validateNick(nick) {
   if (nick.length < 3) return "El nick debe tener al menos 3 caracteres.";
   if (nick.length > 20) return "El nick no puede superar 20 caracteres.";
@@ -38,20 +38,27 @@ function validatePassword(pass) {
 // Registro de usuario nuevo
 async function registerUser(nick, email, password) {
   const formattedNick = formatNick(nick);
+
+  // Validaciones locales primero (sin DB)
   const nickError = validateNick(formattedNick);
   if (nickError) throw new Error(nickError);
   const passError = validatePassword(password);
   if (passError) throw new Error(passError);
 
-  // Verificar que el nick no esté tomado
-  const nickRef = ref(db, `nicks/${formattedNick.toLowerCase()}`);
-  const nickSnap = await get(nickRef);
-  if (nickSnap.exists()) throw new Error("Ese nick ya está en uso. Elegí otro.");
-
+  // 1. Crear usuario en Firebase Auth (esto genera la sesión)
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   const uid = cred.user.uid;
 
-  // Guardar usuario en DB
+  // 2. Ahora sí tenemos sesión — verificar nick duplicado
+  const nickRef = ref(db, `nicks/${formattedNick.toLowerCase()}`);
+  const nickSnap = await get(nickRef);
+  if (nickSnap.exists()) {
+    // Nick tomado — borramos el usuario recién creado y lanzamos error
+    await cred.user.delete();
+    throw new Error("Ese nick ya está en uso. Elegí otro.");
+  }
+
+  // 3. Guardar usuario en DB
   await set(ref(db, `users/${uid}`), {
     nick: formattedNick,
     email: email,
@@ -61,7 +68,7 @@ async function registerUser(nick, email, password) {
     createdAt: Date.now()
   });
 
-  // Reservar el nick
+  // 4. Reservar el nick
   await set(ref(db, `nicks/${formattedNick.toLowerCase()}`), uid);
 
   return cred.user;
