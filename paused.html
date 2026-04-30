@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuenta pausada — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .status-main {
+      min-height: calc(100vh - 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .status-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--negro-2);
+      border: 1px solid rgba(139,26,26,0.35);
+      border-radius: 10px;
+      padding: 40px 28px;
+      text-align: center;
+      animation: login-appear 0.5s ease both;
+    }
+    @keyframes login-appear {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .status-bombitas {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .status-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .status-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--rojo-claro);
+      margin-bottom: 12px;
+    }
+    .status-nick {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--crema);
+      margin-bottom: 16px;
+    }
+    .status-text {
+      font-size: 14px;
+      color: var(--crema-3);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .status-btn {
+      background: none;
+      border: 1px solid rgba(200,150,0,0.25);
+      border-radius: 4px;
+      color: var(--crema-3);
+      font-family: var(--font-body);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .status-btn:hover {
+      color: var(--dorado);
+      border-color: rgba(200,150,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links"></div>
+      <span></span>
+    </div>
+  </nav>
+
+  <main class="status-main">
+    <div class="status-card">
+      <div class="status-bombitas">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+      <span class="status-icon">🚫</span>
+      <h1 class="status-title">Cuenta pausada</h1>
+      <p class="status-nick" id="status-nick"></p>
+      <p class="status-text">
+        Tu cuenta fue pausada por el admin.<br />
+        Si creés que es un error, contactate con él.
+      </p>
+      <button class="status-btn" onclick="handleLogout()">Cerrar sesión</button>
+      <div class="status-bombitas" style="margin-top: 24px; margin-bottom: 0;">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+
+    onSession(async (user) => {
+      if (!user) {
+        window.location.href = "/el-burdel/login.html";
+        return;
+      }
+      const data = await getUserData(user.uid);
+      if (!data) return;
+      if (data.status === "active" && data.role === "admin") {
+        window.location.href = "/el-burdel/admin.html";
+        return;
+      }
+      if (data.status === "active") {
+        window.location.href = "/el-burdel/dashboard.html";
+        return;
+      }
+      if (data.status === "pending") {
+        window.location.href = "/el-burdel/pending.html";
+        return;
+      }
+      const nick = document.getElementById("status-nick");
+      if (nick) nick.textContent = `Hola, ${data.nick}`;
+    });
+
+    window.handleLogout = async () => {
+      await logoutUser();
+    };
+  </script>
+</body>
+</html>
