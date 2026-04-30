@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body>
+
+  <!-- TELÓN -->
+  <div id="curtain" class="curtain">
+    <div class="curtain-left"></div>
+    <div class="curtain-right"></div>
+    <div class="curtain-logo">
+      <img src="assets/img/logo.png" alt="El Burdel" class="curtain-img" />
+    </div>
+  </div>
+
+  <!-- NAV TOP -->
+  <nav class="nav-top" id="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links">
+        <a href="#juegos" class="nav-link">Juegos</a>
+        <a href="#galeria" class="nav-link">Galería</a>
+        <a href="#clips" class="nav-link">Clips</a>
+        <a href="#ranking" class="nav-link">Ranking</a>
+      </div>
+      <a href="login.html" class="nav-cta">Entrar</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-bombitas">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+      </div>
+      <div class="hero-logo">
+        <img src="assets/img/logo.png" alt="El Burdel" />
+      </div>
+      <div class="hero-bombitas bottom">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+      </div>
+      <p class="hero-sub">La noche empieza acá</p>
+      <a href="login.html" class="hero-btn">Entrar al Burdel</a>
+    </div>
+  </section>
+
+  <!-- JUEGOS -->
+  <section class="section" id="juegos">
+    <div class="section-inner">
+      <span class="section-label">Juegos de la noche</span>
+      <h2 class="section-title">¿A qué jugamos hoy?</h2>
+      <div class="games-grid">
+        <div class="game-card">
+          <span class="game-icon">🃏</span>
+          <div class="game-name">Taboo</div>
+          <div class="game-desc">Describí sin decir las palabras prohibidas</div>
+        </div>
+        <div class="game-card">
+          <span class="game-icon">🔤</span>
+          <div class="game-name">Wordle</div>
+          <div class="game-desc">Adiviná la palabra en 6 intentos</div>
+        </div>
+        <div class="game-card">
+          <span class="game-icon">🕵️</span>
+          <div class="game-name">El Impostor</div>
+          <div class="game-desc">¿Quién no tiene la palabra?</div>
+        </div>
+        <div class="game-card">
+          <span class="game-icon">💰</span>
+          <div class="game-name">El Millonario</div>
+          <div class="game-desc">Encontrá al millonario entre todos</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERÍA -->
+  <section class="section alt" id="galeria">
+    <div class="section-inner">
+      <span class="section-label">Noches anteriores</span>
+      <h2 class="section-title">Galería</h2>
+      <div class="media-grid" id="galeria-grid">
+        <div class="media-placeholder">Próximamente</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLIPS -->
+  <section class="section" id="clips">
+    <div class="section-inner">
+      <span class="section-label">Highlights</span>
+      <h2 class="section-title">Clips</h2>
+      <div class="clips-grid" id="clips-grid">
+        <div class="media-placeholder">Próximamente</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RANKING -->
+  <section class="section alt" id="ranking">
+    <div class="section-inner">
+      <span class="section-label">Los mejores</span>
+      <h2 class="section-title">Ranking</h2>
+      <div class="ranking-list" id="ranking-list">
+        <div class="media-placeholder">Próximamente</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLÓN -->
+  <section class="tablon">
+    <div class="section-inner">
+      <span class="section-label">Del admin</span>
+      <p class="tablon-msg" id="tablon-msg">"Bienvenidos a El Burdel."</p>
+    </div>
+  </section>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="#juegos" class="nav-bottom-link">Juegos</a>
+        <a href="#galeria" class="nav-bottom-link">Galería</a>
+        <a href="#clips" class="nav-bottom-link">Clips</a>
+        <a href="#ranking" class="nav-bottom-link">Ranking</a>
+      </div>
+      <div class="nav-bottom-divider"></div>
+      <div class="nav-bottom-links">
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel — Todos los derechos reservados</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, redirectByRole } from "./js/auth.js";
+
+    // Redirigir si ya hay sesión activa
+    onSession(async (user) => {
+      if (user) await redirectByRole(user);
+    });
+
+    // Animación telón
+    window.addEventListener("load", () => {
+      const curtain = document.getElementById("curtain");
+      setTimeout(() => {
+        curtain.classList.add("open");
+        setTimeout(() => {
+          curtain.style.display = "none";
+        }, 1200);
+      }, 800);
+    });
+  </script>
+</body>
+</html>
