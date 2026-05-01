@@ -235,3 +235,35 @@ img {
     font-size: 26px;
   }
 }
+
+/* ─── NAV USER PILL (landing con sesión activa) ─── */
+.nav-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(200,150,0,0.1);
+  border: 1px solid rgba(200,150,0,0.25);
+  border-radius: 20px;
+  padding: 6px 14px 6px 10px;
+  transition: background 0.2s;
+}
+
+.nav-user-pill:hover {
+  background: rgba(200,150,0,0.18);
+}
+
+.nav-user-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 5px rgba(76,175,80,0.6);
+  flex-shrink: 0;
+}
+
+.nav-user-nick {
+  font-size: 13px;
+  font-weight: 500;
+  color: #c89600;
+  letter-spacing: 0.5px;
+}
