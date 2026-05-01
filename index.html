@@ -28,7 +28,7 @@
         <a href="#clips" class="nav-link">Clips</a>
         <a href="#ranking" class="nav-link">Ranking</a>
       </div>
-      <a href="login.html" class="nav-cta">Entrar</a>
+      <div id="nav-auth"></div>
     </div>
   </nav>
 
@@ -146,9 +146,30 @@
   <script type="module">
     import { onSession, redirectByRole } from "./js/auth.js";
 
-    // Redirigir si ya hay sesión activa
+    // Mostrar estado de sesión en el nav
     onSession(async (user) => {
-      if (user) await redirectByRole(user);
+      const navAuth = document.getElementById("nav-auth");
+      if (user) {
+        const data = await getUserData(user.uid);
+        if (!data) {
+          navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
+          return;
+        }
+        // Determinar destino según rol/estado
+        let href = "dashboard.html";
+        if (data.role === "admin") href = "admin.html";
+        else if (data.status === "pending") href = "pending.html";
+        else if (data.status === "paused") href = "paused.html";
+
+        navAuth.innerHTML = `
+          <a href="${href}" class="nav-user-pill">
+            <span class="nav-user-dot"></span>
+            <span class="nav-user-nick">${data.nick}</span>
+          </a>
+        `;
+      } else {
+        navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
+      }
     });
 
     // Animación telón
