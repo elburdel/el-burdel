@@ -6,46 +6,66 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  overflow: hidden;
+  background: #0a0000;
 }
 
 .curtain-left,
 .curtain-right {
   position: absolute;
   top: 0;
-  width: 50%;
+  width: 51%;
   height: 100%;
-  background: var(--negro);
-  transition: transform 1s cubic-bezier(0.77, 0, 0.18, 1);
+  background-image: url('../assets/img/telon.jpg');
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  transition: transform 1.4s cubic-bezier(0.77, 0, 0.18, 1);
+  will-change: transform;
 }
 
 .curtain-left {
   left: 0;
-  border-right: 2px solid rgba(200,150,0,0.3);
+  background-position: left center;
+  box-shadow: inset -8px 0 20px rgba(0,0,0,0.5);
 }
 
 .curtain-right {
   right: 0;
-  border-left: 2px solid rgba(200,150,0,0.3);
+  background-position: right center;
+  box-shadow: inset 8px 0 20px rgba(0,0,0,0.5);
+}
+
+/* Línea central dorada */
+.curtain-left::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(200,150,0,0.6), transparent);
 }
 
 .curtain-logo {
   position: relative;
   z-index: 1;
   text-align: center;
-  animation: curtain-logo-fade 0.6s ease forwards;
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: none;
+}
+
+.curtain-logo.visible {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .curtain-img {
-  width: 260px;
-  max-width: 80vw;
+  width: 300px;
+  max-width: 75vw;
   margin: 0 auto;
-  filter: drop-shadow(0 0 30px rgba(200,150,0,0.4));
-}
-
-@keyframes curtain-logo-fade {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
+  filter: drop-shadow(0 0 40px rgba(200,150,0,0.5));
 }
 
 .curtain.open .curtain-left {
@@ -57,11 +77,9 @@
 }
 
 .curtain.open .curtain-logo {
-  animation: curtain-logo-out 0.4s ease forwards;
-}
-
-@keyframes curtain-logo-out {
-  to { opacity: 0; transform: scale(1.06); }
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* ─── HERO ─── */
@@ -106,9 +124,10 @@
 }
 
 .hero-logo img {
-  width: 320px;
-  max-width: 85vw;
-  filter: drop-shadow(0 0 40px rgba(200,150,0,0.35));
+  width: 280px;
+  max-width: 75vw;
+  filter: drop-shadow(0 0 50px rgba(200,150,0,0.4));
+  border-radius: 50%;
 }
 
 .hero-sub {
