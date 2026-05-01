@@ -1,0 +1,165 @@
+/* ─── DASHBOARD MAIN ─── */
+.dashboard-main {
+  min-height: calc(100vh - 120px);
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+
+/* ─── SCOREBOARD GLOBAL ─── */
+.dash-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 20px;
+  background: var(--negro-2);
+  border-bottom: 1px solid rgba(200,150,0,0.12);
+  position: sticky;
+  top: 56px;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+}
+
+.dash-score-team {
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.dash-score-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7a6040;
+  margin-bottom: 6px;
+}
+
+.dash-score-value {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 900;
+  color: #c89600;
+  line-height: 1;
+}
+
+.dash-score-team.rojo .dash-score-label { color: #f09090; }
+.dash-score-team.azul .dash-score-label { color: #90b0f0; }
+.dash-score-team.rojo .dash-score-value { color: #f09090; }
+.dash-score-team.azul .dash-score-value { color: #90b0f0; }
+
+.dash-score-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(200,150,0,0.2);
+  flex-shrink: 0;
+}
+
+/* ─── CONTENIDO ─── */
+.dash-content {
+  padding: 32px 20px;
+}
+
+/* ─── IDLE ─── */
+.dash-idle {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.dash-idle-bombitas {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.dash-idle-title {
+  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  font-style: italic;
+  color: #c89600;
+  margin-bottom: 12px;
+}
+
+.dash-idle-sub {
+  font-size: 14px;
+  color: #7a6040;
+  line-height: 1.6;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* ─── TABOO CARD ─── */
+.dash-taboo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-card-role {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* ─── SPECTATOR ─── */
+.dash-taboo-spectator {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.dash-spectator-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dash-spectator-timer .timer-display {
+  font-size: 64px;
+}
+
+.dash-spectator-label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7a6040;
+}
+
+.dash-spectator-msg {
+  font-size: 14px;
+  color: #7a6040;
+  line-height: 1.6;
+}
+
+/* ─── TABLÓN ─── */
+.dash-tablon {
+  margin: 0 20px;
+  padding: 20px;
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.12);
+  border-radius: 8px;
+  text-align: center;
+  display: none;
+}
+
+.dash-tablon-msg {
+  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: #c8a868;
+  line-height: 1.5;
+}
+
+/* ─── NAV USER ─── */
+.nav-user {
+  font-size: 13px;
+  color: #c89600;
+  letter-spacing: 1px;
+}
