@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- NAV TOP -->
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links">
+        <span class="nav-link active-section" data-section="usuarios">Usuarios</span>
+        <span class="nav-link active-section" data-section="sesion">Sesión</span>
+        <span class="nav-link active-section" data-section="tablon">Tablón</span>
+      </div>
+      <button class="nav-cta" id="btn-logout">Salir</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- HEADER -->
+    <div class="admin-header">
+      <div class="admin-header-inner">
+        <div>
+          <span class="section-label">Panel de control</span>
+          <h1 class="admin-title">Admin <span id="admin-nick"></span></h1>
+        </div>
+        <div class="admin-status-dot" id="status-dot" title="Conectado a Firebase"></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: USUARIOS -->
+    <section class="admin-section" id="section-usuarios">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">Usuarios</h2>
+          <span class="admin-badge" id="badge-pending">0 pendientes</span>
+        </div>
+
+        <!-- TABS USUARIOS -->
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="filterUsers('pending')">Pendientes</button>
+          <button class="admin-tab" onclick="filterUsers('active')">Activos</button>
+          <button class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
+          <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
+        </div>
+
+        <div class="users-list" id="users-list">
+          <div class="users-loading">Cargando usuarios...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: SESIÓN -->
+    <section class="admin-section alt" id="section-sesion">
+      <div class="admin-section-inner">
+        <h2 class="admin-section-title">Sesión activa</h2>
+
+        <!-- JUEGO ACTIVO -->
+        <div class="admin-card">
+          <div class="admin-card-label">Juego activo</div>
+          <div class="games-toggle-grid">
+            <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
+              <span>🚫</span> Ninguno
+            </button>
+            <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
+              <span>🃏</span> Taboo
+            </button>
+            <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
+              <span>🔤</span> Wordle
+            </button>
+            <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
+              <span>🕵️</span> Impostor
+            </button>
+            <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
+              <span>💰</span> Millonario
+            </button>
+          </div>
+        </div>
+
+        <!-- EQUIPOS -->
+        <div class="admin-card" id="card-equipos">
+          <div class="admin-card-label">Equipos</div>
+          <div class="equipos-grid" id="equipos-grid">
+            <div class="equipo-col" id="equipo-rojo">
+              <div class="equipo-header rojo">🔴 Equipo Rojo</div>
+              <div class="equipo-lista" id="lista-rojo"></div>
+            </div>
+            <div class="equipo-col" id="equipo-azul">
+              <div class="equipo-header azul">🔵 Equipo Azul</div>
+              <div class="equipo-lista" id="lista-azul"></div>
+            </div>
+            <div class="equipo-col">
+              <div class="equipo-header sin">⚪ Sin equipo</div>
+              <div class="equipo-lista" id="lista-sin"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECCIÓN: TABLÓN -->
+    <section class="admin-section" id="section-tablon">
+      <div class="admin-section-inner">
+        <h2 class="admin-section-title">Tablón</h2>
+        <div class="admin-card">
+          <div class="admin-card-label">Mensaje visible para todos</div>
+          <textarea class="admin-textarea" id="tablon-input" placeholder="Escribí el mensaje del tablón..." maxlength="300"></textarea>
+          <div class="admin-card-actions">
+            <span class="char-count" id="char-count">0 / 300</span>
+            <button class="admin-btn primary" onclick="saveTablon()">Publicar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel — Panel de administración</p>
+    </div>
+  </footer>
+
+  <!-- MODAL CONFIRMAR ACCIÓN -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-box">
+      <p class="modal-text" id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+    import { db } from "./js/firebase-init.js";
+    import {
+      ref, onValue, update, get, set
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    let allUsers = {};
+    let currentFilter = "pending";
+    let activeGame = "none";
+
+    // ── PROTECCIÓN DE RUTA ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.role !== "admin") { window.location.href = "/el-burdel/login.html"; return; }
+      document.getElementById("admin-nick").textContent = data.nick;
+      initAdmin();
+    });
+
+    // ── LOGOUT ──
+    document.getElementById("btn-logout").onclick = () => logoutUser();
+
+    // ── INIT ──
+    function initAdmin() {
+      listenUsers();
+      listenSession();
+      listenTablon();
+      initTablonCounter();
+    }
+
+    // ── USUARIOS EN TIEMPO REAL ──
+    function listenUsers() {
+      onValue(ref(db, "users"), (snap) => {
+        allUsers = snap.val() || {};
+        renderUsers(currentFilter);
+        updatePendingBadge();
+        renderEquipos();
+      });
+    }
+
+    function updatePendingBadge() {
+      const pending = Object.values(allUsers).filter(u => u.status === "pending").length;
+      document.getElementById("badge-pending").textContent = `${pending} pendiente${pending !== 1 ? "s" : ""}`;
+      document.getElementById("badge-pending").classList.toggle("has-pending", pending > 0);
+    }
+
+    window.filterUsers = (filter) => {
+      currentFilter = filter;
+      document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+      event.target.classList.add("active");
+      renderUsers(filter);
+    };
+
+    function renderUsers(filter) {
+      const list = document.getElementById("users-list");
+      let users = Object.entries(allUsers);
+      if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
+      if (users.length === 0) {
+        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categoría.</div>`;
+        return;
+      }
+      list.innerHTML = users.map(([uid, u]) => `
+        <div class="user-row" data-uid="${uid}">
+          <div class="user-avatar">${u.nick ? u.nick.charAt(0) : "?"}</div>
+          <div class="user-info">
+            <span class="user-nick">${u.nick || "—"}</span>
+            <span class="user-email">${u.email || "—"}</span>
+          </div>
+          <div class="user-status status-${u.status}">${statusLabel(u.status)}</div>
+          <div class="user-actions">
+            ${u.status === "pending" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
+            ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
+            ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function statusLabel(s) {
+      return { pending: "Pendiente", active: "Activo", paused: "Pausado" }[s] || s;
+    }
+
+    // ── EQUIPOS ──
+    function renderEquipos() {
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const rojo = activos.filter(([, u]) => u.team === "rojo");
+      const azul = activos.filter(([, u]) => u.team === "azul");
+      const sin = activos.filter(([, u]) => !u.team || u.team === null);
+
+      document.getElementById("lista-rojo").innerHTML = renderEquipoLista(rojo, "rojo");
+      document.getElementById("lista-azul").innerHTML = renderEquipoLista(azul, "azul");
+      document.getElementById("lista-sin").innerHTML = renderEquipoLista(sin, "sin");
+    }
+
+    function renderEquipoLista(users, equipo) {
+      if (users.length === 0) return `<div class="equipo-empty">Nadie</div>`;
+      return users.map(([uid, u]) => `
+        <div class="equipo-user">
+          <span class="equipo-nick">${u.nick}</span>
+          <div class="equipo-btns">
+            ${equipo !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')">🔴</button>` : ""}
+            ${equipo !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')">🔵</button>` : ""}
+            ${equipo !== "sin" ? `<button class="equipo-btn sin-btn" onclick="setTeam('${uid}', null)">⚪</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    window.setTeam = async (uid, team) => {
+      await update(ref(db, `users/${uid}`), { team });
+    };
+
+    // ── SESIÓN / JUEGO ACTIVO ──
+    function listenSession() {
+      onValue(ref(db, "session/activeGame"), (snap) => {
+        activeGame = snap.val() || "none";
+        document.querySelectorAll(".game-toggle").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.game === activeGame);
+        });
+      });
+    }
+
+    window.setActiveGame = async (game) => {
+      await set(ref(db, "session/activeGame"), game);
+    };
+
+    // ── TABLÓN ──
+    function listenTablon() {
+      onValue(ref(db, "session/broadcast"), (snap) => {
+        const msg = snap.val() || "";
+        document.getElementById("tablon-input").value = msg;
+        document.getElementById("char-count").textContent = `${msg.length} / 300`;
+      });
+    }
+
+    function initTablonCounter() {
+      document.getElementById("tablon-input").addEventListener("input", (e) => {
+        document.getElementById("char-count").textContent = `${e.target.value.length} / 300`;
+      });
+    }
+
+    window.saveTablon = async () => {
+      const msg = document.getElementById("tablon-input").value.trim();
+      await set(ref(db, "session/broadcast"), msg);
+      showToast("Tablón actualizado");
+    };
+
+    // ── ACCIONES USUARIO ──
+    window.confirmAction = (uid, action) => {
+      const user = allUsers[uid];
+      const labels = {
+        approve: `¿Aprobás a ${user.nick}?`,
+        pause: `¿Pausás a ${user.nick}?`
+      };
+      showModal(labels[action], async () => {
+        if (action === "approve") await update(ref(db, `users/${uid}`), { status: "active" });
+        if (action === "pause") await update(ref(db, `users/${uid}`), { status: "paused" });
+        closeModal();
+      });
+    };
+
+    // ── MODAL ──
+    function showModal(text, onConfirm) {
+      document.getElementById("modal-text").textContent = text;
+      document.getElementById("modal-overlay").classList.remove("hidden");
+      document.getElementById("modal-confirm").onclick = onConfirm;
+    }
+
+    window.closeModal = () => {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    };
+
+    // ── TOAST ──
+    function showToast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
+    }
+
+    // ── STATUS DOT ──
+    document.getElementById("status-dot").classList.add("online");
+  </script>
+</body>
+</html>
