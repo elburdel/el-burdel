@@ -311,7 +311,7 @@
     import { onSession, getUserData, logoutUser } from "./js/auth.js";
     import {
       saveCard, deleteCard,
-      sendRandomCard,
+      sendRandomCard, skipCard,
       setTimerRunning, setTimeLeft,
       markCorrect, markWrong, setScore,
       resetTaboo,
@@ -503,14 +503,6 @@
     // ══════════════════════════════════════
     // ── TABOO ──
     // ══════════════════════════════════════
-    import {
-      saveCard, deleteCard,
-      sendRandomCard, skipCard,
-      setTimerRunning, setTimeLeft,
-      markCorrect, markWrong, setScore,
-      resetTaboo,
-      onTabooState, onTabooScores, onTabooDeck
-    } from "./games/taboo.js";
 
     let tabooState = {};
     let tabooScores = { rojo: 0, azul: 0 };
@@ -748,6 +740,8 @@
         showToast("Taboo reseteado");
       });
     };
+
+
 
 
     // ── STATUS DOT ──
