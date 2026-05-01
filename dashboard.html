@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/taboo.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- NAV TOP -->
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links"></div>
+      <div class="nav-user" id="nav-user"></div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="dashboard-main">
+
+    <!-- SCOREBOARD GLOBAL (siempre visible) -->
+    <div class="dash-scoreboard" id="dash-scoreboard">
+      <div class="dash-score-team rojo">
+        <span class="dash-score-label">🔴 Rojo</span>
+        <span class="dash-score-value" id="dash-score-rojo">0</span>
+      </div>
+      <div class="dash-score-divider"></div>
+      <div class="dash-score-team azul">
+        <span class="dash-score-label">🔵 Azul</span>
+        <span class="dash-score-value" id="dash-score-azul">0</span>
+      </div>
+    </div>
+
+    <!-- CONTENIDO DINÁMICO -->
+    <div class="dash-content" id="dash-content">
+
+      <!-- ESTADO IDLE (sin juego activo) -->
+      <div class="dash-idle" id="dash-idle">
+        <div class="dash-idle-bombitas">
+          <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+          <span class="bombita"></span><span class="bombita"></span>
+        </div>
+        <h2 class="dash-idle-title">Esperando al admin...</h2>
+        <p class="dash-idle-sub">El juego todavía no empezó. Quedate acá y vas a ver todo en tiempo real.</p>
+      </div>
+
+      <!-- TABOO: TARJETA (solo para quien la recibe) -->
+      <div class="dash-taboo-card hidden" id="dash-taboo-card">
+        <div class="taboo-card">
+          <div class="taboo-card-timer">
+            <span class="timer-display" id="player-timer">60</span>
+          </div>
+          <div class="taboo-card-word">
+            <span class="taboo-card-word-label">Palabra a adivinar</span>
+            <div class="taboo-card-word-text" id="player-card-word">—</div>
+          </div>
+          <div class="taboo-card-forbidden" id="player-card-forbidden"></div>
+          <div class="taboo-card-actions">
+            <button class="taboo-btn-skip" id="btn-skip-card" onclick="handleSkip()">
+              Pasar (−<span id="skip-penalty">10</span>s)
+            </button>
+          </div>
+        </div>
+        <p class="dash-card-role" id="dash-card-role"></p>
+      </div>
+
+      <!-- TABOO: ESPECTADOR (ve marcador y tiempo pero no la tarjeta) -->
+      <div class="dash-taboo-spectator hidden" id="dash-taboo-spectator">
+        <div class="dash-spectator-timer">
+          <span class="timer-display" id="spectator-timer">60</span>
+          <span class="dash-spectator-label">Tiempo restante</span>
+        </div>
+        <p class="dash-spectator-msg">Seguí el juego en vivo desde acá 👀</p>
+      </div>
+
+    </div>
+
+    <!-- TABLÓN -->
+    <div class="dash-tablon" id="dash-tablon">
+      <p class="dash-tablon-msg" id="dash-tablon-msg"></p>
+    </div>
+
+  </main>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <button class="nav-bottom-link" style="background:none;border:none;cursor:pointer;" onclick="handleLogout()">Cerrar sesión</button>
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+    import { db } from "./js/firebase-init.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { onTabooScores, onTabooState, onVisibleTo, skipCard } from "./games/taboo.js";
+
+    let currentUser = null;
+    let currentUserData = null;
+    let tabooState = {};
+    let penaltySkip = 10;
+
+    // ── AUTH ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data) { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.status === "pending") { window.location.href = "/el-burdel/pending.html"; return; }
+      if (data.status === "paused")  { window.location.href = "/el-burdel/paused.html"; return; }
+      if (data.role === "admin")     { window.location.href = "/el-burdel/admin.html"; return; }
+
+      currentUser = user;
+      currentUserData = data;
+
+      document.getElementById("nav-user").innerHTML = `
+        <span style="font-size:13px;color:#c89600;letter-spacing:1px;">${data.nick}</span>
+        ${data.team === "rojo" ? " 🔴" : data.team === "azul" ? " 🔵" : ""}
+      `;
+
+      initDashboard();
+    });
+
+    window.handleLogout = () => logoutUser();
+
+    function initDashboard() {
+      listenScores();
+      listenTabooState();
+      listenVisibleTo();
+      listenTablon();
+      listenActiveGame();
+    }
+
+    // ── Juego activo ──
+    function listenActiveGame() {
+      onValue(ref(db, "session/activeGame"), (snap) => {
+        const game = snap.val() || "none";
+        if (game === "none") showIdle();
+      });
+    }
+
+    // ── Scores ──
+    function listenScores() {
+      onTabooScores(scores => {
+        document.getElementById("dash-score-rojo").textContent = scores.rojo ?? 0;
+        document.getElementById("dash-score-azul").textContent = scores.azul ?? 0;
+      });
+    }
+
+    // ── Estado Taboo ──
+    function listenTabooState() {
+      onTabooState(state => {
+        tabooState = state;
+        penaltySkip = state.penaltySkip ?? 10;
+        const skipEl = document.getElementById("skip-penalty");
+        if (skipEl) skipEl.textContent = penaltySkip;
+        updateTimerDisplays(state.timeLeft ?? 60);
+      });
+    }
+
+    // ── Visibilidad tarjeta ──
+    function listenVisibleTo() {
+      onVisibleTo(visible => {
+        if (!currentUser) return;
+        const canSee = visible && visible[currentUser.uid];
+        if (canSee && tabooState.currentCard) {
+          showCard(tabooState.currentCard);
+        } else if (tabooState.currentCard) {
+          showSpectator();
+        } else {
+          showIdle();
+        }
+      });
+    }
+
+    // ── Tablón ──
+    function listenTablon() {
+      onValue(ref(db, "session/broadcast"), snap => {
+        const msg = snap.val() || "";
+        const el = document.getElementById("dash-tablon");
+        const msgEl = document.getElementById("dash-tablon-msg");
+        if (msg) {
+          el.style.display = "block";
+          msgEl.textContent = `"${msg}"`;
+        } else {
+          el.style.display = "none";
+        }
+      });
+    }
+
+    // ── Mostrar estados ──
+    function showIdle() {
+      document.getElementById("dash-idle").classList.remove("hidden");
+      document.getElementById("dash-taboo-card").classList.add("hidden");
+      document.getElementById("dash-taboo-spectator").classList.add("hidden");
+    }
+
+    function showCard(card) {
+      document.getElementById("dash-idle").classList.add("hidden");
+      document.getElementById("dash-taboo-spectator").classList.add("hidden");
+      document.getElementById("dash-taboo-card").classList.remove("hidden");
+
+      document.getElementById("player-card-word").textContent = card.word;
+      const forbidden = document.getElementById("player-card-forbidden");
+      forbidden.innerHTML = `
+        <span class="taboo-forbidden-label">No pueden decir</span>
+        ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
+      `;
+
+      // Determinar rol
+      const isDescriber = tabooState.currentDescriber === currentUser.uid;
+      const roleEl = document.getElementById("dash-card-role");
+      roleEl.textContent = isDescriber ? "Vos describís 🗣️" : "Vos controlás 👁️";
+      roleEl.style.color = isDescriber ? "#f5c842" : "#90b0f0";
+
+      // Solo el que describe puede pasar
+      document.getElementById("btn-skip-card").style.display = isDescriber ? "block" : "none";
+    }
+
+    function showSpectator() {
+      document.getElementById("dash-idle").classList.add("hidden");
+      document.getElementById("dash-taboo-card").classList.add("hidden");
+      document.getElementById("dash-taboo-spectator").classList.remove("hidden");
+    }
+
+    function updateTimerDisplays(seconds) {
+      const s = Math.max(0, seconds ?? 0);
+      const min = Math.floor(s / 60);
+      const sec = s % 60;
+      const display = `${min > 0 ? min + ":" : ""}${String(sec).padStart(2, "0")}`;
+      const cls = "timer-display" + (s <= 10 ? " danger" : s <= 20 ? " warning" : "");
+      ["player-timer", "spectator-timer"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = display; el.className = cls; }
+      });
+    }
+
+    // ── Pasar tarjeta ──
+    window.handleSkip = async () => {
+      if (!tabooState.currentDescriber || tabooState.currentDescriber !== currentUser.uid) return;
+      try {
+        await skipCard(
+          penaltySkip,
+          tabooState.currentDescriber,
+          tabooState.currentVeedor,
+          []
+        );
+      } catch (e) {
+        console.error(e);
+      }
+    };
+  </script>
+</body>
+</html>
