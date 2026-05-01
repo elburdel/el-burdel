@@ -154,12 +154,25 @@
     // Animación telón
     window.addEventListener("load", () => {
       const curtain = document.getElementById("curtain");
+      const logo = curtain.querySelector(".curtain-logo");
+
+      // 1. Mostrar logo sobre el telón cerrado
+      setTimeout(() => {
+        logo.classList.add("visible");
+      }, 300);
+
+      // 2. Abrir el telón
       setTimeout(() => {
         curtain.classList.add("open");
-        setTimeout(() => {
-          curtain.style.display = "none";
-        }, 1200);
-      }, 800);
+      }, 1600);
+
+      // 3. Ocultar telón completamente
+      setTimeout(() => {
+        curtain.style.transition = "opacity 0.4s ease";
+        curtain.style.opacity = "0";
+        curtain.style.pointerEvents = "none";
+        setTimeout(() => { curtain.style.display = "none"; }, 400);
+      }, 3100);
     });
   </script>
 </body>
