@@ -1,0 +1,462 @@
+/* ─── TARJETA TABOO ─── */
+.taboo-card {
+  background: #111;
+  border: 2px solid rgba(200,150,0,0.5);
+  border-radius: 12px;
+  padding: 0;
+  max-width: 320px;
+  margin: 0 auto;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(200,150,0,0.1);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Timer en la tarjeta */
+.taboo-card-timer {
+  background: #0a0a0a;
+  border-bottom: 1px solid rgba(200,150,0,0.2);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.timer-display {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f5c842;
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  min-width: 64px;
+  text-align: center;
+}
+
+.timer-display.warning { color: #f09040; }
+.timer-display.danger  { color: #f04040; animation: timerPulse 0.5s infinite; }
+
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Palabra principal */
+.taboo-card-word {
+  background: var(--rojo, #8b1a1a);
+  padding: 24px 20px 20px;
+  text-align: center;
+  border-bottom: 2px solid rgba(200,150,0,0.3);
+  position: relative;
+}
+
+.taboo-card-word-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(245,240,232,0.5);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.taboo-card-word-text {
+  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-size: 38px;
+  font-weight: 700;
+  font-style: italic;
+  color: #f5c842;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+}
+
+/* Palabras prohibidas */
+.taboo-card-forbidden {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.taboo-forbidden-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(122,96,64,0.6);
+  margin-bottom: 12px;
+  text-align: center;
+  display: block;
+}
+
+.taboo-forbidden-item {
+  padding: 10px 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #c8b890;
+  border-bottom: 1px solid rgba(200,150,0,0.08);
+  letter-spacing: 0.5px;
+}
+
+.taboo-forbidden-item:last-child { border-bottom: none; }
+
+/* Botón pasar */
+.taboo-card-actions {
+  padding: 14px 20px;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(200,150,0,0.15);
+  display: flex;
+  gap: 10px;
+}
+
+.taboo-btn-skip {
+  flex: 1;
+  padding: 11px;
+  background: transparent;
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 4px;
+  color: #7a6040;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.taboo-btn-skip:hover {
+  border-color: rgba(200,150,0,0.4);
+  color: #c89600;
+}
+
+/* ─── SCOREBOARD ─── */
+.taboo-scoreboard {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.taboo-score-team {
+  flex: 1;
+  background: #111;
+  border-radius: 8px;
+  padding: 16px 12px;
+  text-align: center;
+  border: 1px solid rgba(200,150,0,0.12);
+}
+
+.taboo-score-team.rojo { border-color: rgba(139,26,26,0.5); background: rgba(139,26,26,0.1); }
+.taboo-score-team.azul { border-color: rgba(26,60,139,0.5); background: rgba(26,60,139,0.1); }
+
+.score-team-name {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7a6040;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.score-team-name.rojo { color: #f09090; }
+.score-team-name.azul { color: #90b0f0; }
+
+.score-team-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: #c89600;
+  line-height: 1;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.score-edit-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-edit-input {
+  width: 56px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 3px;
+  color: #f5f0e8;
+  font-size: 14px;
+  text-align: center;
+  padding: 4px 6px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.score-edit-btn {
+  background: rgba(200,150,0,0.15);
+  border: 1px solid rgba(200,150,0,0.25);
+  border-radius: 3px;
+  color: #c89600;
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ─── ADMIN TABOO PANEL ─── */
+.taboo-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.taboo-panel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Control de turno */
+.turn-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.turn-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.turn-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7a6040;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.turn-select {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 4px;
+  color: #f5f0e8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+/* Timer config */
+.timer-config-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.timer-input {
+  width: 70px;
+  background: #1a1a1a;
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 4px;
+  color: #f5f0e8;
+  font-size: 16px;
+  text-align: center;
+  padding: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.timer-config-label {
+  font-size: 12px;
+  color: #7a6040;
+  letter-spacing: 1px;
+}
+
+/* Botones de acción del turno */
+.turn-action-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-correct {
+  flex: 1;
+  padding: 12px;
+  background: rgba(76,175,80,0.2);
+  border: 1px solid rgba(76,175,80,0.4);
+  border-radius: 4px;
+  color: #4caf50;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-correct:hover { background: rgba(76,175,80,0.35); }
+
+.btn-wrong {
+  flex: 1;
+  padding: 12px;
+  background: rgba(240,80,80,0.15);
+  border: 1px solid rgba(240,80,80,0.3);
+  border-radius: 4px;
+  color: #f06060;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-wrong:hover { background: rgba(240,80,80,0.3); }
+
+.btn-next-card {
+  width: 100%;
+  padding: 12px;
+  background: var(--rojo, #8b1a1a);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 4px;
+  color: #f5e8c0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-next-card:hover { background: #b52020; }
+
+.btn-timer-toggle {
+  width: 100%;
+  padding: 12px;
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: 4px;
+  color: #f5c842;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-timer-toggle:hover { background: rgba(245,200,66,0.2); }
+.btn-timer-toggle.running {
+  background: rgba(245,200,66,0.2);
+  color: #f5c842;
+}
+
+/* ─── CARGA DE TARJETAS ─── */
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-form-input {
+  background: #1a1a1a;
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 4px;
+  color: #f5f0e8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.card-form-input:focus { border-color: rgba(200,150,0,0.5); }
+.card-form-input::placeholder { color: rgba(122,96,64,0.4); }
+
+.forbidden-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.forbidden-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.forbidden-num {
+  font-size: 11px;
+  color: #5a4030;
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Lista de tarjetas cargadas */
+.deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.deck-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0e0e0e;
+  border: 1px solid rgba(200,150,0,0.1);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.deck-item-word {
+  font-size: 14px;
+  font-weight: 500;
+  color: #c89600;
+  min-width: 100px;
+}
+
+.deck-item-forbidden {
+  flex: 1;
+  font-size: 12px;
+  color: #7a6040;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-item-delete {
+  background: none;
+  border: none;
+  color: rgba(240,80,80,0.4);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.deck-item-delete:hover { color: #f06060; }
+
+.deck-count {
+  font-size: 12px;
+  color: #5a4030;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 700px) {
+  .taboo-panel-grid { grid-template-columns: 1fr; }
+  .taboo-card-word-text { font-size: 30px; }
+}
