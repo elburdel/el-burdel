@@ -54,11 +54,11 @@
             <div class="dash-game-name">Taboo</div>
             <div class="dash-game-status" id="status-taboo">Esperando...</div>
           </div>
-          <div class="dash-game-card" id="game-card-wordle">
+          <a class="dash-game-card" id="game-card-wordle" href="wordle.html" style="text-decoration:none;">
             <span class="dash-game-icon">🔤</span>
             <div class="dash-game-name">Wordle</div>
-            <div class="dash-game-status" id="status-wordle">Próximamente</div>
-          </div>
+            <div class="dash-game-status" id="status-wordle">Jugar</div>
+          </a>
           <div class="dash-game-card" id="game-card-impostor">
             <span class="dash-game-icon">🕵️</span>
             <div class="dash-game-name">El Impostor</div>
@@ -194,6 +194,10 @@
             if (card) card.classList.add("active");
           } else if (g === "taboo") {
             el.textContent = "Esperando...";
+            el.className = "dash-game-status";
+            if (card) card.classList.remove("active");
+          } else if (g === "wordle") {
+            el.textContent = "Jugar";
             el.className = "dash-game-status";
             if (card) card.classList.remove("active");
           } else {
