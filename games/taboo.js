@@ -35,6 +35,23 @@ async function deleteCard(cardId) {
   await remove(ref(db, `games/taboo/deck/${cardId}`));
 }
 
+// ── EDITAR TARJETA ──
+async function updateCard(cardId, word, forbidden) {
+  const wordClean = word.trim().toLowerCase();
+  // Verificar duplicado en otras tarjetas
+  const snap = await get(ref(db, "games/taboo/deck"));
+  if (snap.exists()) {
+    const existing = Object.entries(snap.val()).find(
+      ([id, c]) => id !== cardId && c.word.toLowerCase() === wordClean
+    );
+    if (existing) throw new Error(`La palabra "${word}" ya existe en el mazo.`);
+  }
+  await update(ref(db, `games/taboo/deck/${cardId}`), {
+    word: word.trim(),
+    forbidden: forbidden.map(f => f.trim()).filter(f => f.length > 0)
+  });
+}
+
 // ── OBTENER MAZO COMPLETO ──
 async function getDeck() {
   const snap = await get(ref(db, "games/taboo/deck"));
@@ -142,7 +159,7 @@ function onVisibleTo(callback) {
 }
 
 export {
-  saveCard, deleteCard, getDeck,
+  saveCard, deleteCard, updateCard, getDeck,
   sendRandomCard, skipCard,
   setTimerRunning, setTimeLeft,
   markCorrect, markWrong, setScore,
