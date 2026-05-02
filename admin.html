@@ -35,6 +35,46 @@
       white-space: nowrap;
     }
   </style>
+  <style>
+    /* ── Sesión usuarios ── */
+    .sesion-user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(200,150,0,0.07);
+    }
+    .sesion-user-row:last-child { border-bottom: none; }
+
+    .sesion-presence-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .sesion-presence-dot.online {
+      background: #4caf50;
+      box-shadow: 0 0 6px rgba(76,175,80,0.7);
+    }
+    .sesion-presence-dot.offline {
+      background: rgba(255,255,255,0.15);
+    }
+
+    .sesion-nick {
+      flex: 1;
+      font-size: 14px;
+      color: var(--crema);
+    }
+    .sesion-team-badge {
+      font-size: 16px;
+      width: 24px;
+      text-align: center;
+    }
+    .sesion-team-btns {
+      display: flex;
+      gap: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -136,35 +176,29 @@
       <div class="admin-section-inner">
         <h2 class="admin-section-title">Sesión activa</h2>
 
-        <!-- EQUIPOS -->
-        <div class="admin-card" id="card-equipos">
-          <div class="admin-card-label">Equipos</div>
-
-          <!-- Editor de nombres -->
-          <div class="team-name-editor">
-            <div class="team-name-row">
-              <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="🔴" />
-              <input type="text" class="team-name-input" id="input-name-rojo" maxlength="24" placeholder="Equipo Rojo" />
-            </div>
-            <div class="team-name-row">
-              <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
-              <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
-            </div>
-            <button class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
+        <!-- USUARIOS EN SESIÓN (presence + equipos) -->
+        <div class="admin-card" id="card-sesion-usuarios">
+          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Usuarios en sesión</span>
+            <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
+          </div>
+          <div id="sesion-usuarios-list" style="margin-bottom:16px;">
+            <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
           </div>
 
-          <div class="equipos-grid" id="equipos-grid">
-            <div class="equipo-col" id="equipo-rojo">
-              <div class="equipo-header rojo" id="header-equipo-rojo">🔴 Equipo Rojo</div>
-              <div class="equipo-lista" id="lista-rojo"></div>
-            </div>
-            <div class="equipo-col" id="equipo-azul">
-              <div class="equipo-header azul" id="header-equipo-azul">🔵 Equipo Azul</div>
-              <div class="equipo-lista" id="lista-azul"></div>
-            </div>
-            <div class="equipo-col">
-              <div class="equipo-header sin">⚪ Sin equipo</div>
-              <div class="equipo-lista" id="lista-sin"></div>
+          <!-- Editor de nombres de equipo -->
+          <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;margin-top:4px;">
+            <div class="admin-card-label" style="margin-bottom:10px;">Nombres de equipo</div>
+            <div class="team-name-editor">
+              <div class="team-name-row">
+                <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="🔴" />
+                <input type="text" class="team-name-input" id="input-name-rojo" maxlength="24" placeholder="Equipo Rojo" />
+              </div>
+              <div class="team-name-row">
+                <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
+                <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
+              </div>
+              <button class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
             </div>
           </div>
         </div>
@@ -533,6 +567,7 @@
       initTaboo();
       listenTeamNames();
       initWordleAdmin();
+      listenPresence();
     }
 
     // ── NOMBRES DE EQUIPOS ──
@@ -618,29 +653,63 @@
     }
 
     // ── EQUIPOS ──
-    function renderEquipos() {
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      const rojo = activos.filter(([, u]) => u.team === "rojo");
-      const azul = activos.filter(([, u]) => u.team === "azul");
-      const sin = activos.filter(([, u]) => !u.team || u.team === null);
+    // presence data: { uid: { nick, team, connectedAt } }
+    let presenceData = {};
 
-      document.getElementById("lista-rojo").innerHTML = renderEquipoLista(rojo, "rojo");
-      document.getElementById("lista-azul").innerHTML = renderEquipoLista(azul, "azul");
-      document.getElementById("lista-sin").innerHTML = renderEquipoLista(sin, "sin");
+    function listenPresence() {
+      onValue(ref(db, "presence"), (snap) => {
+        presenceData = snap.val() || {};
+        renderSesionUsuarios();
+      });
     }
 
-    function renderEquipoLista(users, equipo) {
-      if (users.length === 0) return `<div class="equipo-empty">Nadie</div>`;
-      return users.map(([uid, u]) => `
-        <div class="equipo-user">
-          <span class="equipo-nick">${u.nick}</span>
-          <div class="equipo-btns">
-            ${equipo !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
-            ${equipo !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
-            ${equipo !== "sin" ? `<button class="equipo-btn sin-btn" onclick="setTeam('${uid}', null)">⚪</button>` : ""}
+    function renderEquipos() {
+      // kept for compatibility — calls the unified render
+      renderSesionUsuarios();
+    }
+
+    function renderSesionUsuarios() {
+      const list = document.getElementById("sesion-usuarios-list");
+      if (!list) return;
+
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      if (activos.length === 0) {
+        list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
+        document.getElementById("online-count").textContent = "0 online";
+        return;
+      }
+
+      const onlineUids = new Set(Object.keys(presenceData));
+      const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
+      document.getElementById("online-count").textContent = `${onlineCount} online`;
+
+      // Ordenar: online primero, luego por equipo, luego por nick
+      const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
+        const aOnline = onlineUids.has(uidA) ? 0 : 1;
+        const bOnline = onlineUids.has(uidB) ? 0 : 1;
+        if (aOnline !== bOnline) return aOnline - bOnline;
+        return (uA.nick || "").localeCompare(uB.nick || "");
+      });
+
+      list.innerHTML = sorted.map(([uid, u]) => {
+        const isOnline = onlineUids.has(uid);
+        const team = u.team || "sin";
+        const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
+        const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
+
+        return `
+          <div class="sesion-user-row" data-uid="${uid}">
+            <span class="sesion-presence-dot ${isOnline ? "online" : "offline"}" title="${isOnline ? "Online" : "Offline"}"></span>
+            <span class="sesion-nick">${u.nick}</span>
+            <span class="sesion-team-badge" title="${teamName}">${teamEmoji}</span>
+            <div class="sesion-team-btns">
+              ${team !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
+              ${team !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
+              ${team !== "sin"  ? `<button class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">⚪</button>` : ""}
+            </div>
           </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     window.setTeam = async (uid, team) => {
