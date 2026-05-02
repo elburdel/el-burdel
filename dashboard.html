@@ -223,7 +223,7 @@
   <script type="module">
     import { onSession, getUserData, logoutUser } from "./js/auth.js";
     import { db } from "./js/firebase-init.js";
-    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { onTabooScores, onTabooState, onVisibleTo, skipCard } from "./games/taboo.js";
 
     let currentUser = null;
@@ -259,6 +259,7 @@
       listenVisibleTo();
       listenTablon();
       listenActiveGame();
+      initPresence();
     }
 
     // ── Juego activo ──
@@ -395,6 +396,24 @@
       ["player-timer", "spectator-timer"].forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.textContent = display; el.className = cls; }
+      });
+    }
+
+    // ── Presence ──
+    function initPresence() {
+      const connectedRef = ref(db, ".info/connected");
+      const presenceRef  = ref(db, `presence/${currentUser.uid}`);
+
+      onValue(connectedRef, (snap) => {
+        if (snap.val() !== true) return;
+        // Escribir presencia al conectarse
+        set(presenceRef, {
+          nick: currentUserData.nick,
+          team: currentUserData.team || null,
+          connectedAt: Date.now()
+        });
+        // Borrar al desconectarse (cierre de tab, pérdida de red, etc.)
+        onDisconnect(presenceRef).remove();
       });
     }
 
