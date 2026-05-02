@@ -10,6 +10,31 @@
   <link rel="stylesheet" href="css/wordle.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .admin-game-bar {
+      background: var(--negro-2);
+      border-bottom: 1px solid rgba(200,150,0,0.12);
+      padding: 12px 20px;
+      position: sticky;
+      top: 56px;
+      z-index: 90;
+    }
+    .admin-game-bar-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .admin-game-bar-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
 
@@ -40,6 +65,30 @@
           <h1 class="admin-title">Admin <span id="admin-nick"></span></h1>
         </div>
         <div class="admin-status-dot" id="status-dot" title="Conectado a Firebase"></div>
+      </div>
+    </div>
+
+    <!-- SELECTOR JUEGO ACTIVO — siempre visible -->
+    <div class="admin-game-bar">
+      <div class="admin-game-bar-inner">
+        <span class="admin-game-bar-label">Juego activo</span>
+        <div class="games-toggle-grid">
+          <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
+            <span>🚫</span> Ninguno
+          </button>
+          <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
+            <span>🃏</span> Taboo
+          </button>
+          <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
+            <span>🔤</span> Wordle
+          </button>
+          <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
+            <span>🕵️</span> Impostor
+          </button>
+          <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
+            <span>💰</span> Millonario
+          </button>
+        </div>
       </div>
     </div>
 
@@ -86,28 +135,6 @@
     <section class="admin-section alt" id="section-sesion">
       <div class="admin-section-inner">
         <h2 class="admin-section-title">Sesión activa</h2>
-
-        <!-- JUEGO ACTIVO -->
-        <div class="admin-card">
-          <div class="admin-card-label">Juego activo</div>
-          <div class="games-toggle-grid">
-            <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
-              <span>🚫</span> Ninguno
-            </button>
-            <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
-              <span>🃏</span> Taboo
-            </button>
-            <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
-              <span>🔤</span> Wordle
-            </button>
-            <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
-              <span>🕵️</span> Impostor
-            </button>
-            <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
-              <span>💰</span> Millonario
-            </button>
-          </div>
-        </div>
 
         <!-- EQUIPOS -->
         <div class="admin-card" id="card-equipos">
@@ -1212,7 +1239,7 @@
       wordle:     "wordle",
       impostor:   "sesion",
       millonario: "sesion",
-      none:       "sesion"
+      none:       "tablon"
     };
 
     function showSection(sectionId) {
