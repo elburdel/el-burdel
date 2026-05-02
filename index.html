@@ -111,7 +111,7 @@
       <span class="section-label">Los mejores</span>
       <h2 class="section-title">Ranking</h2>
       <div class="ranking-list" id="ranking-list">
-        <div class="media-placeholder">Próximamente</div>
+        <div class="media-placeholder" style="font-size:12px;color:var(--crema-3);">Cargando ranking...</div>
       </div>
     </div>
   </section>
@@ -144,7 +144,8 @@
   </footer>
 
   <script type="module">
-    import { onSession, redirectByRole } from "./js/auth.js";
+    import { onSession, getUserData } from "./js/auth.js";
+    import { onRanking } from "./games/wordle.js";
 
     // Mostrar estado de sesión en el nav
     onSession(async (user) => {
@@ -170,6 +171,24 @@
       } else {
         navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
       }
+    });
+
+    // Ranking Wordle en tiempo real
+    onRanking((ranking) => {
+      const list = document.getElementById("ranking-list");
+      if (!list) return;
+      if (ranking.length === 0) {
+        list.innerHTML = `<div class="media-placeholder">Aún no hay datos de ranking.</div>`;
+        return;
+      }
+      list.innerHTML = ranking.slice(0, 20).map((u, i) => `
+        <div class="ranking-row">
+          <span class="ranking-pos">${i + 1}</span>
+          <span class="ranking-nick">${u.nick}</span>
+          <span class="ranking-team">${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : ""}</span>
+          <span class="ranking-points">${u.totalPoints} <span style="font-size:10px;letter-spacing:1px;opacity:.6">pts</span></span>
+        </div>
+      `).join("");
     });
 
     // Animación telón
