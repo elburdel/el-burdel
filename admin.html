@@ -123,7 +123,7 @@
     .deck-modal-item {
       border: 1px solid #e8d5bb;
       border-radius: 8px;
-      overflow: hidden;
+      overflow: visible;
       background: #fff8f0;
     }
     .deck-item-view {
@@ -177,6 +177,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      border-radius: 0 0 8px 8px;
     }
     .deck-item-edit.hidden { display: none; }
     /* inputs dentro del editor de tarjeta — estilo crema */
@@ -1018,9 +1019,16 @@
     window.openEditCard = (id) => {
       document.getElementById(`deck-edit-${id}`).classList.remove("hidden");
       document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.add("hidden");
-      // Scroll al item para que los botones queden visibles
+      // Scroll dentro del modal hasta que los botones de acción queden visibles
       setTimeout(() => {
-        document.getElementById(`deck-item-${id}`).scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const editPanel = document.getElementById(`deck-edit-${id}`);
+        const actionRow = editPanel.querySelector(".edit-action-row");
+        const modalList = document.getElementById("deck-modal-list");
+        if (actionRow && modalList) {
+          const itemTop = editPanel.offsetTop;
+          const itemBottom = itemTop + editPanel.scrollHeight + 16;
+          modalList.scrollTo({ top: itemBottom - modalList.clientHeight, behavior: "smooth" });
+        }
       }, 50);
     };
 
