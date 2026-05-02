@@ -9,6 +9,82 @@
   <link rel="stylesheet" href="css/taboo.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .tablon-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+      animation: tablon-fade-in 0.25s ease;
+    }
+    .tablon-modal-overlay.hidden {
+      display: none;
+    }
+    .tablon-modal {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.25);
+      border-radius: 12px;
+      padding: 28px 24px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      animation: tablon-slide-up 0.3s ease;
+    }
+    .tablon-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tablon-modal-icon {
+      font-size: 22px;
+    }
+    .tablon-modal-label {
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+    }
+    .tablon-modal-msg {
+      font-size: 17px;
+      color: var(--crema);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+    .tablon-modal-btn {
+      background: var(--rojo);
+      border: none;
+      color: var(--crema);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 11px 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .tablon-modal-btn:hover {
+      opacity: 0.85;
+    }
+    @keyframes tablon-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes tablon-slide-up {
+      from { transform: translateY(16px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+  </style>
 </head>
 <body>
 
@@ -117,12 +193,19 @@
 
     </div>
 
-    <!-- TABLÓN -->
-    <div class="dash-tablon" id="dash-tablon">
-      <p class="dash-tablon-msg" id="dash-tablon-msg"></p>
-    </div>
-
   </main>
+
+  <!-- MODAL TABLÓN -->
+  <div class="tablon-modal-overlay hidden" id="tablon-modal-overlay">
+    <div class="tablon-modal">
+      <div class="tablon-modal-header">
+        <span class="tablon-modal-icon">📢</span>
+        <span class="tablon-modal-label">Mensaje del admin</span>
+      </div>
+      <p class="tablon-modal-msg" id="tablon-modal-msg"></p>
+      <button class="tablon-modal-btn" onclick="dismissTablon()">Entendido</button>
+    </div>
+  </div>
 
   <!-- NAV BOTTOM -->
   <footer class="nav-bottom">
@@ -244,20 +327,29 @@
       });
     }
 
-    // ── Tablón ──
+    // ── Tablón emergente ──
     function listenTablon() {
       onValue(ref(db, "session/broadcast"), snap => {
         const msg = snap.val() || "";
-        const el = document.getElementById("dash-tablon");
-        const msgEl = document.getElementById("dash-tablon-msg");
-        if (msg) {
-          el.style.display = "block";
-          msgEl.textContent = `"${msg}"`;
-        } else {
-          el.style.display = "none";
-        }
+        if (!msg) return;
+
+        // Solo mostrar si el usuario NO vio este mensaje antes
+        const storageKey = `tablon_seen_${currentUser.uid}`;
+        const lastSeen = localStorage.getItem(storageKey);
+        if (lastSeen === msg) return;
+
+        // Mostrar modal
+        document.getElementById("tablon-modal-msg").textContent = msg;
+        document.getElementById("tablon-modal-overlay").classList.remove("hidden");
       });
     }
+
+    window.dismissTablon = () => {
+      const msg = document.getElementById("tablon-modal-msg").textContent;
+      const storageKey = `tablon_seen_${currentUser.uid}`;
+      localStorage.setItem(storageKey, msg);
+      document.getElementById("tablon-modal-overlay").classList.add("hidden");
+    };
 
     // ── Mostrar estados ──
     function showIdle() {
