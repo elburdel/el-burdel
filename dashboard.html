@@ -16,8 +16,13 @@
   <nav class="nav-top">
     <div class="nav-top-inner">
       <a href="index.html" class="nav-brand">El Burdel</a>
-      <div class="nav-links"></div>
-      <div class="nav-user" id="nav-user"></div>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Inicio</a>
+      </div>
+      <div class="nav-right">
+        <div class="nav-user-pill" id="nav-user"></div>
+        <button class="nav-logout" onclick="handleLogout()">Salir</button>
+      </div>
     </div>
   </nav>
 
@@ -34,6 +39,37 @@
       <div class="dash-score-team azul">
         <span class="dash-score-label">🔵 Azul</span>
         <span class="dash-score-value" id="dash-score-azul">0</span>
+      </div>
+    </div>
+
+
+    <!-- JUEGOS DISPONIBLES -->
+    <div class="dash-lobby" id="dash-lobby">
+      <div class="dash-lobby-inner">
+        <span class="section-label">Esta noche</span>
+        <h2 class="dash-lobby-title">Juegos</h2>
+        <div class="dash-games-grid" id="dash-games-grid">
+          <div class="dash-game-card" id="game-card-taboo">
+            <span class="dash-game-icon">🃏</span>
+            <div class="dash-game-name">Taboo</div>
+            <div class="dash-game-status" id="status-taboo">Esperando...</div>
+          </div>
+          <div class="dash-game-card" id="game-card-wordle">
+            <span class="dash-game-icon">🔤</span>
+            <div class="dash-game-name">Wordle</div>
+            <div class="dash-game-status" id="status-wordle">Próximamente</div>
+          </div>
+          <div class="dash-game-card" id="game-card-impostor">
+            <span class="dash-game-icon">🕵️</span>
+            <div class="dash-game-name">El Impostor</div>
+            <div class="dash-game-status" id="status-impostor">Próximamente</div>
+          </div>
+          <div class="dash-game-card" id="game-card-millonario">
+            <span class="dash-game-icon">💰</span>
+            <div class="dash-game-name">El Millonario</div>
+            <div class="dash-game-status" id="status-millonario">Próximamente</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -125,8 +161,8 @@
       currentUserData = data;
 
       document.getElementById("nav-user").innerHTML = `
-        <span style="font-size:13px;color:#c89600;letter-spacing:1px;">${data.nick}</span>
-        ${data.team === "rojo" ? " 🔴" : data.team === "azul" ? " 🔵" : ""}
+        <span class="nav-user-dot"></span>
+        <span class="nav-user-nick">${data.nick} ${data.team === "rojo" ? "🔴" : data.team === "azul" ? "🔵" : ""}</span>
       `;
 
       initDashboard();
@@ -146,6 +182,26 @@
     function listenActiveGame() {
       onValue(ref(db, "session/activeGame"), (snap) => {
         const game = snap.val() || "none";
+        // Actualizar estado de cada juego en la lobby
+        const games = ["taboo", "wordle", "impostor", "millonario"];
+        games.forEach(g => {
+          const el = document.getElementById(`status-${g}`);
+          const card = document.getElementById(`game-card-${g}`);
+          if (!el) return;
+          if (g === game) {
+            el.textContent = "🟢 Activo ahora";
+            el.className = "dash-game-status active";
+            if (card) card.classList.add("active");
+          } else if (g === "taboo") {
+            el.textContent = "Esperando...";
+            el.className = "dash-game-status";
+            if (card) card.classList.remove("active");
+          } else {
+            el.textContent = "Próximamente";
+            el.className = "dash-game-status";
+            if (card) card.classList.remove("active");
+          }
+        });
         if (game === "none") showIdle();
       });
     }
