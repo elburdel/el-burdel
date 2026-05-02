@@ -53,6 +53,17 @@
       justify-content: space-between;
       gap: 12px;
     }
+    /* fuerza el overlay del mazo a cubrir todo el viewport sin scroll */
+    #deck-modal-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.5);
+    }
+    #deck-modal-overlay.hidden { display: none !important; }
     /* ── Deck modal ── */
     .deck-modal-box {
       width: min(620px, 96vw);
@@ -105,6 +116,9 @@
       flex-direction: column;
       gap: 8px;
       padding-right: 2px;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
     .deck-modal-item {
       border: 1px solid #e8d5bb;
@@ -986,11 +1000,17 @@
     window.openDeckModal = () => {
       document.getElementById("deck-modal-overlay").classList.remove("hidden");
       document.getElementById("deck-search").value = "";
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
       renderDeckModal();
     };
 
     window.closeDeckModal = () => {
       document.getElementById("deck-modal-overlay").classList.add("hidden");
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
     };
 
     window.filterDeck = () => renderDeckModal();
