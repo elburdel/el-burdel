@@ -105,9 +105,12 @@
   <script type="module">
     import { registerUser, loginUser, recoverPassword, onSession, redirectByRole } from "./js/auth.js";
 
-    // Redirigir si ya hay sesión
+    // Flag para bloquear la redirección automática durante el registro
+    let isRegistering = false;
+
+    // Redirigir si ya hay sesión activa (solo si no estamos en proceso de registro)
     onSession(async (user) => {
-      if (user) await redirectByRole(user);
+      if (user && !isRegistering) await redirectByRole(user);
     });
 
     // Exponer funciones al HTML
@@ -133,10 +136,19 @@
       const btn = document.getElementById("btn-register");
       btn.disabled = true;
       btn.textContent = "Creando cuenta...";
+
+      // Bloquear onSession mientras completamos el registro en la DB
+      isRegistering = true;
       try {
         await registerUser(nick, email, pass);
         showMsg("¡Cuenta creada! Esperá que el admin te apruebe.", "success");
+        btn.textContent = "¡Listo!";
+        // Una vez guardado todo en la DB, redirigir manualmente a pending
+        setTimeout(() => {
+          window.location.href = "/el-burdel/pending.html";
+        }, 1500);
       } catch (e) {
+        isRegistering = false;
         showMsg(friendlyError(e.code || e.message), "error");
         btn.disabled = false;
         btn.textContent = "Crear cuenta";
