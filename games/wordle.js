@@ -5,7 +5,7 @@ import { db } from "../js/firebase-init.js";
 import {
   ref, get, set, update, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { WORDS_5, WORDS_6 } from "./words.js";
+import { WORDS_5, WORDS_6, VALID_5, VALID_6 } from "./words.js";
 
 const MAX_ATTEMPTS = 6;
 
@@ -148,10 +148,11 @@ export async function forceWordOfDay(mode, word) {
   await set(ref(db, `wordle/forced/${today}/${mode}`), upper);
 }
 
-// ── Validar si una palabra está en la lista ──
+// ── Validar si una palabra está en la lista de palabras aceptadas ──
 export function isValidWord(word, mode) {
-  const list = mode === "5" ? WORDS_5 : WORDS_6;
-  return list.includes(word.toUpperCase());
+  const upper = word.toUpperCase();
+  const validSet = mode === "5" ? VALID_5 : VALID_6;
+  return validSet.has(upper);
 }
 
 // ── Evaluar un intento: devuelve array de estados por letra ──
