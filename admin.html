@@ -1107,10 +1107,18 @@
       const badge = document.getElementById("admin-word-source-badge");
       display.textContent = "...";
 
-      try {
-        const today = getTodayKeyAdmin();
+      const today = getTodayKeyAdmin();
 
-        // 1. Verificar si hay palabra forzada
+      // Calcular la palabra automática (sin Firebase, siempre funciona)
+      const { WORDS_5, WORDS_6 } = await import("./games/words.js");
+      const list = m === "5" ? WORDS_5 : WORDS_6;
+      const encoder = new TextEncoder();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(today + m));
+      const hashArray = new Uint8Array(hashBuffer);
+      const autoWord = list[(hashArray[0] * 256 + hashArray[1]) % list.length];
+
+      // Intentar leer si hay palabra forzada (puede fallar si las reglas no lo permiten)
+      try {
         const forcedSnap = await get(ref(db, `wordle/forced/${today}/${m}`));
         if (forcedSnap.exists()) {
           const forced = forcedSnap.val();
@@ -1120,25 +1128,15 @@
           badge.style.borderColor = "rgba(200,150,0,0.5)";
           return;
         }
-
-        // 2. Calcular la palabra automática con hash de fecha (mismo algoritmo que wordle.js)
-        const { WORDS_5, WORDS_6 } = await import("./games/words.js");
-        const list = m === "5" ? WORDS_5 : WORDS_6;
-        const encoder = new TextEncoder();
-        const data = encoder.encode(today + m);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = new Uint8Array(hashBuffer);
-        const hash = hashArray[0] * 256 + hashArray[1];
-        const word = list[hash % list.length];
-
-        display.textContent = word;
-        badge.textContent = "automática";
-        badge.style.color = "var(--crema-3)";
-        badge.style.borderColor = "rgba(200,150,0,0.2)";
       } catch (e) {
-        display.textContent = "—";
-        console.error("loadWordleAdminMode error:", e);
+        // Sin permiso para leer forced — mostramos la automática igual
+        console.warn("No se pudo leer wordle/forced (revisar reglas Firebase):", e.message);
       }
+
+      display.textContent = autoWord;
+      badge.textContent = "automática";
+      badge.style.color = "var(--crema-3)";
+      badge.style.borderColor = "rgba(200,150,0,0.2)";
     }
 
     function getTodayKeyAdmin() {
