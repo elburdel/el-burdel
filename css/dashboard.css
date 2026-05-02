@@ -163,3 +163,97 @@
   color: #c89600;
   letter-spacing: 1px;
 }
+
+/* ─── LOBBY DE JUEGOS ─── */
+.dash-lobby {
+  padding: 28px 20px 0;
+}
+
+.dash-lobby-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.dash-lobby-title {
+  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--dorado);
+  margin-bottom: 16px;
+}
+
+.dash-games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.dash-game-card {
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.12);
+  border-radius: 8px;
+  padding: 18px 14px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.dash-game-card.active {
+  border-color: rgba(200,150,0,0.5);
+  background: rgba(200,150,0,0.06);
+}
+
+.dash-game-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.dash-game-name {
+  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--dorado);
+  margin-bottom: 6px;
+}
+
+.dash-game-status {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+}
+
+.dash-game-status.active {
+  color: #4caf50;
+}
+
+/* ─── NAV RIGHT ─── */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-logout {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  background: transparent;
+  border: 1px solid rgba(200,150,0,0.15);
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-logout:hover {
+  color: #f09090;
+  border-color: rgba(240,144,144,0.3);
+}
