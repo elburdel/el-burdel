@@ -46,6 +46,129 @@
       padding: 6px 14px;
       font-size: 12px;
     }
+    /* ── Deck summary row ── */
+    .deck-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    /* ── Deck modal ── */
+    .deck-modal-box {
+      width: min(620px, 96vw);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    .deck-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .deck-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2e1a0e;
+      margin: 0;
+    }
+    .deck-modal-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #7a5c3a;
+      line-height: 1;
+      padding: 4px 8px;
+    }
+    .deck-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      border: 1px solid #d4b896;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+    .deck-modal-list {
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .deck-modal-item {
+      border: 1px solid #e8d5bb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .deck-item-view {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+    .deck-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .deck-item-word {
+      font-weight: 600;
+      font-size: 14px;
+      color: #2e1a0e;
+    }
+    .deck-item-forbidden {
+      font-size: 12px;
+      color: #7a5c3a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .deck-item-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .deck-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 5px 9px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .deck-btn.edit-btn { background: #f0e6d3; color: #5a3e1b; }
+    .deck-btn.delete-btn { background: #fde8e8; color: #b91c1c; }
+    .deck-item-edit {
+      padding: 12px;
+      border-top: 1px solid #e8d5bb;
+      background: #fdf8f2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .deck-item-edit.hidden { display: none; }
+    .edit-forbidden-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .edit-action-row {
+      display: flex;
+      gap: 8px;
+    }
+    .deck-empty-msg {
+      text-align: center;
+      font-size: 13px;
+      color: #7a5c3a;
+      padding: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -304,9 +427,9 @@
             <!-- Lista del mazo -->
             <div class="admin-card">
               <div class="admin-card-label">Mazo cargado</div>
-              <p class="deck-count" id="deck-count-label">0 tarjetas</p>
-              <div class="deck-list" id="deck-list">
-                <p style="font-size:13px;color:#5a4030;text-align:center;padding:12px 0;">El mazo está vacío.</p>
+              <div class="deck-summary-row">
+                <p class="deck-count" id="deck-count-label">0 tarjetas</p>
+                <button class="admin-btn secondary small" onclick="openDeckModal()">Ver mazo</button>
               </div>
             </div>
 
@@ -360,10 +483,22 @@
     </div>
   </div>
 
+  <!-- MODAL MAZO TABOO -->
+  <div class="modal-overlay hidden" id="deck-modal-overlay">
+    <div class="modal-box deck-modal-box">
+      <div class="deck-modal-header">
+        <h3 class="deck-modal-title">Mazo de Taboo</h3>
+        <button class="deck-modal-close" onclick="closeDeckModal()">✕</button>
+      </div>
+      <input type="text" class="deck-search-input" id="deck-search" placeholder="Buscar tarjeta..." oninput="filterDeck()" />
+      <div class="deck-modal-list" id="deck-modal-list"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { onSession, getUserData, logoutUser } from "./js/auth.js";
     import {
-      saveCard, deleteCard,
+      saveCard, deleteCard, updateCard,
       sendRandomCard, skipCard,
       setTimerRunning, setTimeLeft,
       markCorrect, markWrong, setScore,
@@ -760,22 +895,93 @@
       }
     };
 
-    // ── Renderizar mazo ──
+    // ── Renderizar mazo (modal) ──
     function renderDeckList(deck) {
-      const list = document.getElementById("deck-list");
-      const entries = Object.entries(deck);
-      if (entries.length === 0) {
-        list.innerHTML = `<p style="font-size:13px;color:#5a4030;text-align:center;padding:12px 0;">El mazo está vacío.</p>`;
+      // ya no renderiza inline, solo actualiza el modal si está abierto
+      if (!document.getElementById("deck-modal-overlay").classList.contains("hidden")) {
+        renderDeckModal();
+      }
+    }
+
+    function renderDeckModal() {
+      const query = (document.getElementById("deck-search").value || "").toLowerCase().trim();
+      const list = document.getElementById("deck-modal-list");
+      const entries = Object.entries(tabooDeck);
+      const filtered = query
+        ? entries.filter(([, c]) => c.word.toLowerCase().includes(query) || (c.forbidden || []).some(f => f.toLowerCase().includes(query)))
+        : entries;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<p class="deck-empty-msg">${query ? "Sin resultados." : "El mazo está vacío."}</p>`;
         return;
       }
-      list.innerHTML = entries.map(([id, card]) => `
-        <div class="deck-item">
-          <span class="deck-item-word">${card.word}</span>
-          <span class="deck-item-forbidden">${(card.forbidden || []).join(", ")}</span>
-          <button class="deck-item-delete" onclick="confirmDeleteCard('${id}', '${card.word}')">✕</button>
+
+      list.innerHTML = filtered.map(([id, card]) => `
+        <div class="deck-modal-item" id="deck-item-${id}">
+          <div class="deck-item-view">
+            <div class="deck-item-info">
+              <span class="deck-item-word">${card.word}</span>
+              <span class="deck-item-forbidden">${(card.forbidden || []).join(", ")}</span>
+            </div>
+            <div class="deck-item-actions">
+              <button class="deck-btn edit-btn" onclick="openEditCard('${id}')">✏️</button>
+              <button class="deck-btn delete-btn" onclick="confirmDeleteCard('${id}', '${card.word.replace(/'/g, "\\'")}')">✕</button>
+            </div>
+          </div>
+          <div class="deck-item-edit hidden" id="deck-edit-${id}">
+            <input type="text" class="card-form-input" id="edit-word-${id}" value="${card.word}" maxlength="40" placeholder="Palabra" />
+            <div class="edit-forbidden-grid" id="edit-forbidden-${id}">
+              ${[0,1,2,3,4].map(i => `
+                <div class="forbidden-row">
+                  <span class="forbidden-num">${i+1}</span>
+                  <input type="text" class="card-form-input" value="${(card.forbidden || [])[i] || ''}" maxlength="30" placeholder="Prohibida" />
+                </div>
+              `).join("")}
+            </div>
+            <div class="edit-action-row">
+              <button class="admin-btn primary small" onclick="saveEditCard('${id}')">Guardar</button>
+              <button class="admin-btn secondary small" onclick="closeEditCard('${id}')">Cancelar</button>
+            </div>
+          </div>
         </div>
       `).join("");
     }
+
+    window.openDeckModal = () => {
+      document.getElementById("deck-modal-overlay").classList.remove("hidden");
+      document.getElementById("deck-search").value = "";
+      renderDeckModal();
+    };
+
+    window.closeDeckModal = () => {
+      document.getElementById("deck-modal-overlay").classList.add("hidden");
+    };
+
+    window.filterDeck = () => renderDeckModal();
+
+    window.openEditCard = (id) => {
+      document.getElementById(`deck-edit-${id}`).classList.remove("hidden");
+      document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.add("hidden");
+    };
+
+    window.closeEditCard = (id) => {
+      document.getElementById(`deck-edit-${id}`).classList.add("hidden");
+      document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.remove("hidden");
+    };
+
+    window.saveEditCard = async (id) => {
+      const word = document.getElementById(`edit-word-${id}`).value.trim();
+      if (!word) { showToast("La palabra no puede estar vacía."); return; }
+      const forbidden = Array.from(
+        document.querySelectorAll(`#edit-forbidden-${id} input`)
+      ).map(i => i.value.trim()).filter(v => v.length > 0);
+      try {
+        await updateCard(id, word, forbidden);
+        showToast(`✓ "${word}" actualizada`);
+      } catch (e) {
+        showToast(e.message);
+      }
+    };
 
     function updateDeckCount(deck) {
       const count = Object.keys(deck).length;
