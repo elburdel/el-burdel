@@ -60,6 +60,10 @@
       display: flex;
       flex-direction: column;
       padding: 24px;
+      background: #fdf6ee !important;
+      border: 1px solid #d4b896;
+      border-radius: 12px;
+      color: #2e1a0e;
     }
     .deck-modal-header {
       display: flex;
@@ -90,19 +94,23 @@
       border-radius: 8px;
       font-size: 14px;
       margin-bottom: 12px;
-      background: #fff;
+      background: #fff8f0;
+      color: #2e1a0e;
     }
+    .deck-search-input::placeholder { color: #a07850; }
     .deck-modal-list {
       overflow-y: auto;
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      padding-right: 2px;
     }
     .deck-modal-item {
       border: 1px solid #e8d5bb;
       border-radius: 8px;
       overflow: hidden;
+      background: #fff8f0;
     }
     .deck-item-view {
       display: flex;
@@ -110,6 +118,7 @@
       justify-content: space-between;
       padding: 10px 12px;
       gap: 8px;
+      background: #fff8f0;
     }
     .deck-item-info {
       display: flex;
@@ -122,6 +131,8 @@
       font-weight: 600;
       font-size: 14px;
       color: #2e1a0e;
+      text-transform: uppercase;
+      letter-spacing: .03em;
     }
     .deck-item-forbidden {
       font-size: 12px;
@@ -148,12 +159,36 @@
     .deck-item-edit {
       padding: 12px;
       border-top: 1px solid #e8d5bb;
-      background: #fdf8f2;
+      background: #fdf0e0;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
     .deck-item-edit.hidden { display: none; }
+    /* inputs dentro del editor de tarjeta — estilo crema */
+    .deck-item-edit .card-form-input {
+      background: #fff8f0 !important;
+      border: 1px solid #d4b896 !important;
+      color: #2e1a0e !important;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .deck-item-edit .card-form-input::placeholder { color: #a07850; }
+    .deck-item-edit .forbidden-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .deck-item-edit .forbidden-num {
+      font-size: 12px;
+      color: #a07850;
+      width: 14px;
+      text-align: right;
+      flex-shrink: 0;
+    }
     .edit-forbidden-grid {
       display: flex;
       flex-direction: column;
@@ -162,6 +197,7 @@
     .edit-action-row {
       display: flex;
       gap: 8px;
+      padding-top: 4px;
     }
     .deck-empty-msg {
       text-align: center;
@@ -962,6 +998,10 @@
     window.openEditCard = (id) => {
       document.getElementById(`deck-edit-${id}`).classList.remove("hidden");
       document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.add("hidden");
+      // Scroll al item para que los botones queden visibles
+      setTimeout(() => {
+        document.getElementById(`deck-item-${id}`).scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 50);
     };
 
     window.closeEditCard = (id) => {
