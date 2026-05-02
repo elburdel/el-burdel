@@ -9,218 +9,6 @@
   <link rel="stylesheet" href="css/taboo.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    .team-name-editor {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 16px;
-      padding: 12px;
-      background: rgba(0,0,0,.03);
-      border-radius: 8px;
-    }
-    .team-name-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .team-emoji-input {
-      width: 44px;
-      font-size: 18px;
-      text-align: center;
-      border: 1px solid #d4b896;
-      border-radius: 6px;
-      padding: 5px 4px;
-      background: #fff;
-    }
-    .team-name-input {
-      width: 150px;
-      font-size: 13px;
-      border: 1px solid #d4b896;
-      border-radius: 6px;
-      padding: 6px 8px;
-      background: #fff;
-    }
-    .admin-btn.small {
-      padding: 6px 14px;
-      font-size: 12px;
-    }
-    /* ── Deck summary row ── */
-    .deck-summary-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    /* fuerza el overlay del mazo a cubrir todo el viewport sin scroll */
-    #deck-modal-overlay {
-      position: fixed !important;
-      inset: 0 !important;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,.5);
-    }
-    #deck-modal-overlay.hidden { display: none !important; }
-    /* ── Deck modal ── */
-    .deck-modal-box {
-      width: min(620px, 96vw);
-      max-height: 80vh;
-      display: flex;
-      flex-direction: column;
-      padding: 24px;
-      background: #fdf6ee !important;
-      border: 1px solid #d4b896;
-      border-radius: 12px;
-      color: #2e1a0e;
-    }
-    .deck-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .deck-modal-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #2e1a0e;
-      margin: 0;
-    }
-    .deck-modal-close {
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: #7a5c3a;
-      line-height: 1;
-      padding: 4px 8px;
-    }
-    .deck-search-input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px 12px;
-      border: 1px solid #d4b896;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-bottom: 12px;
-      background: #fff8f0;
-      color: #2e1a0e;
-    }
-    .deck-search-input::placeholder { color: #a07850; }
-    .deck-modal-list {
-      overflow-y: auto;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-right: 2px;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
-    }
-    .deck-modal-item {
-      border: 1px solid #e8d5bb;
-      border-radius: 8px;
-      overflow: visible;
-      background: #fff8f0;
-    }
-    .deck-item-view {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      gap: 8px;
-      background: #fff8f0;
-    }
-    .deck-item-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-      min-width: 0;
-    }
-    .deck-item-word {
-      font-weight: 600;
-      font-size: 14px;
-      color: #2e1a0e;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-    }
-    .deck-item-forbidden {
-      font-size: 12px;
-      color: #7a5c3a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .deck-item-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .deck-btn {
-      border: none;
-      border-radius: 6px;
-      padding: 5px 9px;
-      cursor: pointer;
-      font-size: 13px;
-      line-height: 1;
-    }
-    .deck-btn.edit-btn { background: #f0e6d3; color: #5a3e1b; }
-    .deck-btn.delete-btn { background: #fde8e8; color: #b91c1c; }
-    .deck-item-edit {
-      padding: 12px;
-      border-top: 1px solid #e8d5bb;
-      background: #fdf0e0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-radius: 0 0 8px 8px;
-    }
-    .deck-item-edit.hidden { display: none; }
-    /* inputs dentro del editor de tarjeta — estilo crema */
-    .deck-item-edit .card-form-input {
-      background: #fff8f0 !important;
-      border: 1px solid #d4b896 !important;
-      color: #2e1a0e !important;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 13px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .deck-item-edit .card-form-input::placeholder { color: #a07850; }
-    .deck-item-edit .forbidden-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .deck-item-edit .forbidden-num {
-      font-size: 12px;
-      color: #a07850;
-      width: 14px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-    .edit-forbidden-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .edit-action-row {
-      display: flex;
-      gap: 8px;
-      padding-top: 4px;
-    }
-    .deck-empty-msg {
-      text-align: center;
-      font-size: 13px;
-      color: #7a5c3a;
-      padding: 20px 0;
-    }
-  </style>
 </head>
 <body>
 
@@ -271,6 +59,23 @@
 
         <div class="users-list" id="users-list">
           <div class="users-loading">Cargando usuarios...</div>
+        </div>
+
+        <!-- RECUPERAR CONTRASEÑA -->
+        <div class="admin-card" style="margin-top: 24px;">
+          <div class="admin-card-label">Recuperación de contraseña</div>
+          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
+            Enviá un email de recuperación a cualquier usuario registrado.
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input
+              type="email"
+              id="input-reset-email"
+              placeholder="Email del usuario"
+              style="flex:1;min-width:200px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;"
+            />
+            <button class="admin-btn secondary" onclick="sendPasswordReset()">Enviar email</button>
+          </div>
         </div>
       </div>
     </section>
@@ -547,7 +352,7 @@
   </div>
 
   <script type="module">
-    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+    import { onSession, getUserData, logoutUser, recoverPassword } from "./js/auth.js";
     import {
       saveCard, deleteCard, updateCard,
       sendRandomCard, skipCard,
@@ -558,7 +363,7 @@
     } from "./games/taboo.js";
     import { db } from "./js/firebase-init.js";
     import {
-      ref, onValue, update, get, set
+      ref, onValue, update, get, set, remove
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     let allUsers = {};
@@ -682,6 +487,7 @@
             ${u.status === "pending" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
             ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
             ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
+            <button class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
           </div>
         </div>
       `).join("");
@@ -761,13 +567,38 @@
       const user = allUsers[uid];
       const labels = {
         approve: `¿Aprobás a ${user.nick}?`,
-        pause: `¿Pausás a ${user.nick}?`
+        pause:   `¿Pausás a ${user.nick}?`,
+        delete:  `¿Eliminás a ${user.nick}? Esta acción no se puede deshacer.`
       };
       showModal(labels[action], async () => {
         if (action === "approve") await update(ref(db, `users/${uid}`), { status: "active" });
-        if (action === "pause") await update(ref(db, `users/${uid}`), { status: "paused" });
+        if (action === "pause")   await update(ref(db, `users/${uid}`), { status: "paused" });
+        if (action === "delete") {
+          const nick = (user.nick || "").toLowerCase();
+          await remove(ref(db, `users/${uid}`));
+          if (nick) await remove(ref(db, `nicks/${nick}`));
+          showToast(`${user.nick} eliminado`);
+        }
         closeModal();
       });
+    };
+
+    // ── RECUPERAR CONTRASEÑA ──
+    window.sendPasswordReset = async () => {
+      const email = document.getElementById("input-reset-email").value.trim();
+      if (!email) { showToast("Ingresá el email del usuario."); return; }
+      try {
+        await recoverPassword(email);
+        showToast(`Email de recuperación enviado a ${email}`);
+        document.getElementById("input-reset-email").value = "";
+      } catch (e) {
+        const msg = e.code === "auth/user-not-found"
+          ? "No existe una cuenta con ese email."
+          : e.code === "auth/invalid-email"
+          ? "Email inválido."
+          : "No se pudo enviar el email.";
+        showToast(msg);
+      }
     };
 
     // ── MODAL ──
