@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wordle — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/wordle.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- NAV TOP -->
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+      </div>
+      <button class="nav-cta" id="btn-logout">Salir</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="wordle-main">
+
+    <!-- HEADER -->
+    <div class="wordle-header">
+      <div class="wordle-header-inner">
+        <div>
+          <div class="wordle-title">Wordle</div>
+          <div class="wordle-subtitle" id="wordle-date-label">El Burdel</div>
+        </div>
+        <div class="wordle-mode-selector">
+          <button class="wordle-mode-btn active" id="btn-mode-5" onclick="switchMode('5')">
+            5 letras <span class="mode-done-dot hidden" id="dot-5"></span>
+          </button>
+          <button class="wordle-mode-btn" id="btn-mode-6" onclick="switchMode('6')">
+            6 letras <span class="mode-done-dot hidden" id="dot-6"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JUEGO -->
+    <div class="wordle-game" id="wordle-game">
+      <div id="wordle-loading" style="text-align:center;padding:48px 0;color:var(--crema-3);font-size:13px;letter-spacing:1px;">
+        Cargando...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="dashboard.html" class="nav-bottom-link">Dashboard</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+    import {
+      getWordOfDay,
+      evaluateGuess,
+      isValidWord,
+      saveResult,
+      getTodayResult,
+      onRanking,
+      MAX_ATTEMPTS
+    } from "./games/wordle.js";
+
+    // ── Estado ──
+    let currentUser = null;
+    let mode = "5";           // "5" | "6"
+    let targetWord = "";
+    let guesses = [];         // array de { guess, result }
+    let currentInput = "";
+    let gameOver = false;
+    let keyStates = {};       // letra → "correct"|"present"|"absent"
+    let playedModes = {};     // { "5": result|null, "6": result|null }
+
+    // ── Protección ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data) { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.status === "pending") { window.location.href = "/el-burdel/pending.html"; return; }
+      if (data.status === "paused")  { window.location.href = "/el-burdel/paused.html"; return; }
+      currentUser = { uid: user.uid, ...data };
+      document.getElementById("btn-logout").onclick = () => logoutUser();
+      await initWordle();
+    });
+
+    async function initWordle() {
+      // Fecha en header
+      const now = new Date();
+      const opts = { weekday: "long", day: "numeric", month: "long" };
+      document.getElementById("wordle-date-label").textContent =
+        now.toLocaleDateString("es-AR", opts);
+
+      // Cargar resultados de ambos modos
+      const [r5, r6] = await Promise.all([
+        getTodayResult(currentUser.uid, "5"),
+        getTodayResult(currentUser.uid, "6")
+      ]);
+      playedModes["5"] = r5;
+      playedModes["6"] = r6;
+
+      // Marcar dots si ya jugó
+      if (r5) document.getElementById("dot-5").classList.remove("hidden");
+      if (r6) document.getElementById("dot-6").classList.remove("hidden");
+
+      await loadMode("5");
+    }
+
+    async function loadMode(m) {
+      mode = m;
+      guesses = [];
+      currentInput = "";
+      gameOver = false;
+      keyStates = {};
+
+      document.getElementById("btn-mode-5").classList.toggle("active", m === "5");
+      document.getElementById("btn-mode-6").classList.toggle("active", m === "6");
+
+      document.getElementById("wordle-loading").style.display = "block";
+      document.getElementById("wordle-game").innerHTML =
+        `<div id="wordle-loading" style="text-align:center;padding:48px 0;color:var(--crema-3);font-size:13px;letter-spacing:1px;">Cargando...</div>`;
+
+      targetWord = await getWordOfDay(m);
+
+      // ¿Ya jugó hoy este modo?
+      if (playedModes[m]) {
+        renderPlayed(playedModes[m]);
+        return;
+      }
+
+      renderGame();
+      setupKeyboard();
+    }
+
+    window.switchMode = (m) => loadMode(m);
+
+    // ── Render: ya jugó ──
+    function renderPlayed(result) {
+      const game = document.getElementById("wordle-game");
+      const won = result.won;
+      game.innerHTML = `
+        <div class="wordle-played-today">
+          <div class="wordle-played-icon">${won ? "🏆" : "😔"}</div>
+          <div class="wordle-played-title">${won ? "¡Ya ganaste hoy!" : "Ya jugaste hoy"}</div>
+          <div class="wordle-played-sub">
+            ${won
+              ? `Lo adivinaste en <strong>${result.attempts}</strong> intento${result.attempts !== 1 ? "s" : ""} — la palabra era <strong>${result.word}</strong>.`
+              : `La palabra era <strong>${result.word}</strong>. Mañana hay otra oportunidad.`
+            }
+          </div>
+          ${won ? `<div class="wordle-result-points" style="margin-top:20px">${result.points}</div>
+          <div class="wordle-result-points-label">puntos sumados</div>` : ""}
+        </div>
+      `;
+    }
+
+    // ── Render: grilla + teclado ──
+    function renderGame() {
+      const len = parseInt(mode);
+      const game = document.getElementById("wordle-game");
+      game.innerHTML = `
+        <div class="wordle-status" id="wordle-status"></div>
+        <div class="wordle-grid" id="wordle-grid"></div>
+        <div class="wordle-keyboard" id="wordle-keyboard"></div>
+      `;
+      renderGrid(len);
+      renderKeyboard();
+    }
+
+    function renderGrid(len) {
+      const grid = document.getElementById("wordle-grid");
+      grid.innerHTML = "";
+      for (let r = 0; r < MAX_ATTEMPTS; r++) {
+        const row = document.createElement("div");
+        row.className = "wordle-row";
+        row.id = `row-${r}`;
+        for (let c = 0; c < len; c++) {
+          const cell = document.createElement("div");
+          cell.className = "wordle-cell";
+          cell.id = `cell-${r}-${c}`;
+          row.appendChild(cell);
+        }
+        grid.appendChild(row);
+      }
+    }
+
+    // ── Teclado ──
+    const ROWS_ES = [
+      ["Q","W","E","R","T","Y","U","I","O","P"],
+      ["A","S","D","F","G","H","J","K","L","Ñ"],
+      ["ENTER","Z","X","C","V","B","N","M","⌫"]
+    ];
+
+    function renderKeyboard() {
+      const kb = document.getElementById("wordle-keyboard");
+      kb.innerHTML = "";
+      ROWS_ES.forEach(row => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "wordle-keyboard-row";
+        row.forEach(key => {
+          const btn = document.createElement("button");
+          btn.className = "wordle-key" + (key === "ENTER" || key === "⌫" ? " wide" : "");
+          btn.textContent = key;
+          btn.dataset.key = key;
+          btn.id = `key-${key}`;
+          btn.addEventListener("click", () => handleKey(key));
+          rowEl.appendChild(btn);
+        });
+        kb.appendChild(rowEl);
+      });
+    }
+
+    function setupKeyboard() {
+      document.addEventListener("keydown", onKeyDown);
+    }
+
+    function onKeyDown(e) {
+      if (gameOver) return;
+      const key = e.key.toUpperCase();
+      if (key === "ENTER") { handleKey("ENTER"); return; }
+      if (key === "BACKSPACE") { handleKey("⌫"); return; }
+      // Letras A-Z y Ñ
+      if (/^[A-ZÁÉÍÓÚÜÑ]$/.test(key)) handleKey(key);
+    }
+
+    function handleKey(key) {
+      if (gameOver) return;
+      const len = parseInt(mode);
+
+      if (key === "⌫") {
+        if (currentInput.length > 0) {
+          currentInput = currentInput.slice(0, -1);
+          updateCurrentRow();
+        }
+        return;
+      }
+
+      if (key === "ENTER") {
+        submitGuess();
+        return;
+      }
+
+      if (currentInput.length < len) {
+        currentInput += key;
+        updateCurrentRow();
+      }
+    }
+
+    function updateCurrentRow() {
+      const len = parseInt(mode);
+      const rowIdx = guesses.length;
+      for (let c = 0; c < len; c++) {
+        const cell = document.getElementById(`cell-${rowIdx}-${c}`);
+        const letter = currentInput[c] || "";
+        cell.textContent = letter;
+        cell.classList.toggle("filled", !!letter);
+      }
+    }
+
+    async function submitGuess() {
+      const len = parseInt(mode);
+      if (currentInput.length < len) {
+        showStatus("Palabra muy corta", "error");
+        shakeRow(guesses.length);
+        return;
+      }
+
+      if (!isValidWord(currentInput, mode)) {
+        showStatus("Palabra no está en la lista", "error");
+        shakeRow(guesses.length);
+        return;
+      }
+
+      const result = evaluateGuess(currentInput, targetWord);
+      const rowIdx = guesses.length;
+      guesses.push({ guess: currentInput, result });
+
+      // Revelar celdas con animación escalonada
+      revealRow(rowIdx, currentInput, result);
+
+      // Actualizar keyStates
+      result.forEach((state, i) => {
+        const letter = currentInput[i];
+        const prev = keyStates[letter];
+        if (prev !== "correct") {
+          if (state === "correct" || !prev || (state === "present" && prev !== "correct")) {
+            keyStates[letter] = state;
+          }
+        }
+      });
+
+      const delay = len * 80 + 200;
+      setTimeout(() => updateKeyboard(), delay);
+
+      const won = result.every(s => s === "correct");
+      currentInput = "";
+
+      if (won) {
+        gameOver = true;
+        setTimeout(async () => {
+          showStatus("🏆 ¡Lo adivinaste!", "win");
+          bounceRow(rowIdx);
+          const res = { won: true, attempts: guesses.length, word: targetWord };
+          await saveResult(currentUser.uid, mode, res);
+          playedModes[mode] = { ...res, points: calcPoints(guesses.length) };
+          document.getElementById(`dot-${mode}`).classList.remove("hidden");
+          setTimeout(() => renderResultPanel(true, guesses.length), 1200);
+        }, delay);
+        return;
+      }
+
+      if (guesses.length >= MAX_ATTEMPTS) {
+        gameOver = true;
+        setTimeout(async () => {
+          showStatus(`La palabra era ${targetWord}`, "error");
+          const res = { won: false, attempts: 0, word: targetWord };
+          await saveResult(currentUser.uid, mode, res);
+          playedModes[mode] = { ...res, points: 0 };
+          document.getElementById(`dot-${mode}`).classList.remove("hidden");
+          setTimeout(() => renderResultPanel(false, 0), 1200);
+        }, delay);
+      }
+    }
+
+    function calcPoints(attempts) {
+      return { 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1 }[attempts] ?? 0;
+    }
+
+    function revealRow(rowIdx, guess, result) {
+      const len = parseInt(mode);
+      for (let c = 0; c < len; c++) {
+        const cell = document.getElementById(`cell-${rowIdx}-${c}`);
+        setTimeout(() => {
+          cell.classList.remove("filled");
+          cell.classList.add(result[c]);
+        }, c * 80);
+      }
+    }
+
+    function updateKeyboard() {
+      Object.entries(keyStates).forEach(([letter, state]) => {
+        const btn = document.getElementById(`key-${letter}`);
+        if (btn) {
+          btn.classList.remove("correct", "present", "absent");
+          btn.classList.add(state);
+        }
+      });
+    }
+
+    function shakeRow(rowIdx) {
+      const row = document.getElementById(`row-${rowIdx}`);
+      if (!row) return;
+      row.classList.add("shake");
+      setTimeout(() => row.classList.remove("shake"), 400);
+    }
+
+    function bounceRow(rowIdx) {
+      const len = parseInt(mode);
+      for (let c = 0; c < len; c++) {
+        const cell = document.getElementById(`cell-${rowIdx}-${c}`);
+        setTimeout(() => {
+          cell.classList.add("bounce");
+          setTimeout(() => cell.classList.remove("bounce"), 400);
+        }, c * 70);
+      }
+    }
+
+    function showStatus(msg, type = "") {
+      const el = document.getElementById("wordle-status");
+      if (!el) return;
+      el.innerHTML = `<span class="wordle-status-msg ${type}">${msg}</span>`;
+      if (type === "error") {
+        setTimeout(() => { el.innerHTML = ""; }, 1800);
+      }
+    }
+
+    function renderResultPanel(won, attempts) {
+      const game = document.getElementById("wordle-game");
+      const points = won ? calcPoints(attempts) : 0;
+      const otherMode = mode === "5" ? "6" : "5";
+      const otherPlayed = !!playedModes[otherMode];
+
+      game.innerHTML = `
+        <div class="wordle-result-panel">
+          <div class="wordle-result-title">${won ? "🏆 ¡Lo adivinaste!" : "😔 Sin suerte hoy"}</div>
+          <div class="wordle-result-word">La palabra era <strong>${targetWord}</strong></div>
+          ${won ? `
+            <div class="wordle-result-points">${points}</div>
+            <div class="wordle-result-points-label">puntos ganados</div>
+          ` : ""}
+          <div class="wordle-result-stats">
+            <div class="wordle-stat">
+              <span class="wordle-stat-value">${won ? attempts : "—"}</span>
+              <span class="wordle-stat-label">Intentos</span>
+            </div>
+          </div>
+          ${!otherPlayed ? `
+            <div style="margin-top:20px">
+              <button
+                onclick="switchMode('${otherMode}')"
+                style="background:var(--rojo);border:none;color:var(--crema);padding:10px 24px;border-radius:6px;font-family:var(--font-body);font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">
+                Jugar ${otherMode} letras
+              </button>
+            </div>
+          ` : `
+            <div style="margin-top:16px;font-size:12px;color:var(--crema-3);letter-spacing:1px;">
+              Volvé mañana para el próximo Wordle
+            </div>
+          `}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
