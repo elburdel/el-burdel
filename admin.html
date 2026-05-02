@@ -632,6 +632,9 @@
 
     window.setActiveGame = async (game) => {
       await set(ref(db, "session/activeGame"), game);
+      // Navegar a la sección del juego correspondiente
+      const section = GAME_TO_SECTION[game] || "sesion";
+      showSection(section);
     };
 
     // ── TABLÓN ──
@@ -1196,6 +1199,38 @@
         }
       });
     };
+
+    // ══════════════════════════════════════
+    // ── NAVEGACIÓN POR SECCIONES ──
+    // ══════════════════════════════════════
+
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "tablon"];
+
+    // Mapa: juego activo → sección del admin que corresponde
+    const GAME_TO_SECTION = {
+      taboo:      "taboo",
+      wordle:     "wordle",
+      impostor:   "sesion",
+      millonario: "sesion",
+      none:       "sesion"
+    };
+
+    function showSection(sectionId) {
+      SECTION_IDS.forEach(id => {
+        const el = document.getElementById(`section-${id}`);
+        if (el) el.style.display = id === sectionId ? "" : "none";
+      });
+      document.querySelectorAll(".active-section").forEach(link => {
+        link.classList.toggle("active", link.dataset.section === sectionId);
+      });
+    }
+
+    // Inicializar: mostrar "sesion" por defecto y conectar nav links
+    showSection("sesion");
+
+    document.querySelectorAll(".active-section").forEach(link => {
+      link.addEventListener("click", () => showSection(link.dataset.section));
+    });
 
     // ── STATUS DOT ──
     document.getElementById("status-dot").classList.add("online");
