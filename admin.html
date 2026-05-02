@@ -9,6 +9,44 @@
   <link rel="stylesheet" href="css/taboo.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .team-name-editor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(0,0,0,.03);
+      border-radius: 8px;
+    }
+    .team-name-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .team-emoji-input {
+      width: 44px;
+      font-size: 18px;
+      text-align: center;
+      border: 1px solid #d4b896;
+      border-radius: 6px;
+      padding: 5px 4px;
+      background: #fff;
+    }
+    .team-name-input {
+      width: 150px;
+      font-size: 13px;
+      border: 1px solid #d4b896;
+      border-radius: 6px;
+      padding: 6px 8px;
+      background: #fff;
+    }
+    .admin-btn.small {
+      padding: 6px 14px;
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
 
@@ -93,13 +131,27 @@
         <!-- EQUIPOS -->
         <div class="admin-card" id="card-equipos">
           <div class="admin-card-label">Equipos</div>
+
+          <!-- Editor de nombres -->
+          <div class="team-name-editor">
+            <div class="team-name-row">
+              <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="🔴" />
+              <input type="text" class="team-name-input" id="input-name-rojo" maxlength="24" placeholder="Equipo Rojo" />
+            </div>
+            <div class="team-name-row">
+              <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
+              <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
+            </div>
+            <button class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
+          </div>
+
           <div class="equipos-grid" id="equipos-grid">
             <div class="equipo-col" id="equipo-rojo">
-              <div class="equipo-header rojo">🔴 Equipo Rojo</div>
+              <div class="equipo-header rojo" id="header-equipo-rojo">🔴 Equipo Rojo</div>
               <div class="equipo-lista" id="lista-rojo"></div>
             </div>
             <div class="equipo-col" id="equipo-azul">
-              <div class="equipo-header azul">🔵 Equipo Azul</div>
+              <div class="equipo-header azul" id="header-equipo-azul">🔵 Equipo Azul</div>
               <div class="equipo-lista" id="lista-azul"></div>
             </div>
             <div class="equipo-col">
@@ -132,7 +184,7 @@
               <div class="admin-card-label">Marcador</div>
               <div class="taboo-scoreboard">
                 <div class="taboo-score-team rojo">
-                  <span class="score-team-name rojo">🔴 Equipo Rojo</span>
+                  <span class="score-team-name rojo" id="label-score-rojo">🔴 Equipo Rojo</span>
                   <span class="score-team-value" id="score-rojo">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-rojo" min="0" value="0" />
@@ -140,7 +192,7 @@
                   </div>
                 </div>
                 <div class="taboo-score-team azul">
-                  <span class="score-team-name azul">🔵 Equipo Azul</span>
+                  <span class="score-team-name azul" id="label-score-azul">🔵 Equipo Azul</span>
                   <span class="score-team-value" id="score-azul">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-azul" min="0" value="0" />
@@ -169,8 +221,8 @@
                 <div class="turn-row">
                   <span class="turn-label">Equipo</span>
                   <select class="turn-select" id="select-team-turn">
-                    <option value="rojo">🔴 Equipo Rojo</option>
-                    <option value="azul">🔵 Equipo Azul</option>
+                    <option value="rojo" id="option-team-rojo">🔴 Equipo Rojo</option>
+                    <option value="azul" id="option-team-azul">🔵 Equipo Azul</option>
                   </select>
                 </div>
               </div>
@@ -326,6 +378,29 @@
     let allUsers = {};
     let currentFilter = "pending";
     let activeGame = "none";
+    let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
+
+    function teamLabel(color) {
+      const t = teamNames[color];
+      return `${t.emoji} ${t.name}`;
+    }
+
+    function applyTeamNames() {
+      const rojo = teamLabel("rojo");
+      const azul = teamLabel("azul");
+      const hRojo = document.getElementById("header-equipo-rojo");
+      const hAzul = document.getElementById("header-equipo-azul");
+      const lRojo = document.getElementById("label-score-rojo");
+      const lAzul = document.getElementById("label-score-azul");
+      const oRojo = document.getElementById("option-team-rojo");
+      const oAzul = document.getElementById("option-team-azul");
+      if (hRojo) hRojo.textContent = rojo;
+      if (hAzul) hAzul.textContent = azul;
+      if (lRojo) lRojo.textContent = rojo;
+      if (lAzul) lAzul.textContent = azul;
+      if (oRojo) oRojo.textContent = rojo;
+      if (oAzul) oAzul.textContent = azul;
+    }
 
     // ── PROTECCIÓN DE RUTA ──
     onSession(async (user) => {
@@ -346,7 +421,37 @@
       listenTablon();
       initTablonCounter();
       initTaboo();
+      listenTeamNames();
     }
+
+    // ── NOMBRES DE EQUIPOS ──
+    function listenTeamNames() {
+      onValue(ref(db, "session/teams"), (snap) => {
+        const val = snap.val();
+        if (val) {
+          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
+          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
+        }
+        document.getElementById("input-emoji-rojo").value = teamNames.rojo.emoji;
+        document.getElementById("input-name-rojo").value = teamNames.rojo.name;
+        document.getElementById("input-emoji-azul").value = teamNames.azul.emoji;
+        document.getElementById("input-name-azul").value = teamNames.azul.name;
+        applyTeamNames();
+        renderEquipos();
+      });
+    }
+
+    window.saveTeamNames = async () => {
+      const emojiRojo = document.getElementById("input-emoji-rojo").value.trim() || "🔴";
+      const nameRojo  = document.getElementById("input-name-rojo").value.trim()  || "Equipo Rojo";
+      const emojiAzul = document.getElementById("input-emoji-azul").value.trim() || "🔵";
+      const nameAzul  = document.getElementById("input-name-azul").value.trim()  || "Equipo Azul";
+      await update(ref(db, "session/teams"), {
+        rojo: { emoji: emojiRojo, name: nameRojo },
+        azul: { emoji: emojiAzul, name: nameAzul }
+      });
+      showToast("Nombres de equipo guardados");
+    };
 
     // ── USUARIOS EN TIEMPO REAL ──
     function listenUsers() {
@@ -418,8 +523,8 @@
         <div class="equipo-user">
           <span class="equipo-nick">${u.nick}</span>
           <div class="equipo-btns">
-            ${equipo !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')">🔴</button>` : ""}
-            ${equipo !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')">🔵</button>` : ""}
+            ${equipo !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
+            ${equipo !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
             ${equipo !== "sin" ? `<button class="equipo-btn sin-btn" onclick="setTeam('${uid}', null)">⚪</button>` : ""}
           </div>
         </div>
