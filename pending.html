@@ -127,7 +127,13 @@
         return;
       }
       const data = await getUserData(user.uid);
-      if (!data) return;
+      // Si no hay datos aún (timing del registro), mostramos la página igual
+      // sin redirigir — el usuario acaba de crear la cuenta
+      if (!data) {
+        const nick = document.getElementById("status-nick");
+        if (nick) nick.textContent = "";
+        return;
+      }
       if (data.status === "active" && data.role === "admin") {
         window.location.href = "/el-burdel/admin.html";
         return;
