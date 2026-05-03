@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500&family=Bebas+Neue&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -67,11 +67,12 @@ img {
 }
 
 .nav-brand {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 900;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  font-weight: 400;
   color: var(--dorado);
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
   white-space: nowrap;
   display: flex;
   align-items: center;
