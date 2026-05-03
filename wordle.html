@@ -234,8 +234,8 @@
     function onKeyDown(e) {
       if (gameOver) return;
       const key = e.key.toUpperCase();
-      if (key === "ENTER") { handleKey("ENTER"); return; }
-      if (key === "BACKSPACE") { handleKey("⌫"); return; }
+      if (key === "ENTER") { e.preventDefault(); handleKey("ENTER"); return; }
+      if (key === "BACKSPACE") { e.preventDefault(); handleKey("⌫"); return; }
       // Letras A-Z y Ñ
       if (/^[A-ZÁÉÍÓÚÜÑ]$/.test(key)) handleKey(key);
     }
