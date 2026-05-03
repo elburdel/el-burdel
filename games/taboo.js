@@ -6,9 +6,10 @@ import {
 // ── ESTRUCTURA EN FIREBASE ──
 // games/taboo/
 //   deck/{cardId}        → { word, forbidden: [], createdAt }
-//   state/               → { active, currentCard, currentDescriber, currentVeedor, timeLeft, timerRunning, penaltyWrong, penaltySkip }
+//   state/               → { active, currentCard, currentDescriber, currentVeedor,
+//                            currentTeam, timeLeft, timerRunning, penaltySkip,
+//                            turnDuration, usedCards: [] }
 //   scores/              → { rojo: 0, azul: 0 }
-//   visibleTo/           → { [uid]: true }  — quiénes ven la tarjeta actual
 
 // ── CARGAR TARJETA EN FIREBASE ──
 async function saveCard(word, forbidden) {
@@ -60,6 +61,7 @@ async function getDeck() {
 }
 
 // ── ENVIAR TARJETA ALEATORIA ──
+// Ahora guarda la tarjeta en state.currentCard para que TODOS los roles la vean
 async function sendRandomCard(describerUid, veedorUid, usedCards = []) {
   const deck = await getDeck();
   const cards = Object.entries(deck);
@@ -69,17 +71,14 @@ async function sendRandomCard(describerUid, veedorUid, usedCards = []) {
   const pool = available.length > 0 ? available : cards;
   const [cardId, card] = pool[Math.floor(Math.random() * pool.length)];
 
+  // Agregar a usedCards
+  const newUsed = [...usedCards, cardId];
+
   await update(ref(db, "games/taboo/state"), {
     currentCard: { id: cardId, ...card },
     currentDescriber: describerUid,
     currentVeedor: veedorUid,
-    timerRunning: false
-  });
-
-  // Solo admin, describer y veedor ven la tarjeta
-  await set(ref(db, "games/taboo/visibleTo"), {
-    [describerUid]: true,
-    [veedorUid]: true
+    usedCards: newUsed
   });
 
   return { cardId, card };
@@ -94,28 +93,31 @@ async function setTimeLeft(seconds) {
   await update(ref(db, "games/taboo/state"), { timeLeft: seconds });
 }
 
-// ── PASAR TARJETA (−N segundos) ──
+// ── PASAR TARJETA (−N segundos penalización) ──
+// El usuario que describe la pasa → resta penalización + nueva tarjeta
 async function skipCard(penaltySeconds, describerUid, veedorUid, usedCards) {
   const snap = await get(ref(db, "games/taboo/state/timeLeft"));
   const current = snap.val() || 0;
   const newTime = Math.max(0, current - penaltySeconds);
-  await update(ref(db, "games/taboo/state"), { timeLeft: newTime, timerRunning: false });
+  await update(ref(db, "games/taboo/state"), { timeLeft: newTime });
+  // Enviar nueva tarjeta sin pausar timer
   await sendRandomCard(describerUid, veedorUid, usedCards);
 }
 
-// ── CORRECTA: sumar punto ──
-async function markCorrect(team) {
+// ── CORRECTA: sumar punto + nueva tarjeta automáticamente ──
+// No resta tiempo. Suma 1 punto al equipo y envía nueva tarjeta.
+async function markCorrect(team, describerUid, veedorUid, usedCards) {
   const snap = await get(ref(db, `games/taboo/scores/${team}`));
   const current = snap.val() || 0;
   await set(ref(db, `games/taboo/scores/${team}`), current + 1);
+  // Enviar nueva tarjeta automáticamente
+  await sendRandomCard(describerUid, veedorUid, usedCards);
 }
 
-// ── INCORRECTA: restar tiempo ──
-async function markWrong(penaltySeconds) {
-  const snap = await get(ref(db, "games/taboo/state/timeLeft"));
-  const current = snap.val() || 0;
-  const newTime = Math.max(0, current - penaltySeconds);
-  await update(ref(db, "games/taboo/state"), { timeLeft: newTime });
+// ── INCORRECTA: solo enviar nueva tarjeta (sin restar tiempo ni puntos) ──
+async function markWrong(describerUid, veedorUid, usedCards) {
+  // No resta tiempo, no resta puntos. Solo pasa a la siguiente tarjeta.
+  await sendRandomCard(describerUid, veedorUid, usedCards);
 }
 
 // ── EDITAR PUNTAJE MANUALMENTE ──
@@ -125,6 +127,11 @@ async function setScore(team, value) {
   await set(ref(db, `games/taboo/scores/${team}`), v);
 }
 
+// ── CONFIGURAR TURNO ──
+async function setTurnConfig(config) {
+  await update(ref(db, "games/taboo/state"), config);
+}
+
 // ── RESETEAR JUEGO ──
 async function resetTaboo(defaultTime = 60) {
   await set(ref(db, "games/taboo/state"), {
@@ -132,13 +139,14 @@ async function resetTaboo(defaultTime = 60) {
     currentCard: null,
     currentDescriber: null,
     currentVeedor: null,
+    currentTeam: null,
     timeLeft: defaultTime,
     timerRunning: false,
-    penaltyWrong: 5,
-    penaltySkip: 10
+    penaltySkip: 10,
+    turnDuration: defaultTime,
+    usedCards: []
   });
   await set(ref(db, "games/taboo/scores"), { rojo: 0, azul: 0 });
-  await set(ref(db, "games/taboo/visibleTo"), null);
 }
 
 // ── LISTENERS ──
@@ -154,15 +162,11 @@ function onTabooDeck(callback) {
   return onValue(ref(db, "games/taboo/deck"), snap => callback(snap.val() || {}));
 }
 
-function onVisibleTo(callback) {
-  return onValue(ref(db, "games/taboo/visibleTo"), snap => callback(snap.val() || {}));
-}
-
 export {
   saveCard, deleteCard, updateCard, getDeck,
   sendRandomCard, skipCard,
   setTimerRunning, setTimeLeft,
   markCorrect, markWrong, setScore,
-  resetTaboo,
-  onTabooState, onTabooScores, onTabooDeck, onVisibleTo
+  setTurnConfig, resetTaboo,
+  onTabooState, onTabooScores, onTabooDeck
 };
