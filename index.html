@@ -181,14 +181,30 @@
         list.innerHTML = `<div class="media-placeholder">Aún no hay datos de ranking.</div>`;
         return;
       }
-      list.innerHTML = ranking.slice(0, 20).map((u, i) => `
-        <div class="ranking-row">
-          <span class="ranking-pos">${i + 1}</span>
-          <span class="ranking-nick">${u.nick}</span>
-          <span class="ranking-team">${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : ""}</span>
-          <span class="ranking-points">${u.totalPoints} <span style="font-size:10px;letter-spacing:1px;opacity:.6">pts</span></span>
-        </div>
-      `).join("");
+      
+      const top4 = ranking.slice(0, 4);
+      let html = top4.map((u, i) => {
+        let medal = "";
+        let fontSize = "16px";
+        if (i === 0) { medal = "🥇"; fontSize = "26px"; }
+        else if (i === 1) { medal = "🥈"; fontSize = "22px"; }
+        else if (i === 2) { medal = "🥉"; fontSize = "18px"; }
+        else { medal = `<span style="opacity:0.7; font-size:14px;">${i + 1}.</span>`; fontSize = "16px"; }
+        
+        return `
+          <div class="ranking-row" style="justify-content: center; font-size: ${fontSize}; margin-bottom: 12px; display: flex; align-items: center; width: 100%;">
+            <span class="ranking-medal" style="margin-right: 8px; display: flex; align-items: center;">${medal}</span>
+            <span class="ranking-nick" style="font-weight: 500; color: var(--crema);">${u.nick}</span>
+            <span class="ranking-points" style="margin-left: 8px; color: var(--dorado); font-family: var(--font-display);">${u.totalPoints} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6; font-family: var(--font-body);">pts</span></span>
+          </div>
+        `;
+      }).join("");
+
+      html += `<div style="text-align: center; margin-top: 24px;">
+                 <a href="ranking.html" class="hero-btn" style="padding: 10px 24px; font-size: 11px;">Ver ranking completo</a>
+               </div>`;
+               
+      list.innerHTML = `<div style="width: 100%; display: flex; flex-direction: column;">${html}</div>`;
     });
 
     // Animación telón
