@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranking - El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+  <style>
+    .ranking-page {
+      padding-top: 100px;
+      min-height: 80vh;
+    }
+    .ranking-full-list {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ranking-row-full {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 8px;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV TOP -->
+  <nav class="nav-top" id="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Inicio</a>
+      </div>
+      <div id="nav-auth"></div>
+    </div>
+  </nav>
+
+  <!-- RANKING FULL -->
+  <section class="section ranking-page">
+    <div class="section-inner">
+      <span class="section-label">Todos los jugadores</span>
+      <h2 class="section-title">Ranking Completo</h2>
+      <div id="ranking-full-container">
+        <div class="media-placeholder" style="font-size:12px;color:var(--crema-3); text-align: center;">Cargando ranking...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel — Todos los derechos reservados</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { onRanking } from "./games/wordle.js";
+
+    // Mostrar estado de sesión en el nav
+    onSession(async (user) => {
+      const navAuth = document.getElementById("nav-auth");
+      if (user) {
+        const data = await getUserData(user.uid);
+        if (!data) {
+          navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
+          return;
+        }
+        let href = "dashboard.html";
+        if (data.role === "admin") href = "admin.html";
+        else if (data.status === "pending") href = "pending.html";
+        else if (data.status === "paused") href = "paused.html";
+
+        navAuth.innerHTML = `
+          <a href="${href}" class="nav-user-pill">
+            <span class="nav-user-dot"></span>
+            <span class="nav-user-nick">${data.nick}</span>
+          </a>
+        `;
+      } else {
+        navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
+      }
+    });
+
+    // Ranking completo en tiempo real
+    onRanking((ranking) => {
+      const container = document.getElementById("ranking-full-container");
+      if (!container) return;
+      if (ranking.length === 0) {
+        container.innerHTML = `<div class="media-placeholder" style="text-align: center;">Aún no hay datos de ranking.</div>`;
+        return;
+      }
+      
+      let html = ranking.map((u, i) => {
+        let medal = "";
+        let fontSize = "16px";
+        if (i === 0) { medal = "🥇"; fontSize = "24px"; }
+        else if (i === 1) { medal = "🥈"; fontSize = "20px"; }
+        else if (i === 2) { medal = "🥉"; fontSize = "18px"; }
+        else { medal = `${i + 1}.`; fontSize = "16px"; }
+        
+        return `
+          <div class="ranking-row-full" style="font-size: ${fontSize};">
+            <span class="ranking-medal" style="margin-right: 12px;">${medal}</span>
+            <span class="ranking-nick" style="font-weight: 500; color: var(--crema);">${u.nick}</span>
+            <span class="ranking-points" style="margin-left: 12px; color: var(--dorado); font-family: var(--font-display);">${u.totalPoints} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span></span>
+          </div>
+        `;
+      }).join("");
+
+      container.innerHTML = `<div class="ranking-full-list">${html}</div>`;
+    });
+  </script>
+</body>
+</html>
