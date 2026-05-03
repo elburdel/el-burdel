@@ -460,3 +460,40 @@
   .taboo-panel-grid { grid-template-columns: 1fr; }
   .taboo-card-word-text { font-size: 30px; }
 }
+
+/* ─── TABOO PAGE (taboo.html) ─── */
+.taboo-page { min-height:100vh; display:flex; flex-direction:column; }
+.taboo-page-main { flex:1; display:flex; flex-direction:column; max-width:480px; margin:0 auto; width:100%; }
+
+/* Sticky top bar: scores + timer */
+.taboo-topbar { position:sticky; top:49px; z-index:60; background:rgba(8,8,8,0.97); border-bottom:1px solid rgba(200,150,0,0.15); backdrop-filter:blur(8px); padding:12px 16px; }
+.taboo-topbar-scores { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:8px; }
+.topbar-team { flex:1; text-align:center; }
+.topbar-team-name { font-size:10px; letter-spacing:2px; text-transform:uppercase; display:block; }
+.topbar-team-name.rojo { color:#f09090; }
+.topbar-team-name.azul { color:#90b0f0; }
+.topbar-team-score { font-family:'Playfair Display',serif; font-size:40px; font-weight:900; line-height:1; display:block; }
+.topbar-team-score.rojo { color:#f09090; }
+.topbar-team-score.azul { color:#90b0f0; }
+.topbar-divider { width:1px; height:40px; background:rgba(200,150,0,0.2); flex-shrink:0; }
+.topbar-timer { text-align:center; }
+.topbar-timer .timer-display { font-size:24px; }
+
+/* Card area */
+.taboo-card-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+.taboo-card-area .taboo-card { width:100%; max-width:360px; }
+
+/* Waiting state */
+.taboo-waiting { text-align:center; padding:40px 20px; }
+.taboo-waiting-icon { font-size:40px; margin-bottom:12px; }
+.taboo-waiting-title { font-family:'Cormorant',serif; font-size:24px; font-weight:700; font-style:italic; color:var(--dorado); margin-bottom:8px; }
+.taboo-waiting-sub { font-size:13px; color:var(--crema-3); line-height:1.6; }
+
+/* Role badge */
+.taboo-role-badge { margin-top:14px; font-size:13px; font-weight:500; letter-spacing:1px; text-align:center; }
+
+/* Time up overlay */
+.taboo-timeup-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:300; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.taboo-timeup-overlay.hidden { display:none; }
+.taboo-timeup-icon { font-size:56px; margin-bottom:12px; animation:timerPulse .5s infinite; }
+.taboo-timeup-text { font-family:'Cormorant',serif; font-size:32px; font-weight:700; font-style:italic; color:#f04040; text-align:center; }
