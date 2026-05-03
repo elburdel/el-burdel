@@ -6,7 +6,6 @@
   <title>El Burdel</title>
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
-  <link rel="stylesheet" href="css/taboo.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -105,19 +104,6 @@
   <!-- MAIN -->
   <main class="dashboard-main">
 
-    <!-- SCOREBOARD GLOBAL (siempre visible) -->
-    <div class="dash-scoreboard" id="dash-scoreboard">
-      <div class="dash-score-team rojo">
-        <span class="dash-score-label">🔴 Rojo</span>
-        <span class="dash-score-value" id="dash-score-rojo">0</span>
-      </div>
-      <div class="dash-score-divider"></div>
-      <div class="dash-score-team azul">
-        <span class="dash-score-label">🔵 Azul</span>
-        <span class="dash-score-value" id="dash-score-azul">0</span>
-      </div>
-    </div>
-
 
     <!-- JUEGOS DISPONIBLES -->
     <div class="dash-lobby" id="dash-lobby">
@@ -162,35 +148,6 @@
         <p class="dash-idle-sub">El juego todavía no empezó. Quedate acá y vas a ver todo en tiempo real.</p>
       </div>
 
-      <!-- TABOO: TARJETA (solo para quien la recibe) -->
-      <div class="dash-taboo-card hidden" id="dash-taboo-card">
-        <div class="taboo-card">
-          <div class="taboo-card-timer">
-            <span class="timer-display" id="player-timer">60</span>
-          </div>
-          <div class="taboo-card-word">
-            <span class="taboo-card-word-label">Palabra a adivinar</span>
-            <div class="taboo-card-word-text" id="player-card-word">—</div>
-          </div>
-          <div class="taboo-card-forbidden" id="player-card-forbidden"></div>
-          <div class="taboo-card-actions">
-            <button class="taboo-btn-skip" id="btn-skip-card" onclick="handleSkip()">
-              Pasar (−<span id="skip-penalty">10</span>s)
-            </button>
-          </div>
-        </div>
-        <p class="dash-card-role" id="dash-card-role"></p>
-      </div>
-
-      <!-- TABOO: ESPECTADOR (ve marcador y tiempo pero no la tarjeta) -->
-      <div class="dash-taboo-spectator hidden" id="dash-taboo-spectator">
-        <div class="dash-spectator-timer">
-          <span class="timer-display" id="spectator-timer">60</span>
-          <span class="dash-spectator-label">Tiempo restante</span>
-        </div>
-        <p class="dash-spectator-msg">Seguí el juego en vivo desde acá 👀</p>
-      </div>
-
     </div>
 
   </main>
@@ -224,12 +181,9 @@
     import { onSession, getUserData, logoutUser } from "./js/auth.js";
     import { db } from "./js/firebase-init.js";
     import { ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { onTabooScores, onTabooState, onVisibleTo, skipCard } from "./games/taboo.js";
 
     let currentUser = null;
     let currentUserData = null;
-    let tabooState = {};
-    let penaltySkip = 10;
 
     // ── AUTH ──
     onSession(async (user) => {
@@ -254,9 +208,6 @@
     window.handleLogout = () => logoutUser();
 
     function initDashboard() {
-      listenScores();
-      listenTabooState();
-      listenVisibleTo();
       listenTablon();
       listenActiveGame();
       initPresence();
@@ -266,7 +217,6 @@
     function listenActiveGame() {
       onValue(ref(db, "session/activeGame"), (snap) => {
         const game = snap.val() || "none";
-        // Actualizar estado de cada juego en la lobby
         const games = ["taboo", "wordle", "impostor", "millonario"];
         games.forEach(g => {
           const el = document.getElementById(`status-${g}`);
@@ -276,11 +226,7 @@
             el.textContent = "🟢 Activo ahora";
             el.className = "dash-game-status active";
             if (card) card.classList.add("active");
-          } else if (g === "taboo") {
-            el.textContent = "Esperando...";
-            el.className = "dash-game-status";
-            if (card) card.classList.remove("active");
-          } else if (g === "wordle") {
+          } else if (g === "taboo" || g === "wordle") {
             el.textContent = "Jugar";
             el.className = "dash-game-status";
             if (card) card.classList.remove("active");
@@ -290,41 +236,6 @@
             if (card) card.classList.remove("active");
           }
         });
-        if (game === "none") showIdle();
-      });
-    }
-
-    // ── Scores ──
-    function listenScores() {
-      onTabooScores(scores => {
-        document.getElementById("dash-score-rojo").textContent = scores.rojo ?? 0;
-        document.getElementById("dash-score-azul").textContent = scores.azul ?? 0;
-      });
-    }
-
-    // ── Estado Taboo ──
-    function listenTabooState() {
-      onTabooState(state => {
-        tabooState = state;
-        penaltySkip = state.penaltySkip ?? 10;
-        const skipEl = document.getElementById("skip-penalty");
-        if (skipEl) skipEl.textContent = penaltySkip;
-        updateTimerDisplays(state.timeLeft ?? 60);
-      });
-    }
-
-    // ── Visibilidad tarjeta ──
-    function listenVisibleTo() {
-      onVisibleTo(visible => {
-        if (!currentUser) return;
-        const canSee = visible && visible[currentUser.uid];
-        if (canSee && tabooState.currentCard) {
-          showCard(tabooState.currentCard);
-        } else if (tabooState.currentCard) {
-          showSpectator();
-        } else {
-          showIdle();
-        }
       });
     }
 
@@ -333,13 +244,9 @@
       onValue(ref(db, "session/broadcast"), snap => {
         const msg = snap.val() || "";
         if (!msg) return;
-
-        // Solo mostrar si el usuario NO vio este mensaje antes
         const storageKey = `tablon_seen_${currentUser.uid}`;
         const lastSeen = localStorage.getItem(storageKey);
         if (lastSeen === msg) return;
-
-        // Mostrar modal
         document.getElementById("tablon-modal-msg").textContent = msg;
         document.getElementById("tablon-modal-overlay").classList.remove("hidden");
       });
@@ -352,85 +259,20 @@
       document.getElementById("tablon-modal-overlay").classList.add("hidden");
     };
 
-    // ── Mostrar estados ──
-    function showIdle() {
-      document.getElementById("dash-idle").classList.remove("hidden");
-      document.getElementById("dash-taboo-card").classList.add("hidden");
-      document.getElementById("dash-taboo-spectator").classList.add("hidden");
-    }
-
-    function showCard(card) {
-      document.getElementById("dash-idle").classList.add("hidden");
-      document.getElementById("dash-taboo-spectator").classList.add("hidden");
-      document.getElementById("dash-taboo-card").classList.remove("hidden");
-
-      document.getElementById("player-card-word").textContent = card.word;
-      const forbidden = document.getElementById("player-card-forbidden");
-      forbidden.innerHTML = `
-        <span class="taboo-forbidden-label">No pueden decir</span>
-        ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
-      `;
-
-      // Determinar rol
-      const isDescriber = tabooState.currentDescriber === currentUser.uid;
-      const roleEl = document.getElementById("dash-card-role");
-      roleEl.textContent = isDescriber ? "Vos describís 🗣️" : "Vos controlás 👁️";
-      roleEl.style.color = isDescriber ? "#f5c842" : "#90b0f0";
-
-      // Solo el que describe puede pasar
-      document.getElementById("btn-skip-card").style.display = isDescriber ? "block" : "none";
-    }
-
-    function showSpectator() {
-      document.getElementById("dash-idle").classList.add("hidden");
-      document.getElementById("dash-taboo-card").classList.add("hidden");
-      document.getElementById("dash-taboo-spectator").classList.remove("hidden");
-    }
-
-    function updateTimerDisplays(seconds) {
-      const s = Math.max(0, seconds ?? 0);
-      const min = Math.floor(s / 60);
-      const sec = s % 60;
-      const display = `${min > 0 ? min + ":" : ""}${String(sec).padStart(2, "0")}`;
-      const cls = "timer-display" + (s <= 10 ? " danger" : s <= 20 ? " warning" : "");
-      ["player-timer", "spectator-timer"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.textContent = display; el.className = cls; }
-      });
-    }
-
     // ── Presence ──
     function initPresence() {
       const connectedRef = ref(db, ".info/connected");
       const presenceRef  = ref(db, `presence/${currentUser.uid}`);
-
       onValue(connectedRef, (snap) => {
         if (snap.val() !== true) return;
-        // Escribir presencia al conectarse
         set(presenceRef, {
           nick: currentUserData.nick,
           team: currentUserData.team || null,
           connectedAt: Date.now()
         });
-        // Borrar al desconectarse (cierre de tab, pérdida de red, etc.)
         onDisconnect(presenceRef).remove();
       });
     }
-
-    // ── Pasar tarjeta ──
-    window.handleSkip = async () => {
-      if (!tabooState.currentDescriber || tabooState.currentDescriber !== currentUser.uid) return;
-      try {
-        await skipCard(
-          penaltySkip,
-          tabooState.currentDescriber,
-          tabooState.currentVeedor,
-          []
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    };
   </script>
 </body>
 </html>
