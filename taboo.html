@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Taboo — El Burdel</title>
-  <link rel="stylesheet" href="css/main.css" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=3" />
   <link rel="stylesheet" href="css/taboo.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -15,7 +16,7 @@
   <!-- NAV TOP -->
   <nav class="nav-top">
     <div class="nav-top-inner">
-      <a href="index.html" class="nav-brand">El Burdel</a>
+      <a href="index.html" class="nav-brand"><img src="assets/img/logo.png" alt="Logo" class="nav-brand-logo" />El Burdel</a>
       <div class="nav-links">
         <a href="dashboard.html" class="nav-link">Dashboard</a>
       </div>
@@ -187,6 +188,17 @@
       const card = tabooState.currentCard;
       const isDescriber = tabooState.currentDescriber === currentUser.uid;
       const isVeedor = tabooState.currentVeedor === currentUser.uid;
+
+      // Si el tiempo se agotó, ocultar la tarjeta para todos (incluyendo al describer)
+      if (tabooState.timeLeft !== undefined && tabooState.timeLeft <= 0) {
+        area.innerHTML = `
+          <div class="taboo-waiting">
+            <div class="taboo-waiting-icon">⏳</div>
+            <div class="taboo-waiting-title">¡Tiempo agotado!</div>
+            <div class="taboo-waiting-sub">Esperando el próximo turno...</div>
+          </div>`;
+        return;
+      }
 
       // No hay tarjeta activa
       if (!card) {
