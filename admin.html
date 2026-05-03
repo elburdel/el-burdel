@@ -276,8 +276,6 @@
               <div class="timer-config-row">
                 <input type="number" class="timer-input" id="timer-seconds" value="60" min="10" max="300" />
                 <span class="timer-config-label">segundos</span>
-                <input type="number" class="timer-input" id="penalty-wrong" value="5" min="0" max="30" style="width:56px" />
-                <span class="timer-config-label">pen. incorrecta</span>
                 <input type="number" class="timer-input" id="penalty-skip" value="10" min="0" max="30" style="width:56px" />
                 <span class="timer-config-label">pen. pasar</span>
               </div>
@@ -294,7 +292,10 @@
               </div>
               <div class="turn-action-btns">
                 <button class="btn-correct" onclick="handleCorrect()">✓ Correcta (+1 punto)</button>
-                <button class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (−seg)</button>
+                <button class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (siguiente)</button>
+              </div>
+              <div class="turn-action-btns" style="margin-top:8px">
+                <button class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">⏭ Pasar (−seg penalización)</button>
               </div>
             </div>
 
@@ -508,7 +509,7 @@
       sendRandomCard, skipCard,
       setTimerRunning, setTimeLeft,
       markCorrect, markWrong, setScore,
-      resetTaboo,
+      setTurnConfig, resetTaboo,
       onTabooState, onTabooScores, onTabooDeck
     } from "./games/taboo.js";
     import {
@@ -901,10 +902,11 @@
       }
     };
 
-    // ── Enviar tarjeta aleatoria ──
+    // ── Enviar tarjeta aleatoria (inicio de turno) ──
     window.nextCard = async () => {
       const describer = document.getElementById("select-describer").value;
       const veedor = document.getElementById("select-veedor").value;
+      const team = document.getElementById("select-team-turn").value;
       if (!describer || !veedor) {
         showToast("Elegí el jugador que describe y el veedor.");
         return;
@@ -917,9 +919,12 @@
         await setTimerRunning(false);
         stopLocalTimer();
         const seconds = parseInt(document.getElementById("timer-seconds").value) || 60;
+        const penaltySkip = parseInt(document.getElementById("penalty-skip").value) || 10;
         await setTimeLeft(seconds);
+        await setTurnConfig({ currentTeam: team, penaltySkip, turnDuration: seconds });
         tabooState.timeLeft = seconds;
         updateTimerDisplay(seconds);
+        usedCards = [];
         await sendRandomCard(describer, veedor, usedCards);
         showToast("¡Tarjeta enviada!");
       } catch (e) {
@@ -927,18 +932,39 @@
       }
     };
 
-    // ── Correcta ──
+    // ── Correcta: suma punto + nueva tarjeta ──
     window.handleCorrect = async () => {
       const team = document.getElementById("select-team-turn").value;
-      await markCorrect(team);
-      showToast(`✓ Punto para el equipo ${team}!`);
+      const describer = document.getElementById("select-describer").value;
+      const veedor = document.getElementById("select-veedor").value;
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
+      try {
+        await markCorrect(team, describer, veedor, usedCards);
+        showToast(`✓ Punto para ${team}! Nueva tarjeta enviada.`);
+      } catch (e) { showToast(e.message); }
     };
 
-    // ── Incorrecta ──
+    // ── Incorrecta: solo nueva tarjeta (sin penalización) ──
     window.handleWrong = async () => {
-      const penalty = parseInt(document.getElementById("penalty-wrong").value) || 5;
-      await markWrong(penalty);
-      showToast(`✗ −${penalty} segundos`);
+      const describer = document.getElementById("select-describer").value;
+      const veedor = document.getElementById("select-veedor").value;
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
+      try {
+        await markWrong(describer, veedor, usedCards);
+        showToast(`✗ Incorrecta — nueva tarjeta enviada`);
+      } catch (e) { showToast(e.message); }
+    };
+
+    // ── Pasar: resta penalización + nueva tarjeta ──
+    window.handleSkip = async () => {
+      const describer = document.getElementById("select-describer").value;
+      const veedor = document.getElementById("select-veedor").value;
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
+      const penalty = parseInt(document.getElementById("penalty-skip").value) || 10;
+      try {
+        await skipCard(penalty, describer, veedor, usedCards);
+        showToast(`⏭ Pasada — −${penalty} segundos`);
+      } catch (e) { showToast(e.message); }
     };
 
     // ── Editar puntaje ──
