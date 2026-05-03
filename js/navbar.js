@@ -1,4 +1,4 @@
-import { onSession, getUserData } from "./auth.js";
+import { onSession, getUserData, logoutUser } from "./auth.js";
 
 export function initNavbar() {
   // Try to find the nav-top element. If not, create and prepend it.
@@ -55,12 +55,26 @@ export function initNavbar() {
       else if (data.status === "pending") href = `${prefix}pending.html`;
       else if (data.status === "paused") href = `${prefix}paused.html`;
 
+      let teamIcon = "";
+      if (data.team === "rojo") teamIcon = " 🔴";
+      if (data.team === "azul") teamIcon = " 🔵";
+
       navAuth.innerHTML = `
-        <a href="${href}" class="nav-user-pill">
-          <span class="nav-user-dot"></span>
-          <span class="nav-user-nick">${data.nick}</span>
-        </a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <a href="${href}" class="nav-user-pill">
+            <span class="nav-user-dot"></span>
+            <span class="nav-user-nick">${data.nick}${teamIcon}</span>
+          </a>
+          <button class="nav-cta" style="background: var(--negro-2); border-color: rgba(200,150,0,0.4);" id="nav-logout-btn">Salir</button>
+        </div>
       `;
+      
+      const logoutBtn = document.getElementById("nav-logout-btn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          logoutUser();
+        });
+      }
     } else {
       navAuth.innerHTML = `<a href="${prefix}login.html" class="nav-cta">Entrar</a>`;
     }
