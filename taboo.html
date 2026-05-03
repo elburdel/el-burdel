@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Taboo — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/taboo.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+</head>
+<body class="taboo-page">
+
+  <!-- NAV TOP -->
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="nav-user-pill" id="nav-user"></div>
+        <button class="nav-cta" id="btn-logout">Salir</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="taboo-page-main">
+
+    <!-- Top bar: scores + timer (always visible) -->
+    <div class="taboo-topbar">
+      <div class="taboo-topbar-scores">
+        <div class="topbar-team">
+          <span class="topbar-team-name rojo" id="topbar-name-rojo">🔴 Rojo</span>
+          <span class="topbar-team-score rojo" id="topbar-score-rojo">0</span>
+        </div>
+        <div class="topbar-divider"></div>
+        <div class="topbar-team">
+          <span class="topbar-team-name azul" id="topbar-name-azul">🔵 Azul</span>
+          <span class="topbar-team-score azul" id="topbar-score-azul">0</span>
+        </div>
+      </div>
+      <div class="topbar-timer">
+        <span class="timer-display" id="game-timer">60</span>
+      </div>
+    </div>
+
+    <!-- Card area (dynamic content) -->
+    <div class="taboo-card-area" id="taboo-card-area">
+      <div class="taboo-waiting">
+        <div class="taboo-waiting-icon">🃏</div>
+        <div class="taboo-waiting-title">Esperando al admin...</div>
+        <div class="taboo-waiting-sub">El turno todavía no empezó</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TIME UP OVERLAY -->
+  <div class="taboo-timeup-overlay hidden" id="timeup-overlay">
+    <div style="text-align:center;">
+      <div class="taboo-timeup-icon">⏰</div>
+      <div class="taboo-timeup-text">¡Se acabó el tiempo!</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onSession, getUserData, logoutUser } from "./js/auth.js";
+    import { db } from "./js/firebase-init.js";
+    import {
+      ref, onValue, set, onDisconnect
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { onTabooScores, onTabooState, skipCard } from "./games/taboo.js";
+
+    let currentUser = null;
+    let currentUserData = null;
+    let tabooState = {};
+    let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
+    let timeUpShown = false;
+
+    // ── AUTH ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data) { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.status === "pending") { window.location.href = "/el-burdel/pending.html"; return; }
+      if (data.status === "paused")  { window.location.href = "/el-burdel/paused.html"; return; }
+
+      currentUser = user;
+      currentUserData = data;
+
+      document.getElementById("nav-user").innerHTML = `
+        <span class="nav-user-dot"></span>
+        <span class="nav-user-nick">${data.nick}</span>
+      `;
+
+      initTaboo();
+    });
+
+    document.getElementById("btn-logout").onclick = () => logoutUser();
+
+    function initTaboo() {
+      listenTeamNames();
+      listenScores();
+      listenState();
+      initPresence();
+    }
+
+    // ── PRESENCE ──
+    function initPresence() {
+      const connectedRef = ref(db, ".info/connected");
+      const presenceRef  = ref(db, `presence/${currentUser.uid}`);
+      onValue(connectedRef, (snap) => {
+        if (snap.val() !== true) return;
+        set(presenceRef, {
+          nick: currentUserData.nick,
+          team: currentUserData.team || null,
+          connectedAt: Date.now()
+        });
+        onDisconnect(presenceRef).remove();
+      });
+    }
+
+    // ── TEAM NAMES ──
+    function listenTeamNames() {
+      onValue(ref(db, "session/teams"), (snap) => {
+        const val = snap.val();
+        if (val) {
+          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
+          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
+        }
+        document.getElementById("topbar-name-rojo").textContent = `${teamNames.rojo.emoji} ${teamNames.rojo.name}`;
+        document.getElementById("topbar-name-azul").textContent = `${teamNames.azul.emoji} ${teamNames.azul.name}`;
+      });
+    }
+
+    // ── SCORES ──
+    function listenScores() {
+      onTabooScores(scores => {
+        document.getElementById("topbar-score-rojo").textContent = scores.rojo ?? 0;
+        document.getElementById("topbar-score-azul").textContent = scores.azul ?? 0;
+      });
+    }
+
+    // ── STATE ──
+    function listenState() {
+      onTabooState(state => {
+        tabooState = state;
+        updateTimerDisplay(state.timeLeft ?? 60);
+
+        // Time up detection
+        if (state.timeLeft !== undefined && state.timeLeft <= 0 && !timeUpShown) {
+          timeUpShown = true;
+          document.getElementById("timeup-overlay").classList.remove("hidden");
+          setTimeout(() => document.getElementById("timeup-overlay").classList.add("hidden"), 3000);
+        }
+        if (state.timeLeft > 0) {
+          timeUpShown = false;
+          document.getElementById("timeup-overlay").classList.add("hidden");
+        }
+
+        renderCardArea();
+      });
+    }
+
+    // ── TIMER ──
+    function updateTimerDisplay(seconds) {
+      const s = Math.max(0, seconds ?? 0);
+      const min = Math.floor(s / 60);
+      const sec = s % 60;
+      const display = `${min > 0 ? min + ":" : ""}${String(sec).padStart(2, "0")}`;
+      const el = document.getElementById("game-timer");
+      if (el) {
+        el.textContent = display;
+        el.className = "timer-display" + (s <= 10 ? " danger" : s <= 20 ? " warning" : "");
+      }
+    }
+
+    // ── RENDER CARD AREA ──
+    // Describer & Veedor: ven la tarjeta completa (palabra + prohibidas)
+    // Todos los demás: solo ven marcador y timer (ya en el topbar)
+    function renderCardArea() {
+      const area = document.getElementById("taboo-card-area");
+      if (!area) return;
+
+      const card = tabooState.currentCard;
+      const isDescriber = tabooState.currentDescriber === currentUser.uid;
+      const isVeedor = tabooState.currentVeedor === currentUser.uid;
+
+      // No hay tarjeta activa
+      if (!card) {
+        area.innerHTML = `
+          <div class="taboo-waiting">
+            <div class="taboo-waiting-icon">🃏</div>
+            <div class="taboo-waiting-title">Esperando al admin...</div>
+            <div class="taboo-waiting-sub">El turno todavía no empezó</div>
+          </div>`;
+        return;
+      }
+
+      // Describer: ve tarjeta completa + botón Pasar
+      if (isDescriber) {
+        const penalty = tabooState.penaltySkip ?? 10;
+        area.innerHTML = `
+          <div class="taboo-card">
+            <div class="taboo-card-word">
+              <span class="taboo-card-word-label">Palabra a adivinar</span>
+              <div class="taboo-card-word-text">${card.word}</div>
+            </div>
+            <div class="taboo-card-forbidden">
+              <span class="taboo-forbidden-label">No podés decir</span>
+              ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
+            </div>
+            <div class="taboo-card-actions">
+              <button class="taboo-btn-skip" id="btn-skip">Pasar (−${penalty}s)</button>
+            </div>
+          </div>
+          <p class="taboo-role-badge" style="color:#f5c842;">Vos describís 🗣️</p>`;
+        document.getElementById("btn-skip").onclick = handleSkip;
+        return;
+      }
+
+      // Veedor: ve tarjeta completa (controla que no digan prohibidas)
+      if (isVeedor) {
+        area.innerHTML = `
+          <div class="taboo-card">
+            <div class="taboo-card-word">
+              <span class="taboo-card-word-label">Palabra a adivinar</span>
+              <div class="taboo-card-word-text">${card.word}</div>
+            </div>
+            <div class="taboo-card-forbidden">
+              <span class="taboo-forbidden-label">No puede decir</span>
+              ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
+            </div>
+          </div>
+          <p class="taboo-role-badge" style="color:#90b0f0;">Vos controlás 👁️</p>`;
+        return;
+      }
+
+      // Espectador: solo ve marcador y timer (ya están arriba)
+      area.innerHTML = `
+        <div class="taboo-waiting">
+          <div class="taboo-waiting-icon">👀</div>
+          <div class="taboo-waiting-title">Turno en curso</div>
+          <div class="taboo-waiting-sub">Seguí el marcador y el tiempo desde arriba</div>
+        </div>`;
+    }
+
+    // ── PASAR (solo el descriptor puede) ──
+    async function handleSkip() {
+      if (!tabooState.currentDescriber || tabooState.currentDescriber !== currentUser.uid) return;
+      const penalty = tabooState.penaltySkip ?? 10;
+      const usedCards = tabooState.usedCards || [];
+      try {
+        await skipCard(penalty, tabooState.currentDescriber, tabooState.currentVeedor, usedCards);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  </script>
+</body>
+</html>
