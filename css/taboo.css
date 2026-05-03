@@ -59,7 +59,7 @@
 }
 
 .taboo-card-word-text {
-  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 38px;
   font-weight: 700;
   font-style: italic;
@@ -486,7 +486,7 @@
 /* Waiting state */
 .taboo-waiting { text-align:center; padding:40px 20px; }
 .taboo-waiting-icon { font-size:40px; margin-bottom:12px; }
-.taboo-waiting-title { font-family:'Cormorant',serif; font-size:24px; font-weight:700; font-style:italic; color:var(--dorado); margin-bottom:8px; }
+.taboo-waiting-title { font-family: var(--font-display); font-size:24px; font-weight:700; font-style:italic; color:var(--dorado); margin-bottom:8px; }
 .taboo-waiting-sub { font-size:13px; color:var(--crema-3); line-height:1.6; }
 
 /* Role badge */
@@ -496,4 +496,4 @@
 .taboo-timeup-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:300; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
 .taboo-timeup-overlay.hidden { display:none; }
 .taboo-timeup-icon { font-size:56px; margin-bottom:12px; animation:timerPulse .5s infinite; }
-.taboo-timeup-text { font-family:'Cormorant',serif; font-size:32px; font-weight:700; font-style:italic; color:#f04040; text-align:center; }
+.taboo-timeup-text { font-family: var(--font-display); font-size:32px; font-weight:700; font-style:italic; color:#f04040; text-align:center; }
