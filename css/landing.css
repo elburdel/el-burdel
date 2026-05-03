@@ -180,6 +180,7 @@
   border-color: rgba(200,150,0,0.5);
   background: #161208;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(200, 150, 0, 0.15);
 }
 
 .game-icon {
