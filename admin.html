@@ -448,6 +448,15 @@
           </div>
         </div>
 
+        <!-- Reset stats de todos los usuarios -->
+        <div class="admin-card">
+          <div class="admin-card-label">Resetear TODO el ranking global</div>
+          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
+            Borra los stats de Wordle (puntos, racha, historial) de TODOS los usuarios. ¡No se puede deshacer!
+          </p>
+          <button class="admin-btn secondary" style="background-color: var(--rojo); color: white; width: 100%; border: none;" onclick="handleResetAllWordle()">Resetear Ranking Global</button>
+        </div>
+
       </div>
     </section>
 
@@ -1332,6 +1341,26 @@
         } catch (e) {
           closeModal();
           showToast("Error al resetear.");
+        }
+      });
+    };
+
+    window.handleResetAllWordle = () => {
+      showModal("¿Seguro que querés resetear TODO el ranking? Esta acción NO se puede deshacer.", async () => {
+        try {
+          const updates = {};
+          Object.keys(allUsers).forEach(uid => {
+            updates[`users/${uid}/wordleStats`] = null;
+            updates[`wordle/results/${uid}`] = null;
+          });
+          if (Object.keys(updates).length > 0) {
+            await update(ref(db), updates);
+          }
+          closeModal();
+          showToast("Ranking global reseteado");
+        } catch (e) {
+          closeModal();
+          showToast("Error al resetear el ranking global.");
         }
       });
     };
