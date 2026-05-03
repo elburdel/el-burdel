@@ -28,19 +28,11 @@
       padding: 16px;
     }
   </style>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
 </head>
 <body>
 
-  <!-- NAV TOP -->
-  <nav class="nav-top" id="nav-top">
-    <div class="nav-top-inner">
-      <a href="index.html" class="nav-brand">El Burdel</a>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">Inicio</a>
-      </div>
-      <div id="nav-auth"></div>
-    </div>
-  </nav>
+  
 
   <!-- RANKING FULL -->
   <section class="section ranking-page">
@@ -59,7 +51,7 @@
       <div class="nav-bottom-links">
         <a href="index.html" class="nav-bottom-link">Inicio</a>
       </div>
-      <p class="nav-bottom-copy">© 2025 El Burdel — Todos los derechos reservados</p>
+      <p class="nav-bottom-copy">Â© 2025 El Burdel â€” Todos los derechos reservados</p>
     </div>
   </footer>
 
@@ -67,7 +59,7 @@
     import { onSession, getUserData } from "./js/auth.js";
     import { onRanking } from "./games/wordle.js";
 
-    // Mostrar estado de sesión en el nav
+    // Mostrar estado de sesiÃ³n en el nav
     onSession(async (user) => {
       const navAuth = document.getElementById("nav-auth");
       if (user) {
@@ -97,16 +89,16 @@
       const container = document.getElementById("ranking-full-container");
       if (!container) return;
       if (ranking.length === 0) {
-        container.innerHTML = `<div class="media-placeholder" style="text-align: center;">Aún no hay datos de ranking.</div>`;
+        container.innerHTML = `<div class="media-placeholder" style="text-align: center;">AÃºn no hay datos de ranking.</div>`;
         return;
       }
       
       let html = ranking.map((u, i) => {
         let medal = "";
         let fontSize = "16px";
-        if (i === 0) { medal = "🥇"; fontSize = "24px"; }
-        else if (i === 1) { medal = "🥈"; fontSize = "20px"; }
-        else if (i === 2) { medal = "🥉"; fontSize = "18px"; }
+        if (i === 0) { medal = "ðŸ¥‡"; fontSize = "24px"; }
+        else if (i === 1) { medal = "ðŸ¥ˆ"; fontSize = "20px"; }
+        else if (i === 2) { medal = "ðŸ¥‰"; fontSize = "18px"; }
         else { medal = `${i + 1}.`; fontSize = "16px"; }
         
         return `
@@ -121,5 +113,10 @@
       container.innerHTML = `<div class="ranking-full-list">${html}</div>`;
     });
   </script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  initNavbar();
+</script>
 </body>
 </html>
