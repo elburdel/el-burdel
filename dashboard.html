@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,19 +88,7 @@
 </head>
 <body>
 
-  <!-- NAV TOP -->
-  <nav class="nav-top">
-    <div class="nav-top-inner">
-      <a href="index.html" class="nav-brand">El Burdel</a>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">Inicio</a>
-      </div>
-      <div class="nav-right">
-        <div class="nav-user-pill" id="nav-user"></div>
-        <button class="nav-logout" onclick="handleLogout()">Salir</button>
-      </div>
-    </div>
-  </nav>
+
 
   <!-- MAIN -->
   <main class="dashboard-main">
@@ -180,6 +169,7 @@
   <script type="module">
     import { onSession, getUserData, logoutUser } from "./js/auth.js";
     import { db } from "./js/firebase-init.js";
+    import { initNavbar } from "./js/navbar.js";
     import { ref, onValue, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     let currentUser = null;
@@ -197,11 +187,7 @@
       currentUser = user;
       currentUserData = data;
 
-      document.getElementById("nav-user").innerHTML = `
-        <span class="nav-user-dot"></span>
-        <span class="nav-user-nick">${data.nick} ${data.team === "rojo" ? "🔴" : data.team === "azul" ? "🔵" : ""}</span>
-      `;
-
+      initNavbar();
       initDashboard();
     });
 
