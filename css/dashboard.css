@@ -76,7 +76,7 @@
 }
 
 .dash-idle-title {
-  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   font-style: italic;
@@ -150,7 +150,7 @@
 }
 
 .dash-tablon-msg {
-  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-style: italic;
   font-size: 18px;
   color: #c8a868;
@@ -175,7 +175,7 @@
 }
 
 .dash-lobby-title {
-  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   font-style: italic;
@@ -196,7 +196,13 @@
   border-radius: 8px;
   padding: 18px 14px;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.dash-game-card:hover {
+  border-color: rgba(200,150,0,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(200, 150, 0, 0.12);
 }
 
 .dash-game-card.active {
@@ -211,7 +217,7 @@
 }
 
 .dash-game-name {
-  font-family: 'Cormorant', 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   font-style: italic;
