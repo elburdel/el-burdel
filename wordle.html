@@ -126,10 +126,12 @@
       gameOver = false;
       keyStates = {};
 
+      // Siempre remover listener de teclado al cambiar de modo
+      document.removeEventListener("keydown", onKeyDown);
+
       document.getElementById("btn-mode-5").classList.toggle("active", m === "5");
       document.getElementById("btn-mode-6").classList.toggle("active", m === "6");
 
-      document.getElementById("wordle-loading").style.display = "block";
       document.getElementById("wordle-game").innerHTML =
         `<div id="wordle-loading" style="text-align:center;padding:48px 0;color:var(--crema-3);font-size:13px;letter-spacing:1px;">Cargando...</div>`;
 
@@ -224,6 +226,8 @@
     }
 
     function setupKeyboard() {
+      // Remover listener previo para evitar duplicados al cambiar de modo
+      document.removeEventListener("keydown", onKeyDown);
       document.addEventListener("keydown", onKeyDown);
     }
 
