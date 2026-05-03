@@ -3,24 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wordle — El Burdel</title>
+  <title>Wordle â€” El Burdel</title>
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/wordle.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
 </head>
 <body>
 
-  <!-- NAV TOP -->
-  <nav class="nav-top">
-    <div class="nav-top-inner">
-      <a href="index.html" class="nav-brand">El Burdel</a>
-      <div class="nav-links">
-        <a href="dashboard.html" class="nav-link">Dashboard</a>
-      </div>
-      <button class="nav-cta" id="btn-logout">Salir</button>
-    </div>
-  </nav>
+  
 
   <!-- MAIN -->
   <main class="wordle-main">
@@ -59,7 +51,7 @@
         <a href="index.html" class="nav-bottom-link">Inicio</a>
         <a href="dashboard.html" class="nav-bottom-link">Dashboard</a>
       </div>
-      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+      <p class="nav-bottom-copy">Â© 2025 El Burdel</p>
     </div>
   </footer>
 
@@ -75,17 +67,17 @@
       MAX_ATTEMPTS
     } from "./games/wordle.js";
 
-    // ── Estado ──
+    // â”€â”€ Estado â”€â”€
     let currentUser = null;
     let mode = "5";           // "5" | "6"
     let targetWord = "";
     let guesses = [];         // array de { guess, result }
     let currentInput = "";
     let gameOver = false;
-    let keyStates = {};       // letra → "correct"|"present"|"absent"
+    let keyStates = {};       // letra â†’ "correct"|"present"|"absent"
     let playedModes = {};     // { "5": result|null, "6": result|null }
 
-    // ── Protección ──
+    // â”€â”€ ProtecciÃ³n â”€â”€
     onSession(async (user) => {
       if (!user) { window.location.href = "/el-burdel/login.html"; return; }
       const data = await getUserData(user.uid);
@@ -112,7 +104,7 @@
       playedModes["5"] = r5;
       playedModes["6"] = r6;
 
-      // Marcar dots si ya jugó
+      // Marcar dots si ya jugÃ³
       if (r5) document.getElementById("dot-5").classList.remove("hidden");
       if (r6) document.getElementById("dot-6").classList.remove("hidden");
 
@@ -137,7 +129,7 @@
 
       targetWord = await getWordOfDay(m);
 
-      // ¿Ya jugó hoy este modo?
+      // Â¿Ya jugÃ³ hoy este modo?
       if (playedModes[m]) {
         renderPlayed(playedModes[m]);
         return;
@@ -149,18 +141,18 @@
 
     window.switchMode = (m) => loadMode(m);
 
-    // ── Render: ya jugó ──
+    // â”€â”€ Render: ya jugÃ³ â”€â”€
     function renderPlayed(result) {
       const game = document.getElementById("wordle-game");
       const won = result.won;
       game.innerHTML = `
         <div class="wordle-played-today">
-          <div class="wordle-played-icon">${won ? "🏆" : "😔"}</div>
-          <div class="wordle-played-title">${won ? "¡Ya ganaste hoy!" : "Ya jugaste hoy"}</div>
+          <div class="wordle-played-icon">${won ? "ðŸ†" : "ðŸ˜”"}</div>
+          <div class="wordle-played-title">${won ? "Â¡Ya ganaste hoy!" : "Ya jugaste hoy"}</div>
           <div class="wordle-played-sub">
             ${won
-              ? `Lo adivinaste en <strong>${result.attempts}</strong> intento${result.attempts !== 1 ? "s" : ""} — la palabra era <strong>${result.word}</strong>.`
-              : `La palabra era <strong>${result.word}</strong>. Mañana hay otra oportunidad.`
+              ? `Lo adivinaste en <strong>${result.attempts}</strong> intento${result.attempts !== 1 ? "s" : ""} â€” la palabra era <strong>${result.word}</strong>.`
+              : `La palabra era <strong>${result.word}</strong>. MaÃ±ana hay otra oportunidad.`
             }
           </div>
           ${won ? `<div class="wordle-result-points" style="margin-top:20px">${result.points}</div>
@@ -169,7 +161,7 @@
       `;
     }
 
-    // ── Render: grilla + teclado ──
+    // â”€â”€ Render: grilla + teclado â”€â”€
     function renderGame() {
       const len = parseInt(mode);
       const game = document.getElementById("wordle-game");
@@ -199,11 +191,11 @@
       }
     }
 
-    // ── Teclado ──
+    // â”€â”€ Teclado â”€â”€
     const ROWS_ES = [
       ["Q","W","E","R","T","Y","U","I","O","P"],
-      ["A","S","D","F","G","H","J","K","L","Ñ"],
-      ["ENTER","Z","X","C","V","B","N","M","⌫"]
+      ["A","S","D","F","G","H","J","K","L","Ã‘"],
+      ["ENTER","Z","X","C","V","B","N","M","âŒ«"]
     ];
 
     function renderKeyboard() {
@@ -214,7 +206,7 @@
         rowEl.className = "wordle-keyboard-row";
         row.forEach(key => {
           const btn = document.createElement("button");
-          btn.className = "wordle-key" + (key === "ENTER" || key === "⌫" ? " wide" : "");
+          btn.className = "wordle-key" + (key === "ENTER" || key === "âŒ«" ? " wide" : "");
           btn.textContent = key;
           btn.dataset.key = key;
           btn.id = `key-${key}`;
@@ -235,16 +227,16 @@
       if (gameOver) return;
       const key = e.key.toUpperCase();
       if (key === "ENTER") { e.preventDefault(); handleKey("ENTER"); return; }
-      if (key === "BACKSPACE") { e.preventDefault(); handleKey("⌫"); return; }
-      // Letras A-Z y Ñ
-      if (/^[A-ZÁÉÍÓÚÜÑ]$/.test(key)) handleKey(key);
+      if (key === "BACKSPACE") { e.preventDefault(); handleKey("âŒ«"); return; }
+      // Letras A-Z y Ã‘
+      if (/^[A-ZÃÃ‰ÃÃ“ÃšÃœÃ‘]$/.test(key)) handleKey(key);
     }
 
     function handleKey(key) {
       if (gameOver) return;
       const len = parseInt(mode);
 
-      if (key === "⌫") {
+      if (key === "âŒ«") {
         if (currentInput.length > 0) {
           currentInput = currentInput.slice(0, -1);
           updateCurrentRow();
@@ -283,7 +275,7 @@
       }
 
       if (!isValidWord(currentInput, mode)) {
-        showStatus("Palabra no está en la lista", "error");
+        showStatus("Palabra no estÃ¡ en la lista", "error");
         shakeRow(guesses.length);
         return;
       }
@@ -292,7 +284,7 @@
       const rowIdx = guesses.length;
       guesses.push({ guess: currentInput, result });
 
-      // Revelar celdas con animación escalonada
+      // Revelar celdas con animaciÃ³n escalonada
       revealRow(rowIdx, currentInput, result);
 
       // Actualizar keyStates
@@ -315,7 +307,7 @@
       if (won) {
         gameOver = true;
         setTimeout(async () => {
-          showStatus("🏆 ¡Lo adivinaste!", "win");
+          showStatus("ðŸ† Â¡Lo adivinaste!", "win");
           bounceRow(rowIdx);
           const res = { won: true, attempts: guesses.length, word: targetWord };
           await saveResult(currentUser.uid, mode, res);
@@ -399,7 +391,7 @@
 
       game.innerHTML = `
         <div class="wordle-result-panel">
-          <div class="wordle-result-title">${won ? "🏆 ¡Lo adivinaste!" : "😔 Sin suerte hoy"}</div>
+          <div class="wordle-result-title">${won ? "ðŸ† Â¡Lo adivinaste!" : "ðŸ˜” Sin suerte hoy"}</div>
           <div class="wordle-result-word">La palabra era <strong>${targetWord}</strong></div>
           ${won ? `
             <div class="wordle-result-points">${points}</div>
@@ -407,7 +399,7 @@
           ` : ""}
           <div class="wordle-result-stats">
             <div class="wordle-stat">
-              <span class="wordle-stat-value">${won ? attempts : "—"}</span>
+              <span class="wordle-stat-value">${won ? attempts : "â€”"}</span>
               <span class="wordle-stat-label">Intentos</span>
             </div>
           </div>
@@ -421,12 +413,17 @@
             </div>
           ` : `
             <div style="margin-top:16px;font-size:12px;color:var(--crema-3);letter-spacing:1px;">
-              Volvé mañana para el próximo Wordle
+              VolvÃ© maÃ±ana para el prÃ³ximo Wordle
             </div>
           `}
         </div>
       `;
     }
   </script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  initNavbar();
+</script>
 </body>
 </html>
