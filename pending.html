@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pendiente — El Burdel</title>
+  <title>Pendiente â€” El Burdel</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
     .status-main {
@@ -80,6 +80,7 @@
       border-color: rgba(200,150,0,0.5);
     }
   </style>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
 </head>
 <body>
 
@@ -97,14 +98,14 @@
         <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
         <span class="bombita"></span><span class="bombita"></span>
       </div>
-      <span class="status-icon">⏳</span>
+      <span class="status-icon">â³</span>
       <h1 class="status-title">Cuenta pendiente</h1>
       <p class="status-nick" id="status-nick"></p>
       <p class="status-text">
         Tu cuenta fue creada correctamente.<br />
-        Esperá que el admin te apruebe para poder entrar.
+        EsperÃ¡ que el admin te apruebe para poder entrar.
       </p>
-      <button class="status-btn" onclick="handleLogout()">Cerrar sesión</button>
+      <button class="status-btn" onclick="handleLogout()">Cerrar sesiÃ³n</button>
       <div class="status-bombitas" style="margin-top: 24px; margin-bottom: 0;">
         <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
         <span class="bombita"></span><span class="bombita"></span>
@@ -114,7 +115,7 @@
 
   <footer class="nav-bottom">
     <div class="nav-bottom-inner">
-      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+      <p class="nav-bottom-copy">Â© 2025 El Burdel</p>
     </div>
   </footer>
 
@@ -127,8 +128,8 @@
         return;
       }
       const data = await getUserData(user.uid);
-      // Si no hay datos aún (timing del registro), mostramos la página igual
-      // sin redirigir — el usuario acaba de crear la cuenta
+      // Si no hay datos aÃºn (timing del registro), mostramos la pÃ¡gina igual
+      // sin redirigir â€” el usuario acaba de crear la cuenta
       if (!data) {
         const nick = document.getElementById("status-nick");
         if (nick) nick.textContent = "";
@@ -154,5 +155,10 @@
       await logoutUser();
     };
   </script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  initNavbar();
+</script>
 </body>
 </html>
