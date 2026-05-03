@@ -19,19 +19,7 @@
     </div>
   </div>
 
-  <!-- NAV TOP -->
-  <nav class="nav-top" id="nav-top">
-    <div class="nav-top-inner">
-      <a href="index.html" class="nav-brand"><img src="assets/img/logo.png" alt="Logo" class="nav-brand-logo" />El Burdel</a>
-      <div class="nav-links">
-        <a href="#juegos" class="nav-link">Juegos</a>
-        <a href="#galeria" class="nav-link">Galería</a>
-        <a href="#clips" class="nav-link">Clips</a>
-        <a href="#ranking" class="nav-link">Ranking</a>
-      </div>
-      <div id="nav-auth"></div>
-    </div>
-  </nav>
+
 
   <!-- HERO -->
   <section class="hero">
@@ -147,32 +135,11 @@
   <script type="module">
     import { onSession, getUserData } from "./js/auth.js";
     import { onRanking } from "./games/wordle.js";
+    import { initNavbar } from "./js/navbar.js";
+    
+    initNavbar();
 
-    // Mostrar estado de sesión en el nav
-    onSession(async (user) => {
-      const navAuth = document.getElementById("nav-auth");
-      if (user) {
-        const data = await getUserData(user.uid);
-        if (!data) {
-          navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
-          return;
-        }
-        // Determinar destino según rol/estado
-        let href = "dashboard.html";
-        if (data.role === "admin") href = "admin.html";
-        else if (data.status === "pending") href = "pending.html";
-        else if (data.status === "paused") href = "paused.html";
 
-        navAuth.innerHTML = `
-          <a href="${href}" class="nav-user-pill">
-            <span class="nav-user-dot"></span>
-            <span class="nav-user-nick">${data.nick}</span>
-          </a>
-        `;
-      } else {
-        navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
-      }
-    });
 
     // Ranking Wordle en tiempo real
     onRanking((ranking) => {
