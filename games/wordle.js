@@ -137,6 +137,30 @@ export function onRanking(callback) {
   });
 }
 
+// ── Guardar progreso parcial (estado mid-game) ──
+// Llamar después de cada intento fallido para persistir el estado
+export async function saveProgress(uid, mode, guesses) {
+  const today = getTodayKey();
+  await set(ref(db, `wordle/progress/${uid}/${today}/${mode}`), {
+    guesses: guesses.map(g => ({ guess: g.guess, result: g.result })),
+    timestamp: Date.now()
+  });
+}
+
+// ── Obtener progreso parcial ──
+// Devuelve { guesses } si hay progreso guardado, null si no
+export async function getProgress(uid, mode) {
+  const today = getTodayKey();
+  const snap = await get(ref(db, `wordle/progress/${uid}/${today}/${mode}`));
+  return snap.exists() ? snap.val() : null;
+}
+
+// ── Limpiar progreso parcial (al terminar la partida) ──
+export async function clearProgress(uid, mode) {
+  const today = getTodayKey();
+  await set(ref(db, `wordle/progress/${uid}/${today}/${mode}`), null);
+}
+
 // ── Admin: forzar palabra del día ──
 export async function forceWordOfDay(mode, word) {
   const today = getTodayKey();
