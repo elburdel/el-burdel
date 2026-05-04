@@ -63,6 +63,9 @@
       isValidWord,
       saveResult,
       getTodayResult,
+      saveProgress,
+      getProgress,
+      clearProgress,
       onRanking,
       MAX_ATTEMPTS
     } from "./games/wordle.js";
@@ -137,6 +140,36 @@
 
       renderGame();
       setupKeyboard();
+
+      // ¿Hay progreso parcial guardado? Restaurar intentos previos
+      const progress = await getProgress(currentUser.uid, m);
+      if (progress && progress.guesses && progress.guesses.length > 0) {
+        for (const { guess, result } of progress.guesses) {
+          const rowIdx = guesses.length;
+          guesses.push({ guess, result });
+          // Renderizar fila ya revelada (sin animación)
+          const len = parseInt(m);
+          for (let c = 0; c < len; c++) {
+            const cell = document.getElementById(`cell-${rowIdx}-${c}`);
+            if (cell) {
+              cell.textContent = guess[c] || "";
+              cell.classList.remove("filled");
+              cell.classList.add(result[c]);
+            }
+          }
+          // Actualizar keyStates
+          result.forEach((state, i) => {
+            const letter = guess[i];
+            const prev = keyStates[letter];
+            if (prev !== "correct") {
+              if (state === "correct" || !prev || (state === "present" && prev !== "correct")) {
+                keyStates[letter] = state;
+              }
+            }
+          });
+        }
+        updateKeyboard();
+      }
     }
 
     window.switchMode = (m) => loadMode(m);
@@ -304,12 +337,18 @@
       const won = result.every(s => s === "correct");
       currentInput = "";
 
+      // Guardar progreso parcial en Firebase (anti-trampa)
+      if (!won && guesses.length < MAX_ATTEMPTS) {
+        saveProgress(currentUser.uid, mode, guesses);
+      }
+
       if (won) {
         gameOver = true;
         setTimeout(async () => {
           showStatus("🏆 ¡Lo adivinaste!", "win");
           bounceRow(rowIdx);
           const res = { won: true, attempts: guesses.length, word: targetWord };
+          await clearProgress(currentUser.uid, mode);
           await saveResult(currentUser.uid, mode, res);
           playedModes[mode] = { ...res, points: calcPoints(guesses.length) };
           document.getElementById(`dot-${mode}`).classList.remove("hidden");
@@ -323,6 +362,7 @@
         setTimeout(async () => {
           showStatus(`La palabra era ${targetWord}`, "error");
           const res = { won: false, attempts: 0, word: targetWord };
+          await clearProgress(currentUser.uid, mode);
           await saveResult(currentUser.uid, mode, res);
           playedModes[mode] = { ...res, points: 0 };
           document.getElementById(`dot-${mode}`).classList.remove("hidden");
