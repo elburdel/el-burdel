@@ -185,7 +185,7 @@
   padding: 24px 16px;
   text-align: center;
   transition: border-color 0.2s, background 0.2s, transform 0.2s;
-  cursor: default;
+  cursor: pointer;
 }
 
 .game-card:hover {
