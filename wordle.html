@@ -85,7 +85,7 @@
       if (data.status === "pending") { window.location.href = "/el-burdel/pending.html"; return; }
       if (data.status === "paused")  { window.location.href = "/el-burdel/paused.html"; return; }
       currentUser = { uid: user.uid, ...data };
-      document.getElementById("btn-logout").onclick = () => logoutUser();
+
       await initWordle();
     });
 
