@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Taboo â€” El Burdel</title>
+  <title>Taboo — El Burdel</title>
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css?v=3" />
   <link rel="stylesheet" href="css/taboo.css" />
@@ -21,12 +21,12 @@
     <div class="taboo-topbar">
       <div class="taboo-topbar-scores">
         <div class="topbar-team">
-          <span class="topbar-team-name rojo" id="topbar-name-rojo">ðŸ”´ Rojo</span>
+          <span class="topbar-team-name rojo" id="topbar-name-rojo">🔴 Rojo</span>
           <span class="topbar-team-score rojo" id="topbar-score-rojo">0</span>
         </div>
         <div class="topbar-divider"></div>
         <div class="topbar-team">
-          <span class="topbar-team-name azul" id="topbar-name-azul">ðŸ”µ Azul</span>
+          <span class="topbar-team-name azul" id="topbar-name-azul">🔵 Azul</span>
           <span class="topbar-team-score azul" id="topbar-score-azul">0</span>
         </div>
       </div>
@@ -38,9 +38,9 @@
     <!-- Card area (dynamic content) -->
     <div class="taboo-card-area" id="taboo-card-area">
       <div class="taboo-waiting">
-        <div class="taboo-waiting-icon">ðŸƒ</div>
+        <div class="taboo-waiting-icon">🃏</div>
         <div class="taboo-waiting-title">Esperando al admin...</div>
-        <div class="taboo-waiting-sub">El turno todavÃ­a no empezÃ³</div>
+        <div class="taboo-waiting-sub">El turno todavía no empezó</div>
       </div>
     </div>
 
@@ -49,8 +49,8 @@
   <!-- TIME UP OVERLAY -->
   <div class="taboo-timeup-overlay hidden" id="timeup-overlay">
     <div style="text-align:center;">
-      <div class="taboo-timeup-icon">â°</div>
-      <div class="taboo-timeup-text">Â¡Se acabÃ³ el tiempo!</div>
+      <div class="taboo-timeup-icon">⏰</div>
+      <div class="taboo-timeup-text">¡Se acabó el tiempo!</div>
     </div>
   </div>
 
@@ -65,10 +65,10 @@
     let currentUser = null;
     let currentUserData = null;
     let tabooState = {};
-    let teamNames = { rojo: { emoji: "ðŸ”´", name: "Equipo Rojo" }, azul: { emoji: "ðŸ”µ", name: "Equipo Azul" } };
+    let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
     let timeUpShown = false;
 
-    // â”€â”€ AUTH â”€â”€
+    // ── AUTH ──
     onSession(async (user) => {
       if (!user) { window.location.href = "/el-burdel/login.html"; return; }
       const data = await getUserData(user.uid);
@@ -96,7 +96,7 @@
       initPresence();
     }
 
-    // â”€â”€ PRESENCE â”€â”€
+    // ── PRESENCE ──
     function initPresence() {
       const connectedRef = ref(db, ".info/connected");
       const presenceRef  = ref(db, `presence/${currentUser.uid}`);
@@ -111,20 +111,20 @@
       });
     }
 
-    // â”€â”€ TEAM NAMES â”€â”€
+    // ── TEAM NAMES ──
     function listenTeamNames() {
       onValue(ref(db, "session/teams"), (snap) => {
         const val = snap.val();
         if (val) {
-          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "ðŸ”´", name: val.rojo.name || "Equipo Rojo" };
-          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "ðŸ”µ", name: val.azul.name || "Equipo Azul" };
+          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
+          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
         }
         document.getElementById("topbar-name-rojo").textContent = `${teamNames.rojo.emoji} ${teamNames.rojo.name}`;
         document.getElementById("topbar-name-azul").textContent = `${teamNames.azul.emoji} ${teamNames.azul.name}`;
       });
     }
 
-    // â”€â”€ SCORES â”€â”€
+    // ── SCORES ──
     function listenScores() {
       onTabooScores(scores => {
         document.getElementById("topbar-score-rojo").textContent = scores.rojo ?? 0;
@@ -132,7 +132,7 @@
       });
     }
 
-    // â”€â”€ STATE â”€â”€
+    // ── STATE ──
     function listenState() {
       onTabooState(state => {
         tabooState = state;
@@ -153,7 +153,7 @@
       });
     }
 
-    // â”€â”€ TIMER â”€â”€
+    // ── TIMER ──
     function updateTimerDisplay(seconds) {
       const s = Math.max(0, seconds ?? 0);
       const min = Math.floor(s / 60);
@@ -166,9 +166,9 @@
       }
     }
 
-    // â”€â”€ RENDER CARD AREA â”€â”€
+    // ── RENDER CARD AREA ──
     // Describer & Veedor: ven la tarjeta completa (palabra + prohibidas)
-    // Todos los demÃ¡s: solo ven marcador y timer (ya en el topbar)
+    // Todos los demás: solo ven marcador y timer (ya en el topbar)
     function renderCardArea() {
       const area = document.getElementById("taboo-card-area");
       if (!area) return;
@@ -177,13 +177,13 @@
       const isDescriber = tabooState.currentDescriber === currentUser.uid;
       const isVeedor = tabooState.currentVeedor === currentUser.uid;
 
-      // Si el tiempo se agotÃ³, ocultar la tarjeta para todos (incluyendo al describer)
+      // Si el tiempo se agotó, ocultar la tarjeta para todos (incluyendo al describer)
       if (tabooState.timeLeft !== undefined && tabooState.timeLeft <= 0) {
         area.innerHTML = `
           <div class="taboo-waiting">
-            <div class="taboo-waiting-icon">â³</div>
-            <div class="taboo-waiting-title">Â¡Tiempo agotado!</div>
-            <div class="taboo-waiting-sub">Esperando el prÃ³ximo turno...</div>
+            <div class="taboo-waiting-icon">⏳</div>
+            <div class="taboo-waiting-title">¡Tiempo agotado!</div>
+            <div class="taboo-waiting-sub">Esperando el próximo turno...</div>
           </div>`;
         return;
       }
@@ -192,14 +192,14 @@
       if (!card) {
         area.innerHTML = `
           <div class="taboo-waiting">
-            <div class="taboo-waiting-icon">ðŸƒ</div>
+            <div class="taboo-waiting-icon">🃏</div>
             <div class="taboo-waiting-title">Esperando al admin...</div>
-            <div class="taboo-waiting-sub">El turno todavÃ­a no empezÃ³</div>
+            <div class="taboo-waiting-sub">El turno todavía no empezó</div>
           </div>`;
         return;
       }
 
-      // Describer: ve tarjeta completa + botÃ³n Pasar
+      // Describer: ve tarjeta completa + botón Pasar
       if (isDescriber) {
         const penalty = tabooState.penaltySkip ?? 10;
         area.innerHTML = `
@@ -209,14 +209,14 @@
               <div class="taboo-card-word-text">${card.word}</div>
             </div>
             <div class="taboo-card-forbidden">
-              <span class="taboo-forbidden-label">No podÃ©s decir</span>
+              <span class="taboo-forbidden-label">No podés decir</span>
               ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
             </div>
             <div class="taboo-card-actions">
-              <button class="taboo-btn-skip" id="btn-skip">Pasar (âˆ’${penalty}s)</button>
+              <button class="taboo-btn-skip" id="btn-skip">Pasar (−${penalty}s)</button>
             </div>
           </div>
-          <p class="taboo-role-badge" style="color:#f5c842;">Vos describÃ­s ðŸ—£ï¸</p>`;
+          <p class="taboo-role-badge" style="color:#f5c842;">Vos describís 🗣️</p>`;
         document.getElementById("btn-skip").onclick = handleSkip;
         return;
       }
@@ -234,20 +234,20 @@
               ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
             </div>
           </div>
-          <p class="taboo-role-badge" style="color:#90b0f0;">Vos controlÃ¡s ðŸ‘ï¸</p>`;
+          <p class="taboo-role-badge" style="color:#90b0f0;">Vos controlás 👁️</p>`;
         return;
       }
 
-      // Espectador: solo ve marcador y timer (ya estÃ¡n arriba)
+      // Espectador: solo ve marcador y timer (ya están arriba)
       area.innerHTML = `
         <div class="taboo-waiting">
-          <div class="taboo-waiting-icon">ðŸ‘€</div>
+          <div class="taboo-waiting-icon">👀</div>
           <div class="taboo-waiting-title">Turno en curso</div>
-          <div class="taboo-waiting-sub">SeguÃ­ el marcador y el tiempo desde arriba</div>
+          <div class="taboo-waiting-sub">Seguí el marcador y el tiempo desde arriba</div>
         </div>`;
     }
 
-    // â”€â”€ PASAR (solo el descriptor puede) â”€â”€
+    // ── PASAR (solo el descriptor puede) ──
     async function handleSkip() {
       if (!tabooState.currentDescriber || tabooState.currentDescriber !== currentUser.uid) return;
       const penalty = tabooState.penaltySkip ?? 10;
