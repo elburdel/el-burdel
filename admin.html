@@ -299,44 +299,12 @@
           <!-- COLUMNA DERECHA: Mazo de tarjetas -->
           <div class="taboo-panel-col">
 
-            <!-- Agregar tarjeta -->
+            <!-- Mazo -->
             <div class="admin-card">
-              <div class="admin-card-label">Agregar tarjeta al mazo</div>
-              <div class="card-form">
-                <input type="text" class="card-form-input" id="new-card-word"
-                  placeholder="Palabra a adivinar" maxlength="40" />
-                <div class="forbidden-inputs" id="forbidden-inputs">
-                  <div class="forbidden-row">
-                    <span class="forbidden-num">1</span>
-                    <input type="text" class="card-form-input" placeholder="Palabra prohibida" maxlength="30" />
-                  </div>
-                  <div class="forbidden-row">
-                    <span class="forbidden-num">2</span>
-                    <input type="text" class="card-form-input" placeholder="Palabra prohibida" maxlength="30" />
-                  </div>
-                  <div class="forbidden-row">
-                    <span class="forbidden-num">3</span>
-                    <input type="text" class="card-form-input" placeholder="Palabra prohibida" maxlength="30" />
-                  </div>
-                  <div class="forbidden-row">
-                    <span class="forbidden-num">4</span>
-                    <input type="text" class="card-form-input" placeholder="Palabra prohibida" maxlength="30" />
-                  </div>
-                  <div class="forbidden-row">
-                    <span class="forbidden-num">5</span>
-                    <input type="text" class="card-form-input" placeholder="Palabra prohibida" maxlength="30" />
-                  </div>
-                </div>
-                <button class="admin-btn primary" onclick="addCard()">Agregar al mazo</button>
-              </div>
-            </div>
-
-            <!-- Lista del mazo -->
-            <div class="admin-card">
-              <div class="admin-card-label">Mazo cargado</div>
-              <div class="deck-summary-row">
-                <p class="deck-count" id="deck-count-label">0 tarjetas</p>
-                <button class="admin-btn secondary small" onclick="openDeckModal()">Ver mazo</button>
+              <div class="admin-card-label">Mazo de Taboo</div>
+              <div style="text-align:center; padding: 20px 0;">
+                <p class="deck-count" id="deck-count-label" style="font-size:16px; margin-bottom:16px; color:var(--dorado);">0 tarjetas en total</p>
+                <a href="admin-mazo.html" class="admin-btn primary" style="text-decoration:none; display:block; padding:12px;">Ir a Gestión del Mazo</a>
               </div>
             </div>
 
@@ -486,17 +454,7 @@
     </div>
   </div>
 
-  <!-- MODAL MAZO TABOO -->
-  <div class="modal-overlay hidden" id="deck-modal-overlay">
-    <div class="modal-box deck-modal-box">
-      <div class="deck-modal-header">
-        <h3 class="deck-modal-title">Mazo de Taboo</h3>
-        <button class="deck-modal-close" onclick="closeDeckModal()">✕</button>
-      </div>
-      <input type="text" class="deck-search-input" id="deck-search" placeholder="Buscar tarjeta..." oninput="filterDeck()" />
-      <div class="deck-modal-list" id="deck-modal-list"></div>
-    </div>
-  </div>
+
 
   <script type="module">
     import { onSession, getUserData, logoutUser, recoverPassword } from "./js/auth.js";
@@ -846,7 +804,6 @@
 
       onTabooDeck(deck => {
         tabooDeck = deck;
-        renderDeckList(deck);
         updateDeckCount(deck);
         populatePlayerSelects();
       });
@@ -974,127 +931,7 @@
       }
     };
 
-    // ── Agregar tarjeta al mazo ──
-    window.addCard = async () => {
-      const word = document.getElementById("new-card-word").value.trim();
-      if (!word) { showToast("Ingresá la palabra principal."); return; }
-      const forbidden = Array.from(
-        document.querySelectorAll("#forbidden-inputs input")
-      ).map(i => i.value.trim()).filter(v => v.length > 0);
-      try {
-        await saveCard(word, forbidden);
-        document.getElementById("new-card-word").value = "";
-        document.querySelectorAll("#forbidden-inputs input").forEach(i => i.value = "");
-        showToast(`✓ "${word}" agregada al mazo`);
-      } catch (e) {
-        showToast(e.message);
-      }
-    };
 
-    // ── Renderizar mazo (modal) ──
-    function renderDeckList(deck) {
-      // ya no renderiza inline, solo actualiza el modal si está abierto
-      if (!document.getElementById("deck-modal-overlay").classList.contains("hidden")) {
-        renderDeckModal();
-      }
-    }
-
-    function renderDeckModal() {
-      const query = (document.getElementById("deck-search").value || "").toLowerCase().trim();
-      const list = document.getElementById("deck-modal-list");
-      const entries = Object.entries(tabooDeck);
-      const filtered = query
-        ? entries.filter(([, c]) => c.word.toLowerCase().includes(query) || (c.forbidden || []).some(f => f.toLowerCase().includes(query)))
-        : entries;
-
-      if (filtered.length === 0) {
-        list.innerHTML = `<p class="deck-empty-msg">${query ? "Sin resultados." : "El mazo está vacío."}</p>`;
-        return;
-      }
-
-      list.innerHTML = filtered.map(([id, card]) => `
-        <div class="deck-modal-item" id="deck-item-${id}">
-          <div class="deck-item-view">
-            <div class="deck-item-info">
-              <span class="deck-item-word">${card.word}</span>
-              <span class="deck-item-forbidden">${(card.forbidden || []).join(", ")}</span>
-            </div>
-            <div class="deck-item-actions">
-              <button class="deck-btn edit-btn" onclick="openEditCard('${id}')">✏️</button>
-              <button class="deck-btn delete-btn" onclick="confirmDeleteCard('${id}', '${card.word.replace(/'/g, "\\'")}')">✕</button>
-            </div>
-          </div>
-          <div class="deck-item-edit hidden" id="deck-edit-${id}">
-            <input type="text" class="card-form-input" id="edit-word-${id}" value="${card.word}" maxlength="40" placeholder="Palabra" />
-            <div class="edit-forbidden-grid" id="edit-forbidden-${id}">
-              ${[0,1,2,3,4].map(i => `
-                <div class="forbidden-row">
-                  <span class="forbidden-num">${i+1}</span>
-                  <input type="text" class="card-form-input" value="${(card.forbidden || [])[i] || ''}" maxlength="30" placeholder="Prohibida" />
-                </div>
-              `).join("")}
-            </div>
-            <div class="edit-action-row">
-              <button class="admin-btn primary small" onclick="saveEditCard('${id}')">Guardar</button>
-              <button class="admin-btn secondary small" onclick="closeEditCard('${id}')">Cancelar</button>
-            </div>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    window.openDeckModal = () => {
-      document.getElementById("deck-modal-overlay").classList.remove("hidden");
-      document.getElementById("deck-search").value = "";
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      renderDeckModal();
-    };
-
-    window.closeDeckModal = () => {
-      document.getElementById("deck-modal-overlay").classList.add("hidden");
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-    };
-
-    window.filterDeck = () => renderDeckModal();
-
-    window.openEditCard = (id) => {
-      document.getElementById(`deck-edit-${id}`).classList.remove("hidden");
-      document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.add("hidden");
-      // Scroll dentro del modal hasta que los botones de acción queden visibles
-      setTimeout(() => {
-        const editPanel = document.getElementById(`deck-edit-${id}`);
-        const actionRow = editPanel.querySelector(".edit-action-row");
-        const modalList = document.getElementById("deck-modal-list");
-        if (actionRow && modalList) {
-          const itemTop = editPanel.offsetTop;
-          const itemBottom = itemTop + editPanel.scrollHeight + 16;
-          modalList.scrollTo({ top: itemBottom - modalList.clientHeight, behavior: "smooth" });
-        }
-      }, 50);
-    };
-
-    window.closeEditCard = (id) => {
-      document.getElementById(`deck-edit-${id}`).classList.add("hidden");
-      document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.remove("hidden");
-    };
-
-    window.saveEditCard = async (id) => {
-      const word = document.getElementById(`edit-word-${id}`).value.trim();
-      if (!word) { showToast("La palabra no puede estar vacía."); return; }
-      const forbidden = Array.from(
-        document.querySelectorAll(`#edit-forbidden-${id} input`)
-      ).map(i => i.value.trim()).filter(v => v.length > 0);
-      try {
-        await updateCard(id, word, forbidden);
-        showToast(`✓ "${word}" actualizada`);
-      } catch (e) {
-        showToast(e.message);
-      }
-    };
 
     function updateDeckCount(deck) {
       const count = Object.keys(deck).length;
