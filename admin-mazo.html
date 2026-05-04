@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mazo de Taboo — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/taboo.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+
+  <style>
+    .mazo-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .mazo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .mazo-search-input {
+      width: 100%;
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.3);
+      border-radius: 6px;
+      padding: 14px 16px;
+      color: var(--crema);
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .mazo-search-input:focus {
+      border-color: var(--dorado);
+    }
+    .mazo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .mazo-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .mazo-card-word {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--dorado);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .mazo-card-forbidden {
+      font-size: 13px;
+      color: var(--crema-3);
+      line-height: 1.6;
+      flex: 1;
+    }
+    .mazo-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(200,150,0,0.1);
+    }
+    .mazo-btn {
+      flex: 1;
+      background: rgba(200,150,0,0.1);
+      border: 1px solid rgba(200,150,0,0.2);
+      color: var(--crema);
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .mazo-btn:hover { background: rgba(200,150,0,0.2); }
+    .mazo-btn.delete { color: #f09090; border-color: rgba(240,144,144,0.3); }
+    .mazo-btn.delete:hover { background: rgba(240,144,144,0.1); }
+    
+    .edit-forbidden-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .edit-forbidden-row span {
+      color: var(--crema-3);
+      font-size: 12px;
+      width: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div class="admin-header-inner">
+        <div>
+          <span class="section-label">Gestión</span>
+          <h1 class="admin-title">Mazo de Taboo</h1>
+        </div>
+        <a href="admin.html" class="admin-btn secondary small" style="text-decoration:none;">← Volver al Admin</a>
+      </div>
+    </div>
+
+    <div class="mazo-container">
+      
+      <!-- FORM AGREGAR NUEVA -->
+      <div class="admin-card" style="margin-bottom: 32px;">
+        <div class="admin-card-label">Agregar nueva tarjeta</div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px;">
+            <input type="text" id="new-word" class="mazo-search-input" style="padding:10px;" placeholder="Palabra a adivinar" maxlength="40">
+          </div>
+          <div style="flex:2; min-width:300px; display:flex; flex-direction:column; gap:6px;" id="new-forbidden-list">
+            <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 1" maxlength="30">
+            <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 2" maxlength="30">
+            <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 3" maxlength="30">
+            <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 4" maxlength="30">
+            <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 5" maxlength="30">
+          </div>
+          <button class="admin-btn primary" style="align-self:flex-start;" onclick="handleAddCard()">Agregar</button>
+        </div>
+      </div>
+
+      <div class="mazo-header">
+        <input type="text" class="mazo-search-input" id="deck-search" placeholder="Buscar tarjetas..." oninput="filterDeck()" />
+      </div>
+
+      <p style="font-size:12px; color:var(--crema-3); margin-bottom:12px;" id="deck-count-label">0 tarjetas en total</p>
+      
+      <div class="mazo-grid" id="mazo-grid">
+        <p style="color:var(--crema-3); font-size:14px;">Cargando mazo...</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL CONFIRMAR ACCIÓN -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-box">
+      <p class="modal-text" id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { onTabooDeck, saveCard, updateCard, deleteCard } from "./games/taboo.js";
+
+    let tabooDeck = {};
+
+    onSession(async (user) => {
+      if (!user) { window.location.href = "login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.role !== "admin") { window.location.href = "login.html"; return; }
+
+      initMazo();
+    });
+
+    function initMazo() {
+      onTabooDeck(deck => {
+        tabooDeck = deck;
+        const count = Object.keys(deck).length;
+        document.getElementById("deck-count-label").textContent = `${count} tarjeta${count !== 1 ? 's' : ''} en total`;
+        renderDeck();
+      });
+    }
+
+    window.filterDeck = () => {
+      renderDeck();
+    };
+
+    function renderDeck() {
+      const query = (document.getElementById("deck-search").value || "").toLowerCase().trim();
+      const grid = document.getElementById("mazo-grid");
+      const entries = Object.entries(tabooDeck);
+      
+      const filtered = query
+        ? entries.filter(([, c]) => c.word.toLowerCase().includes(query) || (c.forbidden || []).some(f => f.toLowerCase().includes(query)))
+        : entries;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<p style="color:var(--crema-3); font-size:14px;">No se encontraron tarjetas.</p>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(([id, card]) => `
+        <div class="mazo-card" id="card-${id}">
+          <div class="view-mode" id="view-${id}">
+            <div class="mazo-card-word">${card.word}</div>
+            <div class="mazo-card-forbidden">
+              ${(card.forbidden || []).map(f => `• ${f}<br>`).join('')}
+            </div>
+            <div class="mazo-card-actions">
+              <button class="mazo-btn" onclick="openEdit('${id}')">Editar</button>
+              <button class="mazo-btn delete" onclick="confirmDelete('${id}', '${card.word.replace(/'/g, "\\'")}')">Eliminar</button>
+            </div>
+          </div>
+          <div class="edit-mode hidden" id="edit-${id}">
+            <input type="text" class="mazo-search-input" style="padding:8px; font-size:16px; font-family:var(--font-display); text-transform:uppercase; margin-bottom:12px;" id="edit-word-${id}" value="${card.word}">
+            <div id="edit-forbidden-${id}">
+              ${[0,1,2,3,4].map(i => `
+                <div class="edit-forbidden-row">
+                  <span>${i+1}</span>
+                  <input type="text" class="mazo-search-input" style="padding:6px; font-size:13px;" value="${(card.forbidden || [])[i] || ''}">
+                </div>
+              `).join('')}
+            </div>
+            <div class="mazo-card-actions">
+              <button class="mazo-btn" style="background:var(--dorado); color:var(--negro); border:none;" onclick="saveEdit('${id}')">Guardar</button>
+              <button class="mazo-btn secondary" onclick="closeEdit('${id}')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.openEdit = (id) => {
+      document.getElementById(`view-${id}`).classList.add("hidden");
+      document.getElementById(`edit-${id}`).classList.remove("hidden");
+    };
+
+    window.closeEdit = (id) => {
+      document.getElementById(`edit-${id}`).classList.add("hidden");
+      document.getElementById(`view-${id}`).classList.remove("hidden");
+    };
+
+    window.saveEdit = async (id) => {
+      const word = document.getElementById(`edit-word-${id}`).value.trim();
+      if (!word) { showToast("La palabra no puede estar vacía"); return; }
+      const inputs = document.querySelectorAll(`#edit-forbidden-${id} input`);
+      const forbidden = Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
+      
+      try {
+        await updateCard(id, word, forbidden);
+        showToast("Tarjeta actualizada");
+      } catch (e) {
+        showToast(e.message);
+      }
+    };
+
+    window.handleAddCard = async () => {
+      const wordInput = document.getElementById("new-word");
+      const word = wordInput.value.trim();
+      if (!word) { showToast("Ingresá la palabra principal"); return; }
+      
+      const inputs = document.querySelectorAll("#new-forbidden-list input");
+      const forbidden = Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
+      
+      try {
+        await saveCard(word, forbidden);
+        showToast("Tarjeta agregada al mazo");
+        wordInput.value = "";
+        inputs.forEach(i => i.value = "");
+      } catch (e) {
+        showToast(e.message);
+      }
+    };
+
+    window.confirmDelete = (id, word) => {
+      showModal(`¿Seguro querés eliminar la tarjeta "${word}"?`, async () => {
+        try {
+          await deleteCard(id);
+          showToast("Tarjeta eliminada");
+          closeModal();
+        } catch (e) {
+          showToast(e.message);
+        }
+      });
+    };
+
+    // ── MODAL UTILS ──
+    function showModal(text, onConfirm) {
+      document.getElementById("modal-text").textContent = text;
+      document.getElementById("modal-overlay").classList.remove("hidden");
+      document.getElementById("modal-confirm").onclick = onConfirm;
+    }
+
+    window.closeModal = () => {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    };
+
+    // ── TOAST ──
+    function showToast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
+    }
+  </script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  initNavbar();
+</script>
+</body>
+</html>
