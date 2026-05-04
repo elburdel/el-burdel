@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin â€” El Burdel</title>
+  <title>Admin — El Burdel</title>
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/taboo.css" />
@@ -36,7 +36,7 @@
     }
   </style>
   <style>
-    /* â”€â”€ SesiÃ³n usuarios â”€â”€ */
+    /* ── Sesión usuarios ── */
     .sesion-user-row {
       display: flex;
       align-items: center;
@@ -95,31 +95,31 @@
       </div>
     </div>
 
-    <!-- SELECTOR JUEGO ACTIVO â€” siempre visible -->
+    <!-- SELECTOR JUEGO ACTIVO — siempre visible -->
     <div class="admin-game-bar">
       <div class="admin-game-bar-inner">
         <span class="admin-game-bar-label">Juego activo</span>
         <div class="games-toggle-grid">
           <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
-            <span>ðŸš«</span> Ninguno
+            <span>🚫</span> Ninguno
           </button>
           <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
-            <span>ðŸƒ</span> Taboo
+            <span>🃏</span> Taboo
           </button>
           <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
-            <span>ðŸ”¤</span> Wordle
+            <span>🔤</span> Wordle
           </button>
           <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
-            <span>ðŸ•µï¸</span> Impostor
+            <span>🕵️</span> Impostor
           </button>
           <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
-            <span>ðŸ’°</span> Millonario
+            <span>💰</span> Millonario
           </button>
         </div>
       </div>
     </div>
 
-    <!-- SECCIÃ“N: USUARIOS -->
+    <!-- SECCIÓN: USUARIOS -->
     <section class="admin-section" id="section-usuarios">
       <div class="admin-section-inner">
         <div class="admin-section-header">
@@ -139,11 +139,11 @@
           <div class="users-loading">Cargando usuarios...</div>
         </div>
 
-        <!-- RECUPERAR CONTRASEÃ‘A -->
+        <!-- RECUPERAR CONTRASEÑA -->
         <div class="admin-card" style="margin-top: 24px;">
-          <div class="admin-card-label">RecuperaciÃ³n de contraseÃ±a</div>
+          <div class="admin-card-label">Recuperación de contraseña</div>
           <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            EnviÃ¡ un email de recuperaciÃ³n a cualquier usuario registrado.
+            Enviá un email de recuperación a cualquier usuario registrado.
           </p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input
@@ -158,15 +158,15 @@
       </div>
     </section>
 
-    <!-- SECCIÃ“N: SESIÃ“N -->
+    <!-- SECCIÓN: SESIÓN -->
     <section class="admin-section alt" id="section-sesion">
       <div class="admin-section-inner">
-        <h2 class="admin-section-title">SesiÃ³n activa</h2>
+        <h2 class="admin-section-title">Sesión activa</h2>
 
-        <!-- USUARIOS EN SESIÃ“N (presence + equipos) -->
+        <!-- USUARIOS EN SESIÓN (presence + equipos) -->
         <div class="admin-card" id="card-sesion-usuarios">
           <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Usuarios en sesiÃ³n</span>
+            <span>Usuarios en sesión</span>
             <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
@@ -178,11 +178,11 @@
             <div class="admin-card-label" style="margin-bottom:10px;">Nombres de equipo</div>
             <div class="team-name-editor">
               <div class="team-name-row">
-                <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="ðŸ”´" />
+                <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="🔴" />
                 <input type="text" class="team-name-input" id="input-name-rojo" maxlength="24" placeholder="Equipo Rojo" />
               </div>
               <div class="team-name-row">
-                <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="ðŸ”µ" />
+                <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
                 <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
               </div>
               <button class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
@@ -193,13 +193,13 @@
       </div>
     </section>
 
-    <!-- SECCIÃ“N: TABLÃ“N -->
+    <!-- SECCIÓN: TABLÓN -->
 
-    <!-- SECCIÃ“N: TABOO -->
+    <!-- SECCIÓN: TABOO -->
     <section class="admin-section" id="section-taboo">
       <div class="admin-section-inner">
         <div class="admin-section-header">
-          <h2 class="admin-section-title">ðŸƒ Taboo</h2>
+          <h2 class="admin-section-title">🃏 Taboo</h2>
           <span class="admin-badge" id="taboo-deck-count">0 tarjetas</span>
         </div>
 
@@ -213,7 +213,7 @@
               <div class="admin-card-label">Marcador</div>
               <div class="taboo-scoreboard">
                 <div class="taboo-score-team rojo">
-                  <span class="score-team-name rojo" id="label-score-rojo">ðŸ”´ Equipo Rojo</span>
+                  <span class="score-team-name rojo" id="label-score-rojo">🔴 Equipo Rojo</span>
                   <span class="score-team-value" id="score-rojo">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-rojo" min="0" value="0" />
@@ -221,7 +221,7 @@
                   </div>
                 </div>
                 <div class="taboo-score-team azul">
-                  <span class="score-team-name azul" id="label-score-azul">ðŸ”µ Equipo Azul</span>
+                  <span class="score-team-name azul" id="label-score-azul">🔵 Equipo Azul</span>
                   <span class="score-team-value" id="score-azul">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-azul" min="0" value="0" />
@@ -231,27 +231,27 @@
               </div>
             </div>
 
-            <!-- ConfiguraciÃ³n del turno -->
+            <!-- Configuración del turno -->
             <div class="admin-card">
               <div class="admin-card-label">Configurar turno</div>
               <div class="turn-controls">
                 <div class="turn-row">
                   <span class="turn-label">Describe</span>
                   <select class="turn-select" id="select-describer">
-                    <option value="">â€” Elegir jugador â€”</option>
+                    <option value="">— Elegir jugador —</option>
                   </select>
                 </div>
                 <div class="turn-row">
                   <span class="turn-label">Veedor</span>
                   <select class="turn-select" id="select-veedor">
-                    <option value="">â€” Elegir veedor â€”</option>
+                    <option value="">— Elegir veedor —</option>
                   </select>
                 </div>
                 <div class="turn-row">
                   <span class="turn-label">Equipo</span>
                   <select class="turn-select" id="select-team-turn">
-                    <option value="rojo" id="option-team-rojo">ðŸ”´ Equipo Rojo</option>
-                    <option value="azul" id="option-team-azul">ðŸ”µ Equipo Azul</option>
+                    <option value="rojo" id="option-team-rojo">🔴 Equipo Rojo</option>
+                    <option value="azul" id="option-team-azul">🔵 Equipo Azul</option>
                   </select>
                 </div>
               </div>
@@ -272,25 +272,25 @@
             <div class="admin-card">
               <div class="admin-card-label">Control del turno</div>
               <div class="turn-action-btns" style="margin-bottom:10px">
-                <button class="btn-timer-toggle" id="btn-timer-toggle" onclick="toggleTimer()">â–¶ Iniciar tiempo</button>
+                <button class="btn-timer-toggle" id="btn-timer-toggle" onclick="toggleTimer()">▶ Iniciar tiempo</button>
               </div>
               <div class="turn-action-btns" style="margin-bottom:10px">
-                <button class="btn-next-card" onclick="nextCard()">ðŸƒ Enviar tarjeta aleatoria</button>
+                <button class="btn-next-card" onclick="nextCard()">🃏 Enviar tarjeta aleatoria</button>
               </div>
               <div class="turn-action-btns">
-                <button class="btn-correct" onclick="handleCorrect()">âœ“ Correcta (+1 punto)</button>
-                <button class="btn-wrong" onclick="handleWrong()">âœ— Incorrecta (siguiente)</button>
+                <button class="btn-correct" onclick="handleCorrect()">✓ Correcta (+1 punto)</button>
+                <button class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (siguiente)</button>
               </div>
               <div class="turn-action-btns" style="margin-top:8px">
-                <button class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">â­ Pasar (âˆ’seg penalizaciÃ³n)</button>
+                <button class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">⏭ Pasar (−seg penalización)</button>
               </div>
             </div>
 
             <!-- Vista previa tarjeta actual (admin) -->
             <div class="admin-card">
-              <div class="admin-card-label">Tarjeta actual (solo vos la ves acÃ¡)</div>
+              <div class="admin-card-label">Tarjeta actual (solo vos la ves acá)</div>
               <div id="admin-card-preview">
-                <p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aÃºn.</p>
+                <p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aún.</p>
               </div>
             </div>
 
@@ -351,11 +351,11 @@
       </div>
     </section>
 
-    <!-- SECCIÃ“N: WORDLE -->
+    <!-- SECCIÓN: WORDLE -->
     <section class="admin-section" id="section-wordle">
       <div class="admin-section-inner">
         <div class="admin-section-header">
-          <h2 class="admin-section-title">ðŸ”¤ Wordle</h2>
+          <h2 class="admin-section-title">🔤 Wordle</h2>
         </div>
 
         <!-- Selector de modo -->
@@ -364,9 +364,9 @@
           <button class="wordle-mode-btn" id="admin-mode-btn-6" onclick="setWordleAdminMode('6')">6 letras</button>
         </div>
 
-        <!-- Palabra del dÃ­a actual -->
+        <!-- Palabra del día actual -->
         <div class="admin-card">
-          <div class="admin-card-label">Palabra del dÃ­a actual â€” modo <span id="admin-wordle-mode-label">5 letras</span></div>
+          <div class="admin-card-label">Palabra del día actual — modo <span id="admin-wordle-mode-label">5 letras</span></div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
             <div id="admin-word-display" style="
               font-family:var(--font-display);
@@ -376,7 +376,7 @@
               letter-spacing:6px;
               text-transform:uppercase;
               min-height:40px;
-            ">â€”</div>
+            ">—</div>
             <span id="admin-word-source-badge" style="
               font-size:10px;
               letter-spacing:1.5px;
@@ -385,24 +385,24 @@
               border:1px solid rgba(200,150,0,0.2);
               border-radius:12px;
               padding:3px 10px;
-            ">automÃ¡tica</span>
+            ">automática</span>
           </div>
           <p style="font-size:12px;color:var(--crema-3);margin:0;line-height:1.5;">
-            Si no hay palabra forzada, se calcula automÃ¡ticamente a partir de la fecha.
+            Si no hay palabra forzada, se calcula automáticamente a partir de la fecha.
           </p>
         </div>
 
         <!-- Forzar palabra -->
         <div class="admin-card">
-          <div class="admin-card-label">Forzar palabra para hoy â€” <span id="admin-force-mode-label">5 letras</span></div>
+          <div class="admin-card-label">Forzar palabra para hoy — <span id="admin-force-mode-label">5 letras</span></div>
           <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Reemplaza la palabra automÃ¡tica de hoy. Tiene que estar en la lista de palabras vÃ¡lidas.
+            Reemplaza la palabra automática de hoy. Tiene que estar en la lista de palabras válidas.
           </p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <input
               type="text"
               id="input-force-word"
-              placeholder="EscribÃ­ la palabra"
+              placeholder="Escribí la palabra"
               maxlength="6"
               style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-family:var(--font-display);font-size:18px;letter-spacing:4px;text-transform:uppercase;outline:none;"
               oninput="this.value=this.value.toUpperCase()"
@@ -415,7 +415,7 @@
 
         <!-- Ranking Wordle -->
         <div class="admin-card">
-          <div class="admin-card-label">Ranking global â€” Wordle</div>
+          <div class="admin-card-label">Ranking global — Wordle</div>
           <div id="admin-wordle-ranking" style="margin-top:8px;">
             <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
           </div>
@@ -429,7 +429,7 @@
           </p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <select id="select-reset-user" style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;">
-              <option value="">â€” Elegir usuario â€”</option>
+              <option value="">— Elegir usuario —</option>
             </select>
             <button class="admin-btn secondary" onclick="handleResetUserWordle()">Resetear</button>
           </div>
@@ -439,7 +439,7 @@
         <div class="admin-card">
           <div class="admin-card-label">Resetear TODO el ranking global</div>
           <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Borra los stats de Wordle (puntos, racha, historial) de TODOS los usuarios. Â¡No se puede deshacer!
+            Borra los stats de Wordle (puntos, racha, historial) de TODOS los usuarios. ¡No se puede deshacer!
           </p>
           <button class="admin-btn secondary" style="background-color: var(--rojo); color: white; width: 100%; border: none;" onclick="handleResetAllWordle()">Resetear Ranking Global</button>
         </div>
@@ -449,10 +449,10 @@
 
     <section class="admin-section" id="section-tablon">
       <div class="admin-section-inner">
-        <h2 class="admin-section-title">TablÃ³n</h2>
+        <h2 class="admin-section-title">Tablón</h2>
         <div class="admin-card">
           <div class="admin-card-label">Mensaje visible para todos</div>
-          <textarea class="admin-textarea" id="tablon-input" placeholder="EscribÃ­ el mensaje del tablÃ³n..." maxlength="300"></textarea>
+          <textarea class="admin-textarea" id="tablon-input" placeholder="Escribí el mensaje del tablón..." maxlength="300"></textarea>
           <div class="admin-card-actions">
             <span class="char-count" id="char-count">0 / 300</span>
             <button class="admin-btn primary" onclick="saveTablon()">Publicar</button>
@@ -468,14 +468,14 @@
     <div class="nav-bottom-inner">
       <div class="nav-bottom-links">
         <a href="index.html" class="nav-bottom-link">Inicio</a>
-        <a href="terminos.html" class="nav-bottom-link">TÃ©rminos</a>
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
         <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
       </div>
-      <p class="nav-bottom-copy">Â© 2025 El Burdel â€” Panel de administraciÃ³n</p>
+      <p class="nav-bottom-copy">© 2025 El Burdel — Panel de administración</p>
     </div>
   </footer>
 
-  <!-- MODAL CONFIRMAR ACCIÃ“N -->
+  <!-- MODAL CONFIRMAR ACCIÓN -->
   <div class="modal-overlay hidden" id="modal-overlay">
     <div class="modal-box">
       <p class="modal-text" id="modal-text"></p>
@@ -491,7 +491,7 @@
     <div class="modal-box deck-modal-box">
       <div class="deck-modal-header">
         <h3 class="deck-modal-title">Mazo de Taboo</h3>
-        <button class="deck-modal-close" onclick="closeDeckModal()">âœ•</button>
+        <button class="deck-modal-close" onclick="closeDeckModal()">✕</button>
       </div>
       <input type="text" class="deck-search-input" id="deck-search" placeholder="Buscar tarjeta..." oninput="filterDeck()" />
       <div class="deck-modal-list" id="deck-modal-list"></div>
@@ -519,7 +519,7 @@
     let allUsers = {};
     let currentFilter = "pending";
     let activeGame = "none";
-    let teamNames = { rojo: { emoji: "ðŸ”´", name: "Equipo Rojo" }, azul: { emoji: "ðŸ”µ", name: "Equipo Azul" } };
+    let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
 
     function teamLabel(color) {
       const t = teamNames[color];
@@ -543,7 +543,7 @@
       if (oAzul) oAzul.textContent = azul;
     }
 
-    // â”€â”€ PROTECCIÃ“N DE RUTA â”€â”€
+    // ── PROTECCIÓN DE RUTA ──
     onSession(async (user) => {
       if (!user) { window.location.href = "/el-burdel/login.html"; return; }
       const data = await getUserData(user.uid);
@@ -552,10 +552,10 @@
       initAdmin();
     });
 
-    // â”€â”€ LOGOUT â”€â”€
+    // ── LOGOUT ──
     document.getElementById("btn-logout").onclick = () => logoutUser();
 
-    // â”€â”€ INIT â”€â”€
+    // ── INIT ──
     function initAdmin() {
       listenUsers();
       listenSession();
@@ -567,13 +567,13 @@
       listenPresence();
     }
 
-    // â”€â”€ NOMBRES DE EQUIPOS â”€â”€
+    // ── NOMBRES DE EQUIPOS ──
     function listenTeamNames() {
       onValue(ref(db, "session/teams"), (snap) => {
         const val = snap.val();
         if (val) {
-          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "ðŸ”´", name: val.rojo.name || "Equipo Rojo" };
-          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "ðŸ”µ", name: val.azul.name || "Equipo Azul" };
+          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
+          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
         }
         document.getElementById("input-emoji-rojo").value = teamNames.rojo.emoji;
         document.getElementById("input-name-rojo").value = teamNames.rojo.name;
@@ -585,9 +585,9 @@
     }
 
     window.saveTeamNames = async () => {
-      const emojiRojo = document.getElementById("input-emoji-rojo").value.trim() || "ðŸ”´";
+      const emojiRojo = document.getElementById("input-emoji-rojo").value.trim() || "🔴";
       const nameRojo  = document.getElementById("input-name-rojo").value.trim()  || "Equipo Rojo";
-      const emojiAzul = document.getElementById("input-emoji-azul").value.trim() || "ðŸ”µ";
+      const emojiAzul = document.getElementById("input-emoji-azul").value.trim() || "🔵";
       const nameAzul  = document.getElementById("input-name-azul").value.trim()  || "Equipo Azul";
       await update(ref(db, "session/teams"), {
         rojo: { emoji: emojiRojo, name: nameRojo },
@@ -596,7 +596,7 @@
       showToast("Nombres de equipo guardados");
     };
 
-    // â”€â”€ USUARIOS EN TIEMPO REAL â”€â”€
+    // ── USUARIOS EN TIEMPO REAL ──
     function listenUsers() {
       onValue(ref(db, "users"), (snap) => {
         allUsers = snap.val() || {};
@@ -624,15 +624,15 @@
       let users = Object.entries(allUsers);
       if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
       if (users.length === 0) {
-        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categorÃ­a.</div>`;
+        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categoría.</div>`;
         return;
       }
       list.innerHTML = users.map(([uid, u]) => `
         <div class="user-row" data-uid="${uid}">
           <div class="user-avatar">${u.nick ? u.nick.charAt(0) : "?"}</div>
           <div class="user-info">
-            <span class="user-nick">${u.nick || "â€”"}</span>
-            <span class="user-email">${u.email || "â€”"}</span>
+            <span class="user-nick">${u.nick || "—"}</span>
+            <span class="user-email">${u.email || "—"}</span>
           </div>
           <div class="user-status status-${u.status}">${statusLabel(u.status)}</div>
           <div class="user-actions">
@@ -649,7 +649,7 @@
       return { pending: "Pendiente", active: "Activo", paused: "Pausado" }[s] || s;
     }
 
-    // â”€â”€ EQUIPOS â”€â”€
+    // ── EQUIPOS ──
     // presence data: { uid: { nick, team, connectedAt } }
     let presenceData = {};
 
@@ -661,7 +661,7 @@
     }
 
     function renderEquipos() {
-      // kept for compatibility â€” calls the unified render
+      // kept for compatibility — calls the unified render
       renderSesionUsuarios();
     }
 
@@ -691,7 +691,7 @@
       list.innerHTML = sorted.map(([uid, u]) => {
         const isOnline = onlineUids.has(uid);
         const team = u.team || "sin";
-        const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "âšª";
+        const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
         const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
 
         return `
@@ -702,7 +702,7 @@
             <div class="sesion-team-btns">
               ${team !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
               ${team !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
-              ${team !== "sin"  ? `<button class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">âšª</button>` : ""}
+              ${team !== "sin"  ? `<button class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">⚪</button>` : ""}
             </div>
           </div>
         `;
@@ -713,7 +713,7 @@
       await update(ref(db, `users/${uid}`), { team });
     };
 
-    // â”€â”€ SESIÃ“N / JUEGO ACTIVO â”€â”€
+    // ── SESIÓN / JUEGO ACTIVO ──
     function listenSession() {
       onValue(ref(db, "session/activeGame"), (snap) => {
         activeGame = snap.val() || "none";
@@ -725,12 +725,12 @@
 
     window.setActiveGame = async (game) => {
       await set(ref(db, "session/activeGame"), game);
-      // Navegar a la secciÃ³n del juego correspondiente
+      // Navegar a la sección del juego correspondiente
       const section = GAME_TO_SECTION[game] || "sesion";
       showSection(section);
     };
 
-    // â”€â”€ TABLÃ“N â”€â”€
+    // ── TABLÓN ──
     function listenTablon() {
       onValue(ref(db, "session/broadcast"), (snap) => {
         const msg = snap.val() || "";
@@ -748,16 +748,16 @@
     window.saveTablon = async () => {
       const msg = document.getElementById("tablon-input").value.trim();
       await set(ref(db, "session/broadcast"), msg);
-      showToast("TablÃ³n actualizado");
+      showToast("Tablón actualizado");
     };
 
-    // â”€â”€ ACCIONES USUARIO â”€â”€
+    // ── ACCIONES USUARIO ──
     window.confirmAction = (uid, action) => {
       const user = allUsers[uid];
       const labels = {
-        approve: `Â¿AprobÃ¡s a ${user.nick}?`,
-        pause:   `Â¿PausÃ¡s a ${user.nick}?`,
-        delete:  `Â¿EliminÃ¡s a ${user.nick}? Esta acciÃ³n no se puede deshacer.`
+        approve: `¿Aprobás a ${user.nick}?`,
+        pause:   `¿Pausás a ${user.nick}?`,
+        delete:  `¿Eliminás a ${user.nick}? Esta acción no se puede deshacer.`
       };
       showModal(labels[action], async () => {
         if (action === "approve") await update(ref(db, `users/${uid}`), { status: "active" });
@@ -772,25 +772,25 @@
       });
     };
 
-    // â”€â”€ RECUPERAR CONTRASEÃ‘A â”€â”€
+    // ── RECUPERAR CONTRASEÑA ──
     window.sendPasswordReset = async () => {
       const email = document.getElementById("input-reset-email").value.trim();
-      if (!email) { showToast("IngresÃ¡ el email del usuario."); return; }
+      if (!email) { showToast("Ingresá el email del usuario."); return; }
       try {
         await recoverPassword(email);
-        showToast(`Email de recuperaciÃ³n enviado a ${email}`);
+        showToast(`Email de recuperación enviado a ${email}`);
         document.getElementById("input-reset-email").value = "";
       } catch (e) {
         const msg = e.code === "auth/user-not-found"
           ? "No existe una cuenta con ese email."
           : e.code === "auth/invalid-email"
-          ? "Email invÃ¡lido."
+          ? "Email inválido."
           : "No se pudo enviar el email.";
         showToast(msg);
       }
     };
 
-    // â”€â”€ MODAL â”€â”€
+    // ── MODAL ──
     function showModal(text, onConfirm) {
       document.getElementById("modal-text").textContent = text;
       document.getElementById("modal-overlay").classList.remove("hidden");
@@ -801,7 +801,7 @@
       document.getElementById("modal-overlay").classList.add("hidden");
     };
 
-    // â”€â”€ TOAST â”€â”€
+    // ── TOAST ──
     function showToast(msg) {
       const t = document.createElement("div");
       t.className = "toast";
@@ -812,9 +812,9 @@
     }
 
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // â”€â”€ TABOO â”€â”€
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════
+    // ── TABOO ──
+    // ══════════════════════════════════════
 
     let tabooState = {};
     let tabooScores = { rojo: 0, azul: 0 };
@@ -829,7 +829,7 @@
         updateTimerDisplay(state.timeLeft ?? 60);
         const btn = document.getElementById("btn-timer-toggle");
         if (btn) {
-          btn.textContent = state.timerRunning ? "â¸ Pausar tiempo" : "â–¶ Iniciar tiempo";
+          btn.textContent = state.timerRunning ? "⏸ Pausar tiempo" : "▶ Iniciar tiempo";
           btn.classList.toggle("running", !!state.timerRunning);
         }
         if (state.timerRunning) startLocalTimer();
@@ -852,7 +852,7 @@
       });
     }
 
-    // â”€â”€ Timer local (sincronizado con Firebase) â”€â”€
+    // ── Timer local (sincronizado con Firebase) ──
     function startLocalTimer() {
       stopLocalTimer();
       timerInterval = setInterval(async () => {
@@ -860,7 +860,7 @@
         if (current <= 0) {
           stopLocalTimer();
           await setTimerRunning(false);
-          showToast("â° Â¡Se acabÃ³ el tiempo!");
+          showToast("⏰ ¡Se acabó el tiempo!");
           return;
         }
         const newTime = current - 1;
@@ -885,26 +885,26 @@
       });
     }
 
-    // â”€â”€ Toggle timer â”€â”€
+    // ── Toggle timer ──
     window.toggleTimer = async () => {
       if (tabooState.timerRunning) {
         await setTimerRunning(false);
       } else {
         if (!tabooState.currentCard) {
-          showToast("Primero enviÃ¡ una tarjeta.");
+          showToast("Primero enviá una tarjeta.");
           return;
         }
         await setTimerRunning(true);
       }
     };
 
-    // â”€â”€ Enviar tarjeta aleatoria (inicio de turno) â”€â”€
+    // ── Enviar tarjeta aleatoria (inicio de turno) ──
     window.nextCard = async () => {
       const describer = document.getElementById("select-describer").value;
       const veedor = document.getElementById("select-veedor").value;
       const team = document.getElementById("select-team-turn").value;
       if (!describer || !veedor) {
-        showToast("ElegÃ­ el jugador que describe y el veedor.");
+        showToast("Elegí el jugador que describe y el veedor.");
         return;
       }
       if (describer === veedor) {
@@ -922,48 +922,48 @@
         updateTimerDisplay(seconds);
         usedCards = [];
         await sendRandomCard(describer, veedor, usedCards);
-        showToast("Â¡Tarjeta enviada!");
+        showToast("¡Tarjeta enviada!");
       } catch (e) {
         showToast(e.message);
       }
     };
 
-    // â”€â”€ Correcta: suma punto + nueva tarjeta â”€â”€
+    // ── Correcta: suma punto + nueva tarjeta ──
     window.handleCorrect = async () => {
       const team = document.getElementById("select-team-turn").value;
       const describer = document.getElementById("select-describer").value;
       const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("ElegÃ­ descriptor y veedor."); return; }
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       try {
         await markCorrect(team, describer, veedor, usedCards);
-        showToast(`âœ“ Punto para ${team}! Nueva tarjeta enviada.`);
+        showToast(`✓ Punto para ${team}! Nueva tarjeta enviada.`);
       } catch (e) { showToast(e.message); }
     };
 
-    // â”€â”€ Incorrecta: solo nueva tarjeta (sin penalizaciÃ³n) â”€â”€
+    // ── Incorrecta: solo nueva tarjeta (sin penalización) ──
     window.handleWrong = async () => {
       const describer = document.getElementById("select-describer").value;
       const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("ElegÃ­ descriptor y veedor."); return; }
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       try {
         await markWrong(describer, veedor, usedCards);
-        showToast(`âœ— Incorrecta â€” nueva tarjeta enviada`);
+        showToast(`✗ Incorrecta — nueva tarjeta enviada`);
       } catch (e) { showToast(e.message); }
     };
 
-    // â”€â”€ Pasar: resta penalizaciÃ³n + nueva tarjeta â”€â”€
+    // ── Pasar: resta penalización + nueva tarjeta ──
     window.handleSkip = async () => {
       const describer = document.getElementById("select-describer").value;
       const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("ElegÃ­ descriptor y veedor."); return; }
+      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       const penalty = parseInt(document.getElementById("penalty-skip").value) || 10;
       try {
         await skipCard(penalty, describer, veedor, usedCards);
-        showToast(`â­ Pasada â€” âˆ’${penalty} segundos`);
+        showToast(`⏭ Pasada — −${penalty} segundos`);
       } catch (e) { showToast(e.message); }
     };
 
-    // â”€â”€ Editar puntaje â”€â”€
+    // ── Editar puntaje ──
     window.editScore = async (team) => {
       const val = document.getElementById(`input-score-${team}`).value;
       try {
@@ -974,10 +974,10 @@
       }
     };
 
-    // â”€â”€ Agregar tarjeta al mazo â”€â”€
+    // ── Agregar tarjeta al mazo ──
     window.addCard = async () => {
       const word = document.getElementById("new-card-word").value.trim();
-      if (!word) { showToast("IngresÃ¡ la palabra principal."); return; }
+      if (!word) { showToast("Ingresá la palabra principal."); return; }
       const forbidden = Array.from(
         document.querySelectorAll("#forbidden-inputs input")
       ).map(i => i.value.trim()).filter(v => v.length > 0);
@@ -985,15 +985,15 @@
         await saveCard(word, forbidden);
         document.getElementById("new-card-word").value = "";
         document.querySelectorAll("#forbidden-inputs input").forEach(i => i.value = "");
-        showToast(`âœ“ "${word}" agregada al mazo`);
+        showToast(`✓ "${word}" agregada al mazo`);
       } catch (e) {
         showToast(e.message);
       }
     };
 
-    // â”€â”€ Renderizar mazo (modal) â”€â”€
+    // ── Renderizar mazo (modal) ──
     function renderDeckList(deck) {
-      // ya no renderiza inline, solo actualiza el modal si estÃ¡ abierto
+      // ya no renderiza inline, solo actualiza el modal si está abierto
       if (!document.getElementById("deck-modal-overlay").classList.contains("hidden")) {
         renderDeckModal();
       }
@@ -1008,7 +1008,7 @@
         : entries;
 
       if (filtered.length === 0) {
-        list.innerHTML = `<p class="deck-empty-msg">${query ? "Sin resultados." : "El mazo estÃ¡ vacÃ­o."}</p>`;
+        list.innerHTML = `<p class="deck-empty-msg">${query ? "Sin resultados." : "El mazo está vacío."}</p>`;
         return;
       }
 
@@ -1020,8 +1020,8 @@
               <span class="deck-item-forbidden">${(card.forbidden || []).join(", ")}</span>
             </div>
             <div class="deck-item-actions">
-              <button class="deck-btn edit-btn" onclick="openEditCard('${id}')">âœï¸</button>
-              <button class="deck-btn delete-btn" onclick="confirmDeleteCard('${id}', '${card.word.replace(/'/g, "\\'")}')">âœ•</button>
+              <button class="deck-btn edit-btn" onclick="openEditCard('${id}')">✏️</button>
+              <button class="deck-btn delete-btn" onclick="confirmDeleteCard('${id}', '${card.word.replace(/'/g, "\\'")}')">✕</button>
             </div>
           </div>
           <div class="deck-item-edit hidden" id="deck-edit-${id}">
@@ -1064,7 +1064,7 @@
     window.openEditCard = (id) => {
       document.getElementById(`deck-edit-${id}`).classList.remove("hidden");
       document.getElementById(`deck-item-${id}`).querySelector(".deck-item-view").classList.add("hidden");
-      // Scroll dentro del modal hasta que los botones de acciÃ³n queden visibles
+      // Scroll dentro del modal hasta que los botones de acción queden visibles
       setTimeout(() => {
         const editPanel = document.getElementById(`deck-edit-${id}`);
         const actionRow = editPanel.querySelector(".edit-action-row");
@@ -1084,13 +1084,13 @@
 
     window.saveEditCard = async (id) => {
       const word = document.getElementById(`edit-word-${id}`).value.trim();
-      if (!word) { showToast("La palabra no puede estar vacÃ­a."); return; }
+      if (!word) { showToast("La palabra no puede estar vacía."); return; }
       const forbidden = Array.from(
         document.querySelectorAll(`#edit-forbidden-${id} input`)
       ).map(i => i.value.trim()).filter(v => v.length > 0);
       try {
         await updateCard(id, word, forbidden);
-        showToast(`âœ“ "${word}" actualizada`);
+        showToast(`✓ "${word}" actualizada`);
       } catch (e) {
         showToast(e.message);
       }
@@ -1105,21 +1105,21 @@
       if (countLabel) countLabel.textContent = label;
     }
 
-    // â”€â”€ Eliminar tarjeta â”€â”€
+    // ── Eliminar tarjeta ──
     window.confirmDeleteCard = (id, word) => {
-      showModal(`Â¿EliminÃ¡s la tarjeta "${word}"?`, async () => {
+      showModal(`¿Eliminás la tarjeta "${word}"?`, async () => {
         await deleteCard(id);
         closeModal();
         showToast(`"${word}" eliminada`);
       });
     };
 
-    // â”€â”€ Vista previa tarjeta admin â”€â”€
+    // ── Vista previa tarjeta admin ──
     function renderAdminCardPreview(card) {
       const el = document.getElementById("admin-card-preview");
       if (!el) return;
       if (!card) {
-        el.innerHTML = `<p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aÃºn.</p>`;
+        el.innerHTML = `<p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aún.</p>`;
         return;
       }
       const timeLeft = tabooState.timeLeft ?? 60;
@@ -1143,20 +1143,20 @@
       `;
     }
 
-    // â”€â”€ Poblar selects con jugadores activos â”€â”€
+    // ── Poblar selects con jugadores activos ──
     function populatePlayerSelects() {
       const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
       const options = activos.map(([uid, u]) =>
-        `<option value="${uid}">${u.nick} (${u.team === "rojo" ? "ðŸ”´" : u.team === "azul" ? "ðŸ”µ" : "âšª"})</option>`
+        `<option value="${uid}">${u.nick} (${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : "⚪"})</option>`
       ).join("");
-      const defaultOpt = `<option value="">â€” Elegir jugador â€”</option>`;
+      const defaultOpt = `<option value="">— Elegir jugador —</option>`;
       document.getElementById("select-describer").innerHTML = defaultOpt + options;
       document.getElementById("select-veedor").innerHTML = defaultOpt + options;
     }
 
-    // â”€â”€ Reset taboo â”€â”€
+    // ── Reset taboo ──
     window.confirmResetTaboo = () => {
-      showModal("Â¿Resetear puntajes y turno del Taboo?", async () => {
+      showModal("¿Resetear puntajes y turno del Taboo?", async () => {
         const seconds = parseInt(document.getElementById("timer-seconds").value) || 60;
         await resetTaboo(seconds);
         usedCards = [];
@@ -1169,9 +1169,9 @@
 
 
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // â”€â”€ WORDLE ADMIN â”€â”€
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════
+    // ── WORDLE ADMIN ──
+    // ══════════════════════════════════════
 
     let wordleAdminMode = "5"; // "5" | "6"
 
@@ -1189,7 +1189,7 @@
       document.getElementById("admin-wordle-mode-label").textContent = `${m} letras`;
       document.getElementById("admin-force-mode-label").textContent = `${m} letras`;
 
-      // LÃ­mite de input segÃºn modo
+      // Límite de input según modo
       document.getElementById("input-force-word").maxLength = parseInt(m);
       document.getElementById("input-force-word").value = "";
       document.getElementById("admin-force-msg").textContent = "";
@@ -1200,7 +1200,7 @@
 
       const today = getTodayKeyAdmin();
 
-      // Calcular la palabra automÃ¡tica (sin Firebase, siempre funciona)
+      // Calcular la palabra automática (sin Firebase, siempre funciona)
       const { WORDS_5, WORDS_6 } = await import("./games/words.js");
       const list = m === "5" ? WORDS_5 : WORDS_6;
       const encoder = new TextEncoder();
@@ -1214,18 +1214,18 @@
         if (forcedSnap.exists()) {
           const forced = forcedSnap.val();
           display.textContent = forced;
-          badge.textContent = "ðŸ”’ forzada";
+          badge.textContent = "🔒 forzada";
           badge.style.color = "var(--dorado)";
           badge.style.borderColor = "rgba(200,150,0,0.5)";
           return;
         }
       } catch (e) {
-        // Sin permiso para leer forced â€” mostramos la automÃ¡tica igual
+        // Sin permiso para leer forced — mostramos la automática igual
         console.warn("No se pudo leer wordle/forced (revisar reglas Firebase):", e.message);
       }
 
       display.textContent = autoWord;
-      badge.textContent = "automÃ¡tica";
+      badge.textContent = "automática";
       badge.style.color = "var(--crema-3)";
       badge.style.borderColor = "rgba(200,150,0,0.2)";
     }
@@ -1242,7 +1242,7 @@
       const msg = document.getElementById("admin-force-msg");
 
       if (!word) {
-        msg.textContent = "IngresÃ¡ una palabra.";
+        msg.textContent = "Ingresá una palabra.";
         msg.style.color = "#f09090";
         return;
       }
@@ -1252,18 +1252,18 @@
         return;
       }
       if (!isValidWord(word, wordleAdminMode)) {
-        msg.textContent = `"${word}" no estÃ¡ en la lista de palabras vÃ¡lidas.`;
+        msg.textContent = `"${word}" no está en la lista de palabras válidas.`;
         msg.style.color = "#f09090";
         return;
       }
 
       try {
         await forceWordOfDay(wordleAdminMode, word);
-        msg.textContent = `âœ“ Palabra forzada: ${word}`;
+        msg.textContent = `✓ Palabra forzada: ${word}`;
         msg.style.color = "#81c784";
         document.getElementById("input-force-word").value = "";
         await loadWordleAdminMode(wordleAdminMode);
-        showToast(`Palabra del dÃ­a (${wordleAdminMode} letras) forzada: ${word}`);
+        showToast(`Palabra del día (${wordleAdminMode} letras) forzada: ${word}`);
       } catch (e) {
         msg.textContent = e.message;
         msg.style.color = "#f09090";
@@ -1289,13 +1289,13 @@
       const sel = document.getElementById("select-reset-user");
       if (sel) {
         const prevVal = sel.value;
-        sel.innerHTML = `<option value="">â€” Elegir usuario â€”</option>` +
+        sel.innerHTML = `<option value="">— Elegir usuario —</option>` +
           ranking.map(u => `<option value="${u.uid}">${u.nick}</option>`).join("");
         if (prevVal) sel.value = prevVal;
       }
 
       if (ranking.length === 0) {
-        el.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Nadie jugÃ³ todavÃ­a.</p>`;
+        el.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Nadie jugó todavía.</p>`;
         return;
       }
 
@@ -1307,7 +1307,7 @@
               <span style="flex:1;font-size:13px;color:var(--crema);">${u.nick}</span>
               <span style="font-size:11px;color:var(--crema-3);">${u.played}J / ${u.won}G</span>
               <span style="font-size:13px;color:var(--dorado);font-weight:600;">${u.totalPoints} pts</span>
-              <span style="font-size:11px;color:var(--crema-3);" title="Racha actual">ðŸ”¥${u.currentStreak}</span>
+              <span style="font-size:11px;color:var(--crema-3);" title="Racha actual">🔥${u.currentStreak}</span>
             </div>
           `).join("")}
         </div>
@@ -1317,9 +1317,9 @@
     window.handleResetUserWordle = () => {
       const sel = document.getElementById("select-reset-user");
       const uid = sel.value;
-      if (!uid) { showToast("ElegÃ­ un usuario."); return; }
+      if (!uid) { showToast("Elegí un usuario."); return; }
       const nick = sel.options[sel.selectedIndex].textContent;
-      showModal(`Â¿Resetear todos los stats de Wordle de ${nick}?`, async () => {
+      showModal(`¿Resetear todos los stats de Wordle de ${nick}?`, async () => {
         try {
           await remove(ref(db, `users/${uid}/wordleStats`));
           await remove(ref(db, `wordle/results/${uid}`));
@@ -1333,7 +1333,7 @@
     };
 
     window.handleResetAllWordle = () => {
-      showModal("Â¿Seguro que querÃ©s resetear TODO el ranking? Esta acciÃ³n NO se puede deshacer.", async () => {
+      showModal("¿Seguro que querés resetear TODO el ranking? Esta acción NO se puede deshacer.", async () => {
         try {
           const updates = {};
           Object.keys(allUsers).forEach(uid => {
@@ -1352,13 +1352,13 @@
       });
     };
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    // â”€â”€ NAVEGACIÃ“N POR SECCIONES â”€â”€
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════
+    // ── NAVEGACIÓN POR SECCIONES ──
+    // ══════════════════════════════════════
 
     const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "tablon"];
 
-    // Mapa: juego activo â†’ secciÃ³n del admin que corresponde
+    // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
       taboo:      "taboo",
       wordle:     "wordle",
@@ -1384,7 +1384,7 @@
       link.addEventListener("click", () => showSection(link.dataset.section));
     });
 
-    // â”€â”€ STATUS DOT â”€â”€
+    // ── STATUS DOT ──
     document.getElementById("status-dot").classList.add("online");
   </script>
 
