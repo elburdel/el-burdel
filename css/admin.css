@@ -63,10 +63,12 @@
 }
 
 .admin-section-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: 2px;
   color: var(--dorado);
+  line-height: 1;
 }
 
 .admin-badge {
