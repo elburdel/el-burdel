@@ -34,6 +34,45 @@
       color: var(--crema-3);
       white-space: nowrap;
     }
+
+    /* ── Nav secciones ── */
+    .admin-section-nav {
+      background: var(--negro-2);
+      border-bottom: 1px solid rgba(200,150,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .admin-section-nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 4px;
+      padding: 8px 16px;
+      overflow-x: auto;
+    }
+    .active-section {
+      background: transparent;
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      color: var(--crema-3);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 7px 14px;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .active-section:hover {
+      background: rgba(200,150,0,0.1);
+      color: var(--crema);
+    }
+    .active-section.active {
+      background: var(--oro);
+      border-color: var(--oro);
+      color: var(--negro-1);
+      font-weight: 600;
+    }
+
   </style>
   <style>
     /* ── Sesión usuarios ── */
@@ -120,6 +159,17 @@
     </div>
 
     <!-- SECCIÓN: USUARIOS -->
+        <!-- NAV SECCIONES -->
+    <div class="admin-section-nav">
+      <div class="admin-section-nav-inner">
+        <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
+        <button class="active-section" data-section="sesion">📡 Sesión</button>
+        <button class="active-section" data-section="taboo">🃏 Taboo</button>
+        <button class="active-section" data-section="wordle">🔤 Wordle</button>
+        <button class="active-section" data-section="tablon">📋 Tablón</button>
+      </div>
+    </div>
+
     <section class="admin-section" id="section-usuarios">
       <div class="admin-section-inner">
         <div class="admin-section-header">
@@ -1215,7 +1265,7 @@
     }
 
     // Inicializar: mostrar "sesion" por defecto y conectar nav links
-    showSection("sesion");
+    showSection("usuarios");
 
     document.querySelectorAll(".active-section").forEach(link => {
       link.addEventListener("click", () => showSection(link.dataset.section));
