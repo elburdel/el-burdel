@@ -35,42 +35,51 @@
       white-space: nowrap;
     }
 
+    /* ── Título admin ── */
+    .admin-title {
+      font-family: 'Bebas Neue', sans-serif !important;
+      font-size: 38px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      color: var(--dorado);
+      margin-top: 4px;
+      line-height: 1;
+    }
+
     /* ── Nav secciones ── */
     .admin-section-nav {
-      background: var(--negro-2);
-      border-bottom: 1px solid rgba(200,150,0,0.15);
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      background: var(--negro-1);
+      border-bottom: 2px solid rgba(200,150,0,0.18);
     }
     .admin-section-nav-inner {
       max-width: 900px;
       margin: 0 auto;
       display: flex;
-      gap: 4px;
-      padding: 8px 16px;
+      gap: 0;
+      padding: 0 16px;
       overflow-x: auto;
     }
     .active-section {
       background: transparent;
-      border: 1px solid rgba(200,150,0,0.2);
-      border-radius: 6px;
+      border: none;
+      border-bottom: 3px solid transparent;
       color: var(--crema-3);
       cursor: pointer;
-      font-size: 13px;
-      padding: 7px 14px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      padding: 12px 18px 10px;
       white-space: nowrap;
-      transition: background 0.15s, color 0.15s;
+      transition: color 0.15s, border-color 0.15s;
     }
     .active-section:hover {
-      background: rgba(200,150,0,0.1);
       color: var(--crema);
+      border-bottom-color: rgba(200,150,0,0.4);
     }
     .active-section.active {
-      background: var(--oro);
-      border-color: var(--oro);
-      color: var(--negro-1);
-      font-weight: 600;
+      color: var(--dorado);
+      border-bottom-color: var(--dorado);
+      font-weight: 400;
     }
 
   </style>
@@ -158,8 +167,7 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: USUARIOS -->
-        <!-- NAV SECCIONES -->
+    <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
       <div class="admin-section-nav-inner">
         <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
@@ -170,6 +178,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN: USUARIOS -->
     <section class="admin-section" id="section-usuarios">
       <div class="admin-section-inner">
         <div class="admin-section-header">
