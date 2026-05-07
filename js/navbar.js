@@ -31,7 +31,7 @@ export function initNavbar() {
       <div class="nav-links">
         <a href="${prefix}index.html#juegos" class="nav-link">Juegos</a>
         <a href="${prefix}index.html#galeria" class="nav-link">Galería</a>
-        <a href="${prefix}index.html#clips" class="nav-link">Clips</a>
+        <a href="${prefix}index.html#curiosidad" class="nav-link">Curiosidad</a>
         <a href="${prefix}index.html#ranking" class="nav-link">Ranking</a>
       </div>
       <div id="nav-auth"></div>
