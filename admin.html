@@ -174,6 +174,7 @@
         <button class="active-section" data-section="sesion">📡 Sesión</button>
         <button class="active-section" data-section="taboo">🃏 Taboo</button>
         <button class="active-section" data-section="wordle">🔤 Wordle</button>
+        <button class="active-section" data-section="impostor">🕵️ Impostor</button>
         <button class="active-section" data-section="tablon">📋 Tablón</button>
       </div>
     </div>
@@ -474,6 +475,111 @@
       </div>
     </section>
 
+    <!-- ══════════════════════════════════════ -->
+    <!-- ── EL IMPOSTOR ── -->
+    <!-- ══════════════════════════════════════ -->
+    <section class="admin-section" id="section-impostor">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🕵️ El Impostor</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="admin-badge" id="imp-phase-badge">En espera</span>
+          </div>
+        </div>
+
+        <!-- ── Configurar ronda ── -->
+        <div class="admin-card" id="imp-config-card">
+          <div class="admin-card-label">Configurar nueva ronda</div>
+
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px;">Palabra secreta</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+              <select id="imp-category-select" style="flex:1;min-width:140px;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:8px 10px;font-size:13px;font-family:var(--font-body);" onchange="loadImpostorCategory()">
+                <option value="">— Elegir categoría —</option>
+              </select>
+              <select id="imp-word-select" style="flex:1;min-width:140px;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:8px 10px;font-size:13px;font-family:var(--font-body);" onchange="syncImpostorCustom()">
+                <option value="">— Elegir palabra —</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+              <div style="flex:1;height:1px;background:rgba(200,150,0,0.1);"></div>
+              <span style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">O ESCRIBIR</span>
+              <div style="flex:1;height:1px;background:rgba(200,150,0,0.1);"></div>
+            </div>
+            <input type="text" id="imp-custom-word" placeholder="Palabra custom..." maxlength="30"
+              style="width:100%;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;font-size:14px;font-family:var(--font-body);margin-top:8px;"
+              oninput="clearImpostorSelect()" />
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px;">¿Quién es el Impostor?</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <select id="imp-impostor-select" style="flex:1;min-width:160px;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:8px 10px;font-size:13px;font-family:var(--font-body);">
+                <option value="">— Elegir jugador —</option>
+              </select>
+              <button class="admin-btn secondary small" onclick="pickRandomImpostor()">🎲 Random</button>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px;">
+            <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:6px;">
+              Palabra falsa para el impostor <span style="font-size:11px;opacity:0.6;">(opcional)</span>
+            </div>
+            <input type="text" id="imp-fake-word" placeholder="Dejá vacío para que el impostor no reciba palabra" maxlength="30"
+              style="width:100%;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;font-size:13px;font-family:var(--font-body);" />
+            <div style="font-size:11px;color:var(--crema-3);margin-top:5px;line-height:1.5;">
+              Si completás esto, el impostor ve esta palabra en lugar de "no tenés palabra".
+            </div>
+          </div>
+
+          <div class="admin-card-actions">
+            <button class="admin-btn primary" onclick="handleStartImpostor()">🕵️ Iniciar ronda</button>
+          </div>
+        </div>
+
+        <!-- ── Ronda en curso ── -->
+        <div class="admin-card hidden" id="imp-playing-card">
+          <div class="admin-card-label">Ronda en curso — solo vos ves esto</div>
+          <div id="imp-round-info" style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:8px;padding:16px;margin-bottom:20px;line-height:2;font-size:14px;color:var(--crema-2);"></div>
+
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px;">
+              Jugadores que vieron su rol: <span id="imp-seen-count" style="color:var(--dorado);">0</span>
+            </div>
+            <div id="imp-players-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px;">Resultado de la votación</div>
+            <div style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
+              Después de la discusión en voz alta, ¿a quién votaron?
+            </div>
+            <select id="imp-accused-select" style="width:100%;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:8px 10px;font-size:13px;font-family:var(--font-body);margin-bottom:14px;">
+              <option value="">— ¿A quién votaron? —</option>
+            </select>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="admin-btn primary" onclick="handleRevealImpostor('players')" style="flex:1;">
+                ✅ Descubrieron al Impostor
+              </button>
+              <button class="admin-btn secondary" onclick="handleRevealImpostor('impostor')" style="flex:1;">
+                🎭 El Impostor se salvó
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Resultado ── -->
+        <div class="admin-card hidden" id="imp-result-card">
+          <div class="admin-card-label">Resultado de la ronda</div>
+          <div id="imp-result-display" style="font-size:14px;color:var(--crema-2);line-height:1.9;margin-bottom:20px;padding:16px;background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:8px;"></div>
+          <div class="admin-card-actions">
+            <button class="admin-btn secondary" onclick="handleResetImpostor()">🔄 Nueva ronda</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <section class="admin-section" id="section-tablon">
       <div class="admin-section-inner">
         <h2 class="admin-section-title">Tablón</h2>
@@ -528,6 +634,11 @@
     import {
       forceWordOfDay, isValidWord, onRanking
     } from "./games/wordle.js";
+    import {
+      WORD_BANK,
+      startImpostorRound, revealImpostorResult, giveImpostorPoints,
+      resetImpostor, onImpostorState, onImpostorPlayers
+    } from "./games/impostor.js";
     import { db } from "./js/firebase-init.js";
     import {
       ref, onValue, update, get, set, remove
@@ -582,6 +693,7 @@
       listenTeamNames();
       initWordleAdmin();
       listenPresence();
+      initImpostorAdmin();
     }
 
     // ── NOMBRES DE EQUIPOS ──
@@ -620,6 +732,7 @@
         renderUsers(currentFilter);
         updatePendingBadge();
         renderEquipos();
+        populateImpostorPlayerSelect();
       });
     }
 
@@ -1249,16 +1362,246 @@
     };
 
     // ══════════════════════════════════════
+    // ── EL IMPOSTOR ADMIN ──
+    // ══════════════════════════════════════
+
+    let impostorState = {};
+    let impostorPlayers = {};
+
+    function initImpostorAdmin() {
+      // Poblar categorías
+      const catSelect = document.getElementById("imp-category-select");
+      if (catSelect) {
+        Object.keys(WORD_BANK).forEach(cat => {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.textContent = cat;
+          catSelect.appendChild(opt);
+        });
+      }
+
+      // Listener de estado
+      onImpostorState((state) => {
+        impostorState = state;
+        renderImpostorAdminState(state);
+      });
+
+      // Listener de jugadores
+      onImpostorPlayers((players) => {
+        impostorPlayers = players;
+        renderImpostorPlayers(players);
+      });
+    }
+
+    function renderImpostorAdminState(state) {
+      const phase = state.phase || "waiting";
+      const badge = document.getElementById("imp-phase-badge");
+      const configCard = document.getElementById("imp-config-card");
+      const playingCard = document.getElementById("imp-playing-card");
+      const resultCard = document.getElementById("imp-result-card");
+
+      // Badge
+      const phaseLabels = { waiting: "En espera", playing: "Ronda en curso", reveal: "Resultado" };
+      if (badge) badge.textContent = phaseLabels[phase] || phase;
+
+      // Visibilidad de cards
+      if (configCard)  configCard.classList.toggle("hidden", phase !== "waiting");
+      if (playingCard) playingCard.classList.toggle("hidden", phase !== "playing");
+      if (resultCard)  resultCard.classList.toggle("hidden", phase !== "reveal");
+
+      if (phase === "playing") {
+        // Info de la ronda para el admin
+        const impostorNick = Object.values(allUsers).find(u => u.uid === state.impostorUid)?.nick
+          || Object.entries(allUsers).find(([uid]) => uid === state.impostorUid)?.[1]?.nick
+          || state.impostorUid;
+        const roundInfoEl = document.getElementById("imp-round-info");
+        if (roundInfoEl) {
+          roundInfoEl.innerHTML = `
+            🔑 Palabra real: <strong style="color:var(--dorado);font-size:16px;">${state.word}</strong><br>
+            🕵️ Impostor: <strong style="color:#c84040;">${impostorNick}</strong><br>
+            ${state.impostorFakeWord
+              ? `🃏 Palabra falsa del impostor: <strong style="color:var(--crema);">${state.impostorFakeWord}</strong>`
+              : `🃏 Impostor no recibe palabra`
+            }
+          `;
+        }
+        // Poblar select de acusados
+        populateImpostorAccusedSelect();
+      }
+
+      if (phase === "reveal") {
+        renderImpostorResult();
+      }
+    }
+
+    function renderImpostorPlayers(players) {
+      const list = document.getElementById("imp-players-list");
+      const count = document.getElementById("imp-seen-count");
+      if (!list || !count) return;
+
+      const seen = Object.values(players).filter(p => p.hasSeenWord);
+      count.textContent = seen.length;
+
+      // Mostrar todos los activos con indicador de si vieron o no
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      list.innerHTML = activos.map(([uid, u]) => {
+        const hasSeen = players[uid]?.hasSeenWord;
+        return `<span style="
+          font-size:12px;
+          padding:4px 10px;
+          border-radius:12px;
+          background:${hasSeen ? "rgba(76,175,80,0.12)" : "rgba(255,255,255,0.04)"};
+          border:1px solid ${hasSeen ? "rgba(76,175,80,0.3)" : "rgba(255,255,255,0.08)"};
+          color:${hasSeen ? "#4caf50" : "var(--crema-3)"};
+        ">${hasSeen ? "✓" : "·"} ${u.nick}</span>`;
+      }).join("");
+    }
+
+    function populateImpostorAccusedSelect() {
+      const sel = document.getElementById("imp-accused-select");
+      if (!sel) return;
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
+        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+    }
+
+    function renderImpostorResult() {
+      // Escuchar el result de Firebase
+      // (ya seteado por revealImpostorResult)
+      // se muestra en imp-result-display desde handleRevealImpostor
+    }
+
+    // ── Cargar palabras de categoría ──
+    window.loadImpostorCategory = () => {
+      const cat = document.getElementById("imp-category-select").value;
+      const sel = document.getElementById("imp-word-select");
+      if (!cat) { sel.innerHTML = `<option value="">— Elegir palabra —</option>`; return; }
+      const words = WORD_BANK[cat] || [];
+      sel.innerHTML = `<option value="">— Elegir palabra —</option>` +
+        words.map(w => `<option value="${w}">${w}</option>`).join("");
+    };
+
+    window.syncImpostorCustom = () => {
+      const val = document.getElementById("imp-word-select").value;
+      const input = document.getElementById("imp-custom-word");
+      if (val && input) input.value = val;
+    };
+
+    window.clearImpostorSelect = () => {
+      const sel = document.getElementById("imp-word-select");
+      if (sel) sel.value = "";
+    };
+
+    window.pickRandomImpostor = () => {
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      if (!activos.length) { showToast("No hay jugadores activos."); return; }
+      const [randomUid] = activos[Math.floor(Math.random() * activos.length)];
+      const sel = document.getElementById("imp-impostor-select");
+      if (sel) {
+        // Poblar si está vacío
+        if (sel.options.length <= 1) populateImpostorPlayerSelect();
+        sel.value = randomUid;
+        showToast(`Impostor random: ${allUsers[randomUid]?.nick}`);
+      }
+    };
+
+    function populateImpostorPlayerSelect() {
+      const sel = document.getElementById("imp-impostor-select");
+      if (!sel) return;
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
+        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+    }
+
+    window.handleStartImpostor = async () => {
+      const word = document.getElementById("imp-custom-word").value.trim()
+        || document.getElementById("imp-word-select").value;
+      const impostorUid = document.getElementById("imp-impostor-select").value;
+      const fakeWord = document.getElementById("imp-fake-word").value.trim();
+
+      if (!word) { showToast("Elegí o escribí una palabra."); return; }
+      if (!impostorUid) { showToast("Elegí quién es el impostor."); return; }
+
+      const impostorNick = allUsers[impostorUid]?.nick || impostorUid;
+
+      showModal(`¿Iniciar ronda?\nPalabra: ${word.toUpperCase()} — Impostor: ${impostorNick}`, async () => {
+        await startImpostorRound({ word, impostorUid, impostorFakeWord: fakeWord || null });
+        closeModal();
+        showToast("¡Ronda iniciada!");
+        // Limpiar form
+        document.getElementById("imp-custom-word").value = "";
+        document.getElementById("imp-fake-word").value = "";
+        document.getElementById("imp-word-select").value = "";
+        document.getElementById("imp-category-select").value = "";
+        populateImpostorAccusedSelect();
+      });
+    };
+
+    window.handleRevealImpostor = async (winner) => {
+      const accusedSel = document.getElementById("imp-accused-select");
+      const accusedUid = accusedSel?.value;
+      const accusedNick = accusedSel?.options[accusedSel.selectedIndex]?.text || "—";
+
+      if (!accusedUid) { showToast("Seleccioná a quién votaron."); return; }
+
+      await revealImpostorResult({ accusedUid, accusedNick, winner });
+
+      // Otorgar puntos
+      const playerUids = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .map(([uid]) => uid);
+
+      await giveImpostorPoints({ winner, impostorUid: impostorState.impostorUid, playerUids });
+
+      // Mostrar resultado en admin
+      const impostorNick = allUsers[impostorState.impostorUid]?.nick || "—";
+      const resultEl = document.getElementById("imp-result-display");
+      if (resultEl) {
+        if (winner === "impostor") {
+          resultEl.innerHTML = `
+            🎭 <strong style="color:var(--dorado)">El Impostor se salvó</strong><br>
+            Votaron a: <strong>${accusedNick}</strong> (que no era el impostor)<br>
+            Impostor era: <strong style="color:#c84040;">${impostorNick}</strong><br>
+            Palabra era: <strong style="color:var(--dorado);">${impostorState.word}</strong><br>
+            <span style="color:var(--crema-3);font-size:13px;">+3 puntos para ${impostorNick}</span>
+          `;
+        } else {
+          const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin" && u.uid !== impostorState.impostorUid);
+          const count = playerUids.filter(uid => uid !== impostorState.impostorUid).length;
+          resultEl.innerHTML = `
+            🔍 <strong style="color:var(--dorado)">¡Descubrieron al Impostor!</strong><br>
+            Votaron a: <strong>${accusedNick}</strong> ✓<br>
+            Impostor era: <strong style="color:#c84040;">${impostorNick}</strong><br>
+            Palabra era: <strong style="color:var(--dorado);">${impostorState.word}</strong><br>
+            <span style="color:var(--crema-3);font-size:13px;">+1 punto para cada jugador (${count} personas)</span>
+          `;
+        }
+      }
+
+      showToast(winner === "impostor" ? "🎭 El impostor se salvó" : "🔍 ¡Impostor descubierto!");
+    };
+
+    window.handleResetImpostor = async () => {
+      showModal("¿Resetear El Impostor? Se limpiará la ronda actual.", async () => {
+        await resetImpostor();
+        closeModal();
+        showToast("El Impostor reseteado");
+        // Limpiar selects
+        populateImpostorPlayerSelect();
+      });
+    };
+
+    // ══════════════════════════════════════
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "tablon"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "tablon"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
       taboo:      "taboo",
       wordle:     "wordle",
-      impostor:   "sesion",
+      impostor:   "impostor",
       millonario: "sesion",
       none:       "tablon"
     };
