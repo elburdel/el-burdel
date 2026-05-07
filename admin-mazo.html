@@ -52,11 +52,12 @@
     }
     .mazo-card-word {
       font-family: var(--font-display);
-      font-size: 22px;
+      font-size: 24px;
       color: var(--dorado);
       margin-bottom: 12px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      font-weight: 700;
     }
     .mazo-card-forbidden {
       font-size: 13px;
@@ -121,7 +122,7 @@
         <div class="admin-card-label">Agregar nueva tarjeta</div>
         <div style="display:flex; gap:16px; flex-wrap:wrap;">
           <div style="flex:1; min-width:200px;">
-            <input type="text" id="new-word" class="mazo-search-input" style="padding:10px;" placeholder="Palabra a adivinar" maxlength="40">
+            <input type="text" id="new-word" class="mazo-search-input" style="padding:10px;font-family:var(--font-display);font-size:20px;letter-spacing:2px;text-transform:uppercase;" placeholder="Palabra a adivinar" maxlength="40" oninput="this.value=this.value.toUpperCase()">
           </div>
           <div style="flex:2; min-width:300px; display:flex; flex-direction:column; gap:6px;" id="new-forbidden-list">
             <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 1" maxlength="30">
@@ -241,10 +242,11 @@
     };
 
     window.saveEdit = async (id) => {
-      const word = document.getElementById(`edit-word-${id}`).value.trim();
-      if (!word) { showToast("La palabra no puede estar vacía"); return; }
+      const wordRaw = document.getElementById(`edit-word-${id}`).value.trim();
+      if (!wordRaw) { showToast("La palabra no puede estar vacía"); return; }
+      const word = wordRaw.toUpperCase();
       const inputs = document.querySelectorAll(`#edit-forbidden-${id} input`);
-      const forbidden = Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
+      const forbidden = Array.from(inputs).map(i => formatForbidden(i.value.trim())).filter(v => v.length > 0);
       
       try {
         await updateCard(id, word, forbidden);
@@ -254,13 +256,24 @@
       }
     };
 
+    // Capitalización: primera letra mayúscula, resto minúscula
+    // SALVO que la palabra sea toda mayúsculas (ej: "TV") → se guarda como está
+    function formatForbidden(word) {
+      if (!word) return "";
+      // Si el usuario escribió todo en mayúsculas (≥2 chars) → respetar
+      if (word === word.toUpperCase() && word.length >= 2 && /[A-ZÁÉÍÓÚÜÑ]{2,}/.test(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
     window.handleAddCard = async () => {
       const wordInput = document.getElementById("new-word");
       const word = wordInput.value.trim();
       if (!word) { showToast("Ingresá la palabra principal"); return; }
       
       const inputs = document.querySelectorAll("#new-forbidden-list input");
-      const forbidden = Array.from(inputs).map(i => i.value.trim()).filter(v => v.length > 0);
+      const forbidden = Array.from(inputs).map(i => formatForbidden(i.value.trim())).filter(v => v.length > 0);
       
       try {
         await saveCard(word, forbidden);
