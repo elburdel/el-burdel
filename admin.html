@@ -263,6 +263,28 @@
           <span class="admin-badge" id="taboo-deck-count">0 tarjetas</span>
         </div>
 
+        <!-- TARJETA EQUIPOS + FINALIZAR JUEGO -->
+        <div class="admin-card" id="card-equipos-taboo" style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+            <div class="admin-card-label" style="margin:0;">Equipos</div>
+            <button class="admin-btn primary" style="background:var(--rojo-claro);border-color:var(--rojo-claro);color:#fff;" onclick="handleFinalizarJuego()">🏆 Finalizar juego</button>
+          </div>
+          <div id="equipos-taboo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div>
+              <div class="score-team-name rojo" id="label-equipo-rojo-taboo" style="margin-bottom:10px;font-size:14px;">🔴 Equipo Rojo</div>
+              <div id="lista-equipo-rojo" style="display:flex;flex-direction:column;gap:5px;">
+                <span style="font-size:13px;color:var(--crema-3);">Sin jugadores</span>
+              </div>
+            </div>
+            <div>
+              <div class="score-team-name azul" id="label-equipo-azul-taboo" style="margin-bottom:10px;font-size:14px;">🔵 Equipo Azul</div>
+              <div id="lista-equipo-azul" style="display:flex;flex-direction:column;gap:5px;">
+                <span style="font-size:13px;color:var(--crema-3);">Sin jugadores</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="taboo-panel-grid">
 
           <!-- COLUMNA IZQUIERDA: Control del turno -->
@@ -793,6 +815,7 @@
     function renderEquipos() {
       // kept for compatibility — calls the unified render
       renderSesionUsuarios();
+      renderEquiposTaboo();
     }
 
     function renderSesionUsuarios() {
@@ -1164,6 +1187,72 @@
     }
 
     // ── Reset taboo ──
+    // ── Render equipos en tarjeta Taboo ──
+    function renderEquiposTaboo() {
+      const labelRojo = document.getElementById("label-equipo-rojo-taboo");
+      const labelAzul = document.getElementById("label-equipo-azul-taboo");
+      const listaRojo = document.getElementById("lista-equipo-rojo");
+      const listaAzul = document.getElementById("lista-equipo-azul");
+      if (!listaRojo || !listaAzul) return;
+
+      if (labelRojo) labelRojo.textContent = teamLabel("rojo");
+      if (labelAzul) labelAzul.textContent = teamLabel("azul");
+
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const jugRojo = activos.filter(([, u]) => u.team === "rojo");
+      const jugAzul = activos.filter(([, u]) => u.team === "azul");
+
+      const makeItem = ([, u]) => `
+        <div style="display:flex;align-items:center;gap:7px;padding:5px 8px;background:var(--negro-3);border-radius:5px;border:1px solid rgba(200,150,0,0.08);">
+          <span style="font-size:12px;color:var(--crema);">${u.nick}</span>
+        </div>
+      `;
+
+      listaRojo.innerHTML = jugRojo.length ? jugRojo.map(makeItem).join("") : `<span style="font-size:12px;color:var(--crema-3);">Sin jugadores</span>`;
+      listaAzul.innerHTML = jugAzul.length ? jugAzul.map(makeItem).join("") : `<span style="font-size:12px;color:var(--crema-3);">Sin jugadores</span>`;
+    }
+
+    // ── Finalizar juego Taboo (suma 3 pts al equipo ganador en ranking) ──
+    window.handleFinalizarJuego = () => {
+      const pRojo = tabooScores.rojo || 0;
+      const pAzul = tabooScores.azul || 0;
+
+      let ganadorColor, perdedorColor;
+      if (pRojo === pAzul) {
+        showModal(`Empate (${pRojo} – ${pAzul}). ¿Finalizar igualmente sin dar puntos?`, async () => {
+          await resetTaboo(parseInt(document.getElementById("timer-seconds").value) || 60);
+          usedCards = []; stopLocalTimer(); closeModal();
+          showToast("Juego finalizado — empate, sin puntos asignados");
+        });
+        return;
+      }
+      ganadorColor = pRojo > pAzul ? "rojo" : "azul";
+      perdedorColor = ganadorColor === "rojo" ? "azul" : "rojo";
+
+      const ganadorLabel = teamLabel(ganadorColor);
+      const perdedorLabel = teamLabel(perdedorColor);
+      const ganadorScore = pRojo > pAzul ? pRojo : pAzul;
+      const perdedorScore = pRojo > pAzul ? pAzul : pRojo;
+
+      showModal(`¿Finalizar? ${ganadorLabel} gana (${ganadorScore}–${perdedorScore}). Se sumarán 3 pts a cada jugador del equipo ganador.`, async () => {
+        // Buscar jugadores del equipo ganador
+        const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+        const ganadores = activos.filter(([, u]) => u.team === ganadorColor);
+
+        const updates = {};
+        for (const [uid, u] of ganadores) {
+          const stats = u.wordleStats || { totalPoints: 0, played: 0, won: 0, currentStreak: 0, bestStreak: 0 };
+          updates[`users/${uid}/wordleStats/totalPoints`] = (stats.totalPoints || 0) + 3;
+        }
+        if (Object.keys(updates).length > 0) {
+          await update(ref(db), updates);
+        }
+        await resetTaboo(parseInt(document.getElementById("timer-seconds").value) || 60);
+        usedCards = []; stopLocalTimer(); closeModal();
+        showToast(`🏆 ${ganadorLabel} gana — +3 pts para ${ganadores.length} jugador${ganadores.length !== 1 ? "es" : ""}`);
+      });
+    };
+
     window.confirmResetTaboo = () => {
       showModal("¿Resetear puntajes y turno del Taboo?", async () => {
         const seconds = parseInt(document.getElementById("timer-seconds").value) || 60;
