@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Impostor — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <style>
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .imp-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 60px;
+    }
+
+    /* ── Header ── */
+    .imp-header {
+      width: 100%;
+      max-width: 480px;
+      padding: 28px 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(200,150,0,0.1);
+      margin-bottom: 40px;
+    }
+
+    .imp-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 34px;
+      color: var(--dorado);
+      letter-spacing: 3px;
+    }
+
+    .imp-nick-pill {
+      font-size: 12px;
+      color: var(--crema-3);
+      background: rgba(200,150,0,0.07);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 20px;
+      padding: 5px 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Estados ── */
+    .imp-state {
+      width: 100%;
+      max-width: 400px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 24px;
+    }
+
+    .imp-state.active { display: flex; }
+
+    /* Waiting */
+    .imp-waiting-icon {
+      font-size: 64px;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.7; }
+    }
+
+    .imp-waiting-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      color: var(--crema-2);
+      letter-spacing: 2px;
+    }
+
+    .imp-waiting-sub {
+      font-size: 14px;
+      color: var(--crema-3);
+      line-height: 1.6;
+    }
+
+    /* Tap to reveal */
+    .imp-reveal-btn {
+      width: 100%;
+      background: rgba(200,150,0,0.08);
+      border: 2px solid rgba(200,150,0,0.3);
+      border-radius: 16px;
+      padding: 40px 24px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: var(--crema-2);
+    }
+
+    .imp-reveal-btn:hover {
+      background: rgba(200,150,0,0.14);
+      border-color: rgba(200,150,0,0.5);
+    }
+
+    .imp-reveal-btn:active {
+      transform: scale(0.98);
+    }
+
+    .imp-reveal-btn-icon {
+      font-size: 40px;
+    }
+
+    .imp-reveal-btn-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .imp-reveal-btn-sub {
+      font-size: 12px;
+      color: var(--crema-3);
+      letter-spacing: 1px;
+    }
+
+    /* Word card */
+    .imp-word-card {
+      width: 100%;
+      border-radius: 16px;
+      padding: 40px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .imp-word-card.jugador {
+      background: rgba(200,150,0,0.07);
+      border: 2px solid rgba(200,150,0,0.25);
+    }
+
+    .imp-word-card.impostor {
+      background: rgba(139,26,26,0.12);
+      border: 2px solid rgba(139,26,26,0.35);
+    }
+
+    .imp-word-card-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+    }
+
+    .imp-word-card-word {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 4px;
+      line-height: 1;
+    }
+
+    .imp-word-card.jugador .imp-word-card-word {
+      color: var(--dorado);
+    }
+
+    .imp-word-card.impostor .imp-word-card-word {
+      color: #c84040;
+    }
+
+    .imp-word-card-hint {
+      font-size: 13px;
+      color: var(--crema-3);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .imp-hide-btn {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 7px 16px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .imp-hide-btn:hover {
+      color: var(--crema-2);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Result */
+    .imp-result-card {
+      width: 100%;
+      background: var(--negro-2);
+      border-radius: 16px;
+      border: 1px solid rgba(200,150,0,0.15);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .imp-result-icon {
+      font-size: 56px;
+    }
+
+    .imp-result-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .imp-result-title.win { color: var(--dorado); }
+    .imp-result-title.lose { color: #c84040; }
+
+    .imp-result-detail {
+      font-size: 14px;
+      color: var(--crema-3);
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .imp-result-word {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: var(--dorado);
+      letter-spacing: 3px;
+    }
+
+    .imp-result-pts {
+      font-size: 13px;
+      color: var(--crema-3);
+      background: rgba(200,150,0,0.08);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 20px;
+      padding: 5px 16px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Loading ── */
+    #imp-loading {
+      font-size: 13px;
+      color: var(--crema-3);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 64px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+  <main class="imp-main">
+
+    <div class="imp-header">
+      <span class="imp-title">El Impostor</span>
+      <span class="imp-nick-pill" id="imp-nick-label">—</span>
+    </div>
+
+    <div id="imp-loading">Cargando...</div>
+
+    <!-- ESTADO: Esperando ronda -->
+    <div class="imp-state" id="state-waiting">
+      <div class="imp-waiting-icon">🕵️</div>
+      <div class="imp-waiting-title">Esperando al admin</div>
+      <div class="imp-waiting-sub">
+        El admin va a iniciar la ronda en breve.<br>
+        Cuando arranque, vas a poder ver tu rol.
+      </div>
+    </div>
+
+    <!-- ESTADO: Listo para revelar -->
+    <div class="imp-state" id="state-ready">
+      <div class="imp-waiting-sub" style="margin-bottom: 4px;">
+        ¡La ronda comenzó! Mostrá tu pantalla solo a vos.
+      </div>
+      <button class="imp-reveal-btn" id="btn-reveal" onclick="revealWord()">
+        <span class="imp-reveal-btn-icon">👁️</span>
+        <span class="imp-reveal-btn-label">Tocar para ver tu rol</span>
+        <span class="imp-reveal-btn-sub">Solo mostralo a vos</span>
+      </button>
+    </div>
+
+    <!-- ESTADO: Palabra revelada -->
+    <div class="imp-state" id="state-revealed">
+      <div id="imp-word-display"></div>
+      <button class="imp-hide-btn" onclick="hideWord()">🙈 Ocultar</button>
+    </div>
+
+    <!-- ESTADO: Revelación del resultado -->
+    <div class="imp-state" id="state-reveal">
+      <div class="imp-result-card" id="imp-result-card">
+        <!-- se rellena dinámicamente -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- NAV BOTTOM -->
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="dashboard.html" class="nav-bottom-link">Dashboard</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import {
+      onImpostorState,
+      onImpostorResult,
+      getPlayerRoundData,
+      markPlayerSeenWord
+    } from "./games/impostor.js";
+
+    let currentUser = null;
+    let currentUid = null;
+    let currentNick = null;
+    let currentRoundId = null;
+    let currentPhase = null;
+    let roundData = null;
+
+    // ── Auth ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.role === "admin") { window.location.href = "/el-burdel/admin.html"; return; }
+
+      currentUser = user;
+      currentUid = user.uid;
+      currentNick = data.nick;
+      document.getElementById("imp-nick-label").textContent = data.nick;
+
+      document.getElementById("imp-loading").style.display = "none";
+      initImpostor();
+    });
+
+    // ── Init listeners ──
+    function initImpostor() {
+      onImpostorState(async (state) => {
+        const newPhase = state.phase || "waiting";
+        const newRoundId = state.roundId || null;
+
+        // Si cambió la ronda, limpiamos roundData para forzar re-fetch
+        if (newRoundId && newRoundId !== currentRoundId) {
+          roundData = null;
+          currentRoundId = newRoundId;
+        }
+
+        currentPhase = newPhase;
+        await renderState(newPhase, state);
+      });
+
+      onImpostorResult((result) => {
+        if (result && currentPhase === "reveal") {
+          renderResult(result);
+        }
+      });
+    }
+
+    async function renderState(phase, state) {
+      hideAll();
+
+      if (phase === "waiting") {
+        show("state-waiting");
+        return;
+      }
+
+      if (phase === "playing") {
+        // Obtener datos de esta ronda si no los tenemos aún
+        if (!roundData || roundData.roundId !== state.roundId) {
+          roundData = await getPlayerRoundData(currentUid);
+        }
+
+        if (!roundData) { show("state-waiting"); return; }
+
+        // Si ya vio la palabra esta ronda (según estado local), mostrar revelado
+        show("state-ready");
+        return;
+      }
+
+      if (phase === "reveal") {
+        // Obtener datos si no los tenemos
+        if (!roundData || roundData.roundId !== state.roundId) {
+          roundData = await getPlayerRoundData(currentUid);
+        }
+        show("state-reveal");
+      }
+    }
+
+    // ── Revelar palabra ──
+    window.revealWord = async () => {
+      if (!roundData) {
+        roundData = await getPlayerRoundData(currentUid);
+      }
+      if (!roundData) return;
+
+      await markPlayerSeenWord(currentUid, currentNick);
+
+      const container = document.getElementById("imp-word-display");
+      if (roundData.isImpostor) {
+        container.innerHTML = `
+          <div class="imp-word-card impostor">
+            <span class="imp-word-card-label">Tu rol</span>
+            <div class="imp-word-card-word">IMPOSTOR</div>
+            ${roundData.word
+              ? `<div class="imp-word-card-hint">El admin te asignó la palabra: <strong style="color:var(--crema)">${roundData.word}</strong></div>`
+              : `<div class="imp-word-card-hint">No tenés la palabra real.<br>¡Bluffeá bien!</div>`
+            }
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="imp-word-card jugador">
+            <span class="imp-word-card-label">La palabra de esta ronda es</span>
+            <div class="imp-word-card-word">${roundData.word}</div>
+            <div class="imp-word-card-hint">
+              Dá pistas sin revelarla directamente.<br>
+              Uno de los jugadores es el Impostor.
+            </div>
+          </div>
+        `;
+      }
+
+      hideAll();
+      show("state-revealed");
+    };
+
+    // ── Ocultar palabra ──
+    window.hideWord = () => {
+      hideAll();
+      show("state-ready");
+    };
+
+    // ── Render resultado ──
+    function renderResult(result) {
+      const isImpostor = result.impostorUid === currentUid;
+      const impostorWon = result.winner === "impostor";
+      const iWon = (isImpostor && impostorWon) || (!isImpostor && !impostorWon);
+
+      let icon, title, titleClass, detail, pts;
+
+      if (isImpostor) {
+        if (impostorWon) {
+          icon = "🎭"; title = "¡Zafaste!"; titleClass = "win";
+          detail = `¡Nadie te descubrió! Votaron a <strong>${result.accusedNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
+          pts = "+3 puntos";
+        } else {
+          icon = "😬"; title = "Te descubrieron"; titleClass = "lose";
+          detail = `Te votaron a vos. La palabra era <span class="imp-result-word">${result.word}</span>`;
+          pts = "+0 puntos";
+        }
+      } else {
+        if (!impostorWon) {
+          icon = "🔍"; title = "¡Atrapado!"; titleClass = "win";
+          detail = `Encontraron al Impostor: <strong>${result.impostorNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
+          pts = "+1 punto";
+        } else {
+          icon = "🕵️"; title = "Se escapó el Impostor"; titleClass = "lose";
+          detail = `El Impostor era <strong>${result.impostorNick}</strong> y se salvó.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
+          pts = "+0 puntos";
+        }
+      }
+
+      document.getElementById("imp-result-card").innerHTML = `
+        <div class="imp-result-icon">${icon}</div>
+        <div class="imp-result-title ${titleClass}">${title}</div>
+        <div class="imp-result-detail">${detail}</div>
+        <div class="imp-result-pts">${pts}</div>
+      `;
+
+      hideAll();
+      show("state-reveal");
+    }
+
+    // ── Helpers ──
+    function hideAll() {
+      ["state-waiting", "state-ready", "state-revealed", "state-reveal"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+    }
+
+    function show(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("active");
+    }
+
+  </script>
+</body>
+</html>
