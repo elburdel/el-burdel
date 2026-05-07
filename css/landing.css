@@ -259,3 +259,64 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ─── CURIOSIDAD DEL DÍA ─── */
+.curiosidad-card {
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 12px;
+  padding: 36px 32px 28px;
+  max-width: 640px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.curiosidad-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--dorado-oscuro), var(--dorado-claro), var(--dorado-oscuro));
+}
+
+.curiosidad-numero {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--dorado);
+  opacity: 0.7;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.curiosidad-texto {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.65;
+  color: var(--crema);
+  font-style: italic;
+  margin-bottom: 28px;
+}
+
+.curiosidad-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.curiosidad-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dorado);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.curiosidad-date {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+}
