@@ -202,11 +202,12 @@
 }
 
 .game-name {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
   color: var(--dorado);
   margin-bottom: 6px;
+  letter-spacing: 1px;
 }
 
 .game-desc {
