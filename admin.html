@@ -35,7 +35,13 @@
       white-space: nowrap;
     }
 
-    /* ── Título admin ── */
+    .admin-game-bar-active {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dorado);
+      letter-spacing: 1px;
+    }
+
     .admin-title {
       font-family: 'Bebas Neue', sans-serif !important;
       font-size: 38px;
@@ -147,23 +153,7 @@
     <div class="admin-game-bar">
       <div class="admin-game-bar-inner">
         <span class="admin-game-bar-label">Juego activo</span>
-        <div class="games-toggle-grid">
-          <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
-            <span>🚫</span> Ninguno
-          </button>
-          <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
-            <span>🃏</span> Taboo
-          </button>
-          <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
-            <span>🔤</span> Wordle
-          </button>
-          <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
-            <span>🕵️</span> Impostor
-          </button>
-          <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
-            <span>💰</span> Millonario
-          </button>
-        </div>
+        <span class="admin-game-bar-active" id="active-game-display">🚫 Ninguno</span>
       </div>
     </div>
 
@@ -222,6 +212,28 @@
     <section class="admin-section alt" id="section-sesion">
       <div class="admin-section-inner">
         <h2 class="admin-section-title">Sesión activa</h2>
+
+        <!-- CONTROL DE JUEGO ACTIVO -->
+        <div class="admin-card" style="margin-bottom:20px;">
+          <div class="admin-card-label">Juego activo</div>
+          <div class="games-toggle-grid">
+            <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
+              <span>🚫</span> Ninguno
+            </button>
+            <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
+              <span>🃏</span> Taboo
+            </button>
+            <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
+              <span>🔤</span> Wordle
+            </button>
+            <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
+              <span>🕵️</span> Impostor
+            </button>
+            <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
+              <span>💰</span> Millonario
+            </button>
+          </div>
+        </div>
 
         <!-- USUARIOS EN SESIÓN (presence + equipos) -->
         <div class="admin-card" id="card-sesion-usuarios">
@@ -868,11 +880,14 @@
 
     // ── SESIÓN / JUEGO ACTIVO ──
     function listenSession() {
+      const GAME_LABELS = { none: "🚫 Ninguno", taboo: "🃏 Taboo", wordle: "🔤 Wordle", impostor: "🕵️ Impostor", millonario: "💰 Millonario" };
       onValue(ref(db, "session/activeGame"), (snap) => {
         activeGame = snap.val() || "none";
         document.querySelectorAll(".game-toggle").forEach(btn => {
           btn.classList.toggle("active", btn.dataset.game === activeGame);
         });
+        const display = document.getElementById("active-game-display");
+        if (display) display.textContent = GAME_LABELS[activeGame] || activeGame;
       });
     }
 
