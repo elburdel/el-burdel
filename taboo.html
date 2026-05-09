@@ -82,6 +82,24 @@
     let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
     let timeUpShown = false;
 
+    // ── Timer local (para que el countdown se vea aunque el admin no esté activo) ──
+    let localTimerInterval = null;
+    let localTimeLeft = 0;
+
+    function startLocalTimer(seconds) {
+      stopLocalTimer();
+      localTimeLeft = seconds;
+      localTimerInterval = setInterval(() => {
+        localTimeLeft = Math.max(0, localTimeLeft - 1);
+        updateTimerDisplay(localTimeLeft);
+        if (localTimeLeft <= 0) stopLocalTimer();
+      }, 1000);
+    }
+
+    function stopLocalTimer() {
+      if (localTimerInterval) { clearInterval(localTimerInterval); localTimerInterval = null; }
+    }
+
     // ── AUTH ──
     onSession(async (user) => {
       if (!user) { window.location.href = "/el-burdel/login.html"; return; }
@@ -150,15 +168,28 @@
     function listenState() {
       onTabooState(state => {
         tabooState = state;
-        updateTimerDisplay(state.timeLeft ?? 60);
+        const timeLeft = state.timeLeft ?? 60;
+
+        // Sincronizar timer local con Firebase
+        if (state.timerRunning) {
+          // Solo reiniciar el timer local si el valor de Firebase difiere bastante
+          // (evita reiniciar en cada tick del admin)
+          if (!localTimerInterval || Math.abs(localTimeLeft - timeLeft) > 2) {
+            startLocalTimer(timeLeft);
+          }
+        } else {
+          stopLocalTimer();
+          updateTimerDisplay(timeLeft);
+        }
 
         // Time up detection
-        if (state.timeLeft !== undefined && state.timeLeft <= 0 && !timeUpShown) {
+        if (timeLeft <= 0 && !timeUpShown) {
           timeUpShown = true;
+          stopLocalTimer();
           document.getElementById("timeup-overlay").classList.remove("hidden");
           setTimeout(() => document.getElementById("timeup-overlay").classList.add("hidden"), 3000);
         }
-        if (state.timeLeft > 0) {
+        if (timeLeft > 0) {
           timeUpShown = false;
           document.getElementById("timeup-overlay").classList.add("hidden");
         }
