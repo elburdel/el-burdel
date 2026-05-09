@@ -8,7 +8,7 @@
   margin: 0 auto;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(200,150,0,0.1);
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Timer en la tarjeta */
@@ -59,7 +59,7 @@
 }
 
 .taboo-card-word-text {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-title);
   font-size: 44px;
   font-weight: 400;
   text-transform: uppercase;
@@ -115,7 +115,7 @@
   border: 1px solid rgba(200,150,0,0.2);
   border-radius: 4px;
   color: #7a6040;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -161,7 +161,7 @@
 .score-team-name.azul { color: #90b0f0; }
 
 .score-team-value {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 48px;
   font-weight: 900;
   color: #c89600;
@@ -186,7 +186,7 @@
   font-size: 14px;
   text-align: center;
   padding: 4px 6px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
 }
 
 .score-edit-btn {
@@ -197,7 +197,7 @@
   font-size: 11px;
   padding: 4px 8px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: 0.5px;
 }
 
@@ -243,7 +243,7 @@
   border: 1px solid rgba(200,150,0,0.2);
   border-radius: 4px;
   color: #f5f0e8;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   padding: 8px 10px;
   outline: none;
@@ -266,7 +266,7 @@
   font-size: 16px;
   text-align: center;
   padding: 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
 }
 
 .timer-config-label {
@@ -289,7 +289,7 @@
   border: 1px solid rgba(76,175,80,0.4);
   border-radius: 4px;
   color: #4caf50;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 1px;
@@ -306,7 +306,7 @@
   border: 1px solid rgba(240,80,80,0.3);
   border-radius: 4px;
   color: #f06060;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 1px;
@@ -323,7 +323,7 @@
   border: 1px solid rgba(200,150,0,0.2);
   border-radius: 4px;
   color: #f5e8c0;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -341,7 +341,7 @@
   border: 1px solid rgba(245,200,66,0.3);
   border-radius: 4px;
   color: #f5c842;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -368,7 +368,7 @@
   border: 1px solid rgba(200,150,0,0.2);
   border-radius: 4px;
   color: #f5f0e8;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   padding: 10px 14px;
   outline: none;
@@ -472,7 +472,7 @@
 .topbar-team-name { font-size:10px; letter-spacing:2px; text-transform:uppercase; display:block; }
 .topbar-team-name.rojo { color:#f09090; }
 .topbar-team-name.azul { color:#90b0f0; }
-.topbar-team-score { font-family:'Playfair Display',serif; font-size:40px; font-weight:900; line-height:1; display:block; }
+.topbar-team-score { font-family: var(--font-display); font-size:40px; font-weight:900; line-height:1; display:block; }
 .topbar-team-score.rojo { color:#f09090; }
 .topbar-team-score.azul { color:#90b0f0; }
 .topbar-divider { width:1px; height:40px; background:rgba(200,150,0,0.2); flex-shrink:0; }
@@ -486,7 +486,7 @@
 /* Waiting state */
 .taboo-waiting { text-align:center; padding:40px 20px; }
 .taboo-waiting-icon { font-size:40px; margin-bottom:12px; }
-.taboo-waiting-title { font-family: 'Bebas Neue', sans-serif; font-size:28px; font-weight:400; font-style:normal; color:var(--dorado); margin-bottom:8px; letter-spacing:1px; }
+.taboo-waiting-title { font-family: var(--font-title); font-size:28px; font-weight:400; font-style:normal; color:var(--dorado); margin-bottom:8px; letter-spacing:1px; }
 .taboo-waiting-sub { font-size:13px; color:var(--crema-3); line-height:1.6; }
 
 /* Role badge */
@@ -496,4 +496,4 @@
 .taboo-timeup-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:300; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
 .taboo-timeup-overlay.hidden { display:none; }
 .taboo-timeup-icon { font-size:56px; margin-bottom:12px; animation:timerPulse .5s infinite; }
-.taboo-timeup-text { font-family: 'Bebas Neue', sans-serif; font-size:38px; font-weight:400; font-style:normal; color:#f04040; text-align:center; letter-spacing:1px; }
+.taboo-timeup-text { font-family: var(--font-title); font-size:38px; font-weight:400; font-style:normal; color:#f04040; text-align:center; letter-spacing:1px; }
