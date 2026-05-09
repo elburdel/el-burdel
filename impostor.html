@@ -344,13 +344,27 @@
       getPlayerRoundData,
       markPlayerSeenWord
     } from "./games/impostor.js";
+    import { db } from "./js/firebase-init.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // Escuchar nombres de equipo para el resultado
+    window._teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
+    onValue(ref(db, "session/teams"), (snap) => {
+      const val = snap.val();
+      if (val) {
+        if (val.rojo) window._teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
+        if (val.azul) window._teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
+      }
+    });
 
     let currentUser = null;
     let currentUid = null;
     let currentNick = null;
+    let currentTeam = null;
     let currentRoundId = null;
     let currentPhase = null;
     let roundData = null;
+    let prevPhase = null;
 
     // ── Auth ──
     onSession(async (user) => {
@@ -362,6 +376,7 @@
       currentUser = user;
       currentUid = user.uid;
       currentNick = data.nick;
+      currentTeam = data.team || null;
       document.getElementById("imp-nick-label").textContent = data.nick;
 
       document.getElementById("imp-loading").style.display = "none";
@@ -380,6 +395,12 @@
           currentRoundId = newRoundId;
         }
 
+        // Fix PC: si volvemos a "waiting" desde "reveal" o "playing", mostrar banner de nueva ronda
+        if (prevPhase && prevPhase !== "waiting" && newPhase === "waiting") {
+          showReloadBanner();
+        }
+
+        prevPhase = newPhase;
         currentPhase = newPhase;
         await renderState(newPhase, state);
       });
@@ -389,6 +410,12 @@
           renderResult(result);
         }
       });
+    }
+
+    // ── Banner de recarga (fix PC) ──
+    function showReloadBanner() {
+      // Forzar recarga limpia — resetea todo el estado local
+      window.location.reload();
     }
 
     async function renderState(phase, state) {
@@ -471,33 +498,47 @@
       const impostorWon = result.winner === "impostor";
       const iWon = (isImpostor && impostorWon) || (!isImpostor && !impostorWon);
 
-      let icon, title, titleClass, detail, pts;
+      // Obtener nombre del equipo desde Firebase para mostrarlo
+      const teamRef = window._teamNames || {};
+      const myTeam = currentTeam;
+      const teamLabel = myTeam === "rojo"
+        ? (teamRef.rojo ? `${teamRef.rojo.emoji} ${teamRef.rojo.name}` : "🔴 Equipo Rojo")
+        : myTeam === "azul"
+        ? (teamRef.azul ? `${teamRef.azul.emoji} ${teamRef.azul.name}` : "🔵 Equipo Azul")
+        : null;
+
+      let icon, title, titleClass, detail, pts, teamMsg;
 
       if (isImpostor) {
         if (impostorWon) {
-          icon = "🎭"; title = "¡Zafaste!"; titleClass = "win";
+          icon = "🎭"; title = "¡GANASTE!"; titleClass = "win";
           detail = `¡Nadie te descubrió! Votaron a <strong>${result.accusedNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+3 puntos";
+          teamMsg = "Eras el Impostor y zafaste 🎉";
         } else {
-          icon = "😬"; title = "Te descubrieron"; titleClass = "lose";
-          detail = `Te votaron a vos. La palabra era <span class="imp-result-word">${result.word}</span>`;
+          icon = "😬"; title = "PERDISTE"; titleClass = "lose";
+          detail = `Te descubrieron. La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+0 puntos";
+          teamMsg = "Te votaron a vos";
         }
       } else {
         if (!impostorWon) {
-          icon = "🔍"; title = "¡Atrapado!"; titleClass = "win";
+          icon = "🔍"; title = "¡GANASTE!"; titleClass = "win";
           detail = `Encontraron al Impostor: <strong>${result.impostorNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+1 punto";
+          teamMsg = teamLabel ? `Ganó ${teamLabel}` : "¡Tu equipo ganó!";
         } else {
-          icon = "🕵️"; title = "Se escapó el Impostor"; titleClass = "lose";
+          icon = "🕵️"; title = "PERDISTE"; titleClass = "lose";
           detail = `El Impostor era <strong>${result.impostorNick}</strong> y se salvó.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+0 puntos";
+          teamMsg = teamLabel ? `Perdió ${teamLabel}` : "El Impostor se escapó";
         }
       }
 
       document.getElementById("imp-result-card").innerHTML = `
         <div class="imp-result-icon">${icon}</div>
         <div class="imp-result-title ${titleClass}">${title}</div>
+        ${teamMsg ? `<div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin:-8px 0;">${teamMsg}</div>` : ""}
         <div class="imp-result-detail">${detail}</div>
         <div class="imp-result-pts">${pts}</div>
       `;
