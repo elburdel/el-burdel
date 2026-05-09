@@ -199,6 +199,17 @@
           <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
         </div>
 
+        <!-- BUSCADOR USUARIOS -->
+        <div style="margin-bottom:12px;">
+          <input
+            type="text"
+            id="search-usuarios"
+            placeholder="🔍 Buscar por nick o email..."
+            oninput="renderUsers(currentFilter)"
+            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);"
+          />
+        </div>
+
         <div class="users-list" id="users-list">
           <div class="users-loading">Cargando usuarios...</div>
         </div>
@@ -254,6 +265,16 @@
           <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
             <span>Usuarios en sesión</span>
             <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
+          </div>
+          <!-- BUSCADOR SESIÓN -->
+          <div style="margin-bottom:10px;">
+            <input
+              type="text"
+              id="search-sesion"
+              placeholder="🔍 Buscar jugador..."
+              oninput="renderSesionUsuarios()"
+              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);"
+            />
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
             <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
@@ -801,10 +822,19 @@
 
     function renderUsers(filter) {
       const list = document.getElementById("users-list");
+      const query = (document.getElementById("search-usuarios")?.value || "").toLowerCase().trim();
       let users = Object.entries(allUsers);
       if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
+      if (query) {
+        users = users.filter(([, u]) =>
+          (u.nick || "").toLowerCase().includes(query) ||
+          (u.email || "").toLowerCase().includes(query)
+        );
+      }
+      // Ordenar alfabéticamente por nick
+      users.sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       if (users.length === 0) {
-        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categoría.</div>`;
+        list.innerHTML = `<div class="users-empty">${query ? "Sin resultados para esa búsqueda." : "No hay usuarios en esta categoría."}</div>`;
         return;
       }
       list.innerHTML = users.map(([uid, u]) => `
@@ -850,7 +880,8 @@
       const list = document.getElementById("sesion-usuarios-list");
       if (!list) return;
 
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const query = (document.getElementById("search-sesion")?.value || "").toLowerCase().trim();
+      let activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
       if (activos.length === 0) {
         list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
         document.getElementById("online-count").textContent = "0 online";
@@ -861,13 +892,23 @@
       const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
       document.getElementById("online-count").textContent = `${onlineCount} online`;
 
-      // Ordenar: online primero, luego por equipo, luego por nick
+      // Filtrar por búsqueda
+      if (query) {
+        activos = activos.filter(([, u]) => (u.nick || "").toLowerCase().includes(query));
+      }
+
+      // Ordenar: online primero, luego alfabético por nick
       const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
         const aOnline = onlineUids.has(uidA) ? 0 : 1;
         const bOnline = onlineUids.has(uidB) ? 0 : 1;
         if (aOnline !== bOnline) return aOnline - bOnline;
-        return (uA.nick || "").localeCompare(uB.nick || "");
+        return (uA.nick || "").localeCompare(uB.nick || "", "es", { sensitivity: "base" });
       });
+
+      if (sorted.length === 0) {
+        list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Sin resultados.</p>`;
+        return;
+      }
 
       list.innerHTML = sorted.map(([uid, u]) => {
         const isOnline = onlineUids.has(uid);
@@ -1583,7 +1624,9 @@
     function populateImpostorAccusedSelect() {
       const sel = document.getElementById("imp-accused-select");
       if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const activos = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
         activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
@@ -1631,7 +1674,9 @@
     function populateImpostorPlayerSelect() {
       const sel = document.getElementById("imp-impostor-select");
       if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const activos = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
         activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
