@@ -202,7 +202,7 @@
 }
 
 .game-name {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-title);
   font-size: 20px;
   font-weight: 400;
   color: var(--dorado);
@@ -282,7 +282,7 @@
 }
 
 .curiosidad-numero {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-title);
   font-size: 13px;
   letter-spacing: 3px;
   color: var(--dorado);
