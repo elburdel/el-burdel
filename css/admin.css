@@ -19,7 +19,7 @@
 }
 
 .admin-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-title);
   font-size: 34px;
   font-weight: 400;
   color: var(--dorado);
@@ -64,7 +64,7 @@
 }
 
 .admin-section-title {
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: var(--font-title);
   font-size: 34px;
   font-weight: 400;
   letter-spacing: 2px;
