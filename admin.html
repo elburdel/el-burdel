@@ -781,6 +781,8 @@
         updatePendingBadge();
         renderEquipos();
         populateImpostorPlayerSelect();
+        populatePlayerSelects();  // FIX: actualizar selects de Taboo cuando cambian los usuarios
+        renderEquiposTaboo();     // FIX: actualizar equipos en el panel Taboo
       });
     }
 
@@ -1116,6 +1118,7 @@
       const veedor = document.getElementById("select-veedor").value;
       if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       try {
+        const usedCards = tabooState.usedCards || [];
         await markCorrect(team, describer, veedor, usedCards);
         showToast(`✓ Punto para ${team}! Nueva tarjeta enviada.`);
       } catch (e) { showToast(e.message); }
@@ -1127,6 +1130,7 @@
       const veedor = document.getElementById("select-veedor").value;
       if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       try {
+        const usedCards = tabooState.usedCards || [];
         await markWrong(describer, veedor, usedCards);
         showToast(`✗ Incorrecta — nueva tarjeta enviada`);
       } catch (e) { showToast(e.message); }
@@ -1139,6 +1143,7 @@
       if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
       const penalty = parseInt(document.getElementById("penalty-skip").value) || 10;
       try {
+        const usedCards = tabooState.usedCards || [];
         await skipCard(penalty, describer, veedor, usedCards);
         showToast(`⏭ Pasada — −${penalty} segundos`);
       } catch (e) { showToast(e.message); }
