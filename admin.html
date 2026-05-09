@@ -102,6 +102,19 @@
       font-weight: 400;
     }
 
+    /* ── Botón editar usuario ── */
+    .user-btn.edit {
+      background: rgba(200,150,0,0.1);
+      border: 1px solid rgba(200,150,0,0.25);
+      color: var(--dorado);
+      font-size: 13px;
+      padding: 5px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .user-btn.edit:hover { background: rgba(200,150,0,0.2); }
+
   </style>
   <style>
     /* ── Sesión usuarios ── */
@@ -199,15 +212,11 @@
           <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
         </div>
 
-        <!-- BUSCADOR USUARIOS -->
+        <!-- BUSCADOR -->
         <div style="margin-bottom:12px;">
-          <input
-            type="text"
-            id="search-usuarios"
-            placeholder="🔍 Buscar por nick o email..."
+          <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
             oninput="renderUsers(currentFilter)"
-            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);"
-          />
+            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
         </div>
 
         <div class="users-list" id="users-list">
@@ -266,15 +275,10 @@
             <span>Usuarios en sesión</span>
             <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
           </div>
-          <!-- BUSCADOR SESIÓN -->
           <div style="margin-bottom:10px;">
-            <input
-              type="text"
-              id="search-sesion"
-              placeholder="🔍 Buscar jugador..."
+            <input type="text" id="search-sesion" placeholder="🔍 Buscar jugador..."
               oninput="renderSesionUsuarios()"
-              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);"
-            />
+              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);" />
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
             <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
@@ -556,6 +560,22 @@
           </div>
         </div>
 
+        <!-- ── Selección de jugadores participantes ── -->
+        <div class="admin-card" id="imp-participants-card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div class="admin-card-label" style="margin:0;">Jugadores que participan</div>
+            <div style="display:flex;gap:6px;">
+              <button class="admin-btn secondary small" onclick="impSelectAll()">Todos</button>
+              <button class="admin-btn secondary small" onclick="impSelectByTeam('rojo')">Solo 🔴</button>
+              <button class="admin-btn secondary small" onclick="impSelectByTeam('azul')">Solo 🔵</button>
+              <button class="admin-btn secondary small" onclick="impSelectNone()">Ninguno</button>
+            </div>
+          </div>
+          <div id="imp-participants-list" style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:12px;color:var(--crema-3);">Cargando jugadores...</span>
+          </div>
+        </div>
+
         <!-- ── Configurar ronda ── -->
         <div class="admin-card" id="imp-config-card">
           <div class="admin-card-label">Configurar nueva ronda</div>
@@ -688,6 +708,30 @@
     </div>
   </div>
 
+  <!-- MODAL EDITAR USUARIO -->
+  <div class="modal-overlay hidden" id="edit-user-modal">
+    <div class="modal-box" style="max-width:380px;width:100%;">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:16px;">Editar usuario</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nick (admite emojis)</label>
+          <input type="text" id="edit-nick-input" maxlength="24"
+            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:15px;outline:none;font-family:var(--font-body);" />
+        </div>
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Email</label>
+          <input type="email" id="edit-email-input"
+            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
+          <div style="font-size:11px;color:var(--crema-3);margin-top:4px;line-height:1.4;">Solo actualiza el registro en la base de datos, no cambia el email de acceso de Firebase Auth.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
+        <button class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
 
 
   <script type="module">
@@ -804,6 +848,7 @@
         populateImpostorPlayerSelect();
         populatePlayerSelects();  // FIX: actualizar selects de Taboo cuando cambian los usuarios
         renderEquiposTaboo();     // FIX: actualizar equipos en el panel Taboo
+        renderImpostorParticipants(); // Actualizar checkboxes de participantes
       });
     }
 
@@ -839,7 +884,7 @@
       }
       list.innerHTML = users.map(([uid, u]) => `
         <div class="user-row" data-uid="${uid}">
-          <div class="user-avatar">${u.nick ? u.nick.charAt(0) : "?"}</div>
+          <div class="user-avatar">${u.nick ? [...u.nick][0] : "?"}</div>
           <div class="user-info">
             <span class="user-nick">${u.nick || "—"}</span>
             <span class="user-email">${u.email || "—"}</span>
@@ -849,6 +894,7 @@
             ${u.status === "pending" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
             ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
             ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
+            <button class="user-btn edit" onclick="openEditUser('${uid}')">✏️</button>
             <button class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
           </div>
         </div>
@@ -882,6 +928,7 @@
 
       const query = (document.getElementById("search-sesion")?.value || "").toLowerCase().trim();
       let activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+
       if (activos.length === 0) {
         list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
         document.getElementById("online-count").textContent = "0 online";
@@ -892,12 +939,11 @@
       const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
       document.getElementById("online-count").textContent = `${onlineCount} online`;
 
-      // Filtrar por búsqueda
       if (query) {
         activos = activos.filter(([, u]) => (u.nick || "").toLowerCase().includes(query));
       }
 
-      // Ordenar: online primero, luego alfabético por nick
+      // Online primero, luego alfabético
       const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
         const aOnline = onlineUids.has(uidA) ? 0 : 1;
         const bOnline = onlineUids.has(uidB) ? 0 : 1;
@@ -915,7 +961,6 @@
         const team = u.team || "sin";
         const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
         const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
-
         return `
           <div class="sesion-user-row" data-uid="${uid}">
             <span class="sesion-presence-dot ${isOnline ? "online" : "offline"}" title="${isOnline ? "Online" : "Offline"}"></span>
@@ -1010,8 +1055,66 @@
           ? "No existe una cuenta con ese email."
           : e.code === "auth/invalid-email"
           ? "Email inválido."
-          : "No se pudo enviar el email.";
+          : "No se pudo enviar el email. Verificá que el email existe.";
         showToast(msg);
+      }
+    };
+
+    // ── EDITAR USUARIO (nick + email) ──
+    let editingUid = null;
+
+    window.openEditUser = (uid) => {
+      editingUid = uid;
+      const u = allUsers[uid];
+      if (!u) return;
+      document.getElementById("edit-nick-input").value = u.nick || "";
+      document.getElementById("edit-email-input").value = u.email || "";
+      document.getElementById("edit-user-modal").classList.remove("hidden");
+    };
+
+    window.closeEditUser = () => {
+      document.getElementById("edit-user-modal").classList.add("hidden");
+      editingUid = null;
+    };
+
+    window.saveEditUser = async () => {
+      if (!editingUid) return;
+      const u = allUsers[editingUid];
+      const newNick = document.getElementById("edit-nick-input").value.trim();
+      const newEmail = document.getElementById("edit-email-input").value.trim();
+
+      if (!newNick) { showToast("El nick no puede estar vacío."); return; }
+
+      const updates = {};
+
+      // Actualizar nick — también actualizar clave en /nicks/
+      if (newNick !== u.nick) {
+        const oldNickKey = (u.nick || "").toLowerCase().replace(/\s+/g, "_");
+        const newNickKey = newNick.toLowerCase().replace(/\s+/g, "_");
+        // Limpiar nick viejo si existe (ignorar emojis para la clave)
+        const oldNickClean = (u.nick || "").toLowerCase().replace(/[^\w]/g, "");
+        const newNickClean = newNick.toLowerCase().replace(/[^\w]/g, "");
+        if (oldNickClean) updates[`nicks/${oldNickClean}`] = null;
+        if (newNickClean) updates[`nicks/${newNickClean}`] = editingUid;
+        updates[`users/${editingUid}/nick`] = newNick;
+      }
+
+      // Actualizar email (solo en DB, no en Auth)
+      if (newEmail && newEmail !== u.email) {
+        updates[`users/${editingUid}/email`] = newEmail;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        closeEditUser();
+        return;
+      }
+
+      try {
+        await update(ref(db), updates);
+        showToast(`✅ Usuario actualizado`);
+        closeEditUser();
+      } catch (e) {
+        showToast("Error al guardar. Intentá de nuevo.");
       }
     };
 
@@ -1250,15 +1353,27 @@
       `;
     }
 
-    // ── Poblar selects con jugadores activos ──
+    // ── Poblar selects con jugadores activos filtrados por equipo ──
     function populatePlayerSelects() {
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      const options = activos.map(([uid, u]) =>
-        `<option value="${uid}">${u.nick} (${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : "⚪"})</option>`
-      ).join("");
+      const activos = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+
+      const rojos = activos.filter(([, u]) => u.team === "rojo");
+      const azules = activos.filter(([, u]) => u.team === "azul");
+      const sinEquipo = activos.filter(([, u]) => !u.team || (u.team !== "rojo" && u.team !== "azul"));
+
+      // Para "Describe": agrupar por equipo con optgroups
+      const makeOptions = (list) => list.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
       const defaultOpt = `<option value="">— Elegir jugador —</option>`;
-      document.getElementById("select-describer").innerHTML = defaultOpt + options;
-      document.getElementById("select-veedor").innerHTML = defaultOpt + options;
+
+      const describerOpts = defaultOpt
+        + (rojos.length ? `<optgroup label="${teamLabel('rojo')}">${makeOptions(rojos)}</optgroup>` : "")
+        + (azules.length ? `<optgroup label="${teamLabel('azul')}">${makeOptions(azules)}</optgroup>` : "")
+        + (sinEquipo.length ? `<optgroup label="Sin equipo">${makeOptions(sinEquipo)}</optgroup>` : "");
+
+      document.getElementById("select-describer").innerHTML = describerOpts;
+      document.getElementById("select-veedor").innerHTML = describerOpts;
     }
 
     // ── Reset taboo ──
@@ -1544,6 +1659,9 @@
         });
       }
 
+      // Render participantes iniciales
+      renderImpostorParticipants();
+
       // Listener de estado
       onImpostorState((state) => {
         impostorState = state;
@@ -1621,16 +1739,6 @@
       }).join("");
     }
 
-    function populateImpostorAccusedSelect() {
-      const sel = document.getElementById("imp-accused-select");
-      if (!sel) return;
-      const activos = Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
-      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
-        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
-    }
-
     function renderImpostorResult() {
       // Escuchar el result de Firebase
       // (ya seteado por revealImpostorResult)
@@ -1659,26 +1767,106 @@
     };
 
     window.pickRandomImpostor = () => {
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      if (!activos.length) { showToast("No hay jugadores activos."); return; }
+      const activos = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid));
+      if (!activos.length) { showToast("No hay participantes seleccionados."); return; }
       const [randomUid] = activos[Math.floor(Math.random() * activos.length)];
       const sel = document.getElementById("imp-impostor-select");
       if (sel) {
-        // Poblar si está vacío
-        if (sel.options.length <= 1) populateImpostorPlayerSelect();
         sel.value = randomUid;
         showToast(`Impostor random: ${allUsers[randomUid]?.nick}`);
       }
     };
 
-    function populateImpostorPlayerSelect() {
-      const sel = document.getElementById("imp-impostor-select");
-      if (!sel) return;
+    // ── Jugadores seleccionados para Impostor ──
+    let impostorParticipants = new Set(); // UIDs seleccionados
+
+    function renderImpostorParticipants() {
+      const container = document.getElementById("imp-participants-list");
+      if (!container) return;
       const activos = Object.entries(allUsers)
         .filter(([, u]) => u.status === "active" && u.role !== "admin")
         .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+
+      if (activos.length === 0) {
+        container.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">No hay jugadores activos.</span>`;
+        return;
+      }
+
+      // Inicializar con todos si está vacío
+      if (impostorParticipants.size === 0) {
+        activos.forEach(([uid]) => impostorParticipants.add(uid));
+      }
+
+      container.innerHTML = activos.map(([uid, u]) => {
+        const sel = impostorParticipants.has(uid);
+        const team = u.team || "sin";
+        const teamDot = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
+        return `
+          <label style="
+            display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+            border-radius:20px;cursor:pointer;font-size:12px;
+            background:${sel ? "rgba(200,150,0,0.12)" : "rgba(255,255,255,0.04)"};
+            border:1px solid ${sel ? "rgba(200,150,0,0.35)" : "rgba(255,255,255,0.08)"};
+            color:${sel ? "var(--crema)" : "var(--crema-3)"};
+            transition:all 0.15s;
+          ">
+            <input type="checkbox" style="display:none;" ${sel ? "checked" : ""}
+              onchange="toggleImpostorParticipant('${uid}', this.checked)" />
+            ${teamDot} ${u.nick}
+          </label>
+        `;
+      }).join("");
+
+      // Actualizar select de impostor con solo los seleccionados
+      populateImpostorPlayerSelect();
+      populateImpostorAccusedSelect();
+    }
+
+    window.toggleImpostorParticipant = (uid, checked) => {
+      if (checked) impostorParticipants.add(uid);
+      else impostorParticipants.delete(uid);
+      renderImpostorParticipants();
+    };
+
+    window.impSelectAll = () => {
+      Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .forEach(([uid]) => impostorParticipants.add(uid));
+      renderImpostorParticipants();
+    };
+
+    window.impSelectNone = () => {
+      impostorParticipants.clear();
+      renderImpostorParticipants();
+    };
+
+    window.impSelectByTeam = (team) => {
+      impostorParticipants.clear();
+      Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin" && u.team === team)
+        .forEach(([uid]) => impostorParticipants.add(uid));
+      renderImpostorParticipants();
+    };
+
+    function populateImpostorPlayerSelect() {
+      const sel = document.getElementById("imp-impostor-select");
+      if (!sel) return;
+      const participants = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid))
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
-        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+        participants.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+    }
+
+    function populateImpostorAccusedSelect() {
+      const sel = document.getElementById("imp-accused-select");
+      if (!sel) return;
+      const participants = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid))
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
+        participants.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
 
     window.handleStartImpostor = async () => {
@@ -1714,11 +1902,8 @@
 
       await revealImpostorResult({ accusedUid, accusedNick, winner });
 
-      // Otorgar puntos
-      const playerUids = Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .map(([uid]) => uid);
-
+      // Puntos SOLO a los participantes seleccionados
+      const playerUids = [...impostorParticipants];
       await giveImpostorPoints({ winner, impostorUid: impostorState.impostorUid, playerUids });
 
       // Mostrar resultado en admin
@@ -1734,14 +1919,13 @@
             <span style="color:var(--crema-3);font-size:13px;">+3 puntos para ${impostorNick}</span>
           `;
         } else {
-          const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin" && u.uid !== impostorState.impostorUid);
           const count = playerUids.filter(uid => uid !== impostorState.impostorUid).length;
           resultEl.innerHTML = `
             🔍 <strong style="color:var(--dorado)">¡Descubrieron al Impostor!</strong><br>
             Votaron a: <strong>${accusedNick}</strong> ✓<br>
             Impostor era: <strong style="color:#c84040;">${impostorNick}</strong><br>
             Palabra era: <strong style="color:var(--dorado);">${impostorState.word}</strong><br>
-            <span style="color:var(--crema-3);font-size:13px;">+1 punto para cada jugador (${count} personas)</span>
+            <span style="color:var(--crema-3);font-size:13px;">+1 punto para cada jugador (${count} participantes)</span>
           `;
         }
       }
