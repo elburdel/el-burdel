@@ -237,6 +237,32 @@ img {
   margin-top: 12px;
 }
 
+.nav-bottom-social {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-bottom-instagram {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--crema-3);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid rgba(200,150,0,0.15);
+  border-radius: 20px;
+  transition: color 0.2s, border-color 0.2s;
+  text-decoration: none;
+}
+
+.nav-bottom-instagram:hover {
+  color: var(--dorado);
+  border-color: rgba(200,150,0,0.5);
+}
+
 /* ─── UTILIDADES ─── */
 .hidden {
   display: none !important;
