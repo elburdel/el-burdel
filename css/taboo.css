@@ -476,7 +476,7 @@
 .topbar-team-score.rojo { color:#f09090; }
 .topbar-team-score.azul { color:#90b0f0; }
 .topbar-divider { width:1px; height:40px; background:rgba(200,150,0,0.2); flex-shrink:0; }
-.topbar-timer { text-align:center; }
+.topbar-timer { text-align:center; display:flex; align-items:center; justify-content:center; }
 .topbar-timer .timer-display { font-size:24px; }
 
 /* Card area */
