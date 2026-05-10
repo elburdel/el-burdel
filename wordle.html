@@ -38,13 +38,17 @@
           <div class="wordle-title">Wordle</div>
           <div class="wordle-subtitle" id="wordle-date-label">El Burdel</div>
         </div>
-        <div class="wordle-mode-selector">
-          <button class="wordle-mode-btn active" id="btn-mode-5" onclick="switchMode('5')">
-            5 letras <span class="mode-done-dot hidden" id="dot-5"></span>
-          </button>
-          <button class="wordle-mode-btn" id="btn-mode-6" onclick="switchMode('6')">
-            6 letras <span class="mode-done-dot hidden" id="dot-6"></span>
-          </button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="wordle-mode-selector">
+            <button class="wordle-mode-btn active" id="btn-mode-5" onclick="switchMode('5')">
+              5 letras <span class="mode-done-dot hidden" id="dot-5"></span>
+            </button>
+            <button class="wordle-mode-btn" id="btn-mode-6" onclick="switchMode('6')">
+              6 letras <span class="mode-done-dot hidden" id="dot-6"></span>
+            </button>
+          </div>
+          <button onclick="document.getElementById('wordle-help-modal').classList.remove('hidden')"
+            style="background:none;border:1px solid rgba(200,150,0,0.25);border-radius:50%;width:30px;height:30px;color:var(--dorado);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">?</button>
         </div>
       </div>
     </div>
@@ -57,6 +61,67 @@
     </div>
 
   </main>
+
+  <!-- MODAL INSTRUCCIONES WORDLE -->
+  <div id="wordle-help-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,0.82);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;
+  " onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="
+      background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:16px;
+      max-width:380px;width:100%;padding:28px 24px;position:relative;
+      max-height:90vh;overflow-y:auto;
+    ">
+      <button onclick="document.getElementById('wordle-help-modal').classList.add('hidden')"
+        style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--crema-3);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+
+      <div style="font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--crema);margin-bottom:4px;">CÓMO JUGAR</div>
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:20px;">Wordle · El Burdel</div>
+
+      <div style="font-size:13px;color:var(--crema-2);line-height:1.7;margin-bottom:20px;">
+        Adiviná la palabra oculta en <strong style="color:var(--crema);">6 intentos</strong>.<br>
+        Cada intento debe ser una palabra válida del español.<br>
+        Después de cada intento, las letras cambian de color.
+      </div>
+
+      <!-- Ejemplo visual -->
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <div style="width:42px;height:42px;background:#538d4e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:#fff;letter-spacing:0;">G</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);letter-spacing:0;">A</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);letter-spacing:0;">T</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);letter-spacing:0;">O</div>
+      </div>
+      <div style="font-size:12px;color:var(--crema-3);margin-bottom:18px;">🟩 <strong style="color:#538d4e;">Verde</strong> — letra correcta en el lugar correcto.</div>
+
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">P</div>
+        <div style="width:42px;height:42px;background:#b59f3b;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:#fff;">E</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">R</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">R</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">O</div>
+      </div>
+      <div style="font-size:12px;color:var(--crema-3);margin-bottom:18px;">🟨 <strong style="color:#b59f3b;">Amarillo</strong> — letra en la palabra, pero en otro lugar.</div>
+
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">L</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">U</div>
+        <div style="width:42px;height:42px;background:#3a3a3c;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:#777;">N</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">A</div>
+        <div style="width:42px;height:42px;background:var(--negro-3);border:1px solid rgba(255,255,255,0.12);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:20px;color:var(--crema);">S</div>
+      </div>
+      <div style="font-size:12px;color:var(--crema-3);margin-bottom:20px;">⬛ <strong style="color:#888;">Gris</strong> — la letra no está en la palabra.</div>
+
+      <div style="border-top:1px solid rgba(200,150,0,0.12);padding-top:16px;">
+        <div style="font-size:12px;color:var(--crema-3);line-height:1.7;">
+          💡 Hay una palabra nueva <strong style="color:var(--crema);">cada día</strong>.<br>
+          🏆 Menos intentos = más puntos.<br>
+          📱 Podés usar el teclado en pantalla o el físico.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- NAV BOTTOM -->
   <footer class="nav-bottom">
