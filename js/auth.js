@@ -15,18 +15,15 @@ import {
 // UID del admin (reemplazá con tu UID real después del primer login)
 const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
 
-// Formatea el nick: primera letra mayúscula, resto minúscula, solo alfanumérico
+// Formatea el nick: elimina caracteres peligrosos, preserva emojis y acentos
 function formatNick(nick) {
-  const clean = nick.replace(/[^a-zA-Z0-9]/g, "");
-  if (!clean) return "";
-  return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+  return nick.replace(/[<>"'\/\\]/g, "").trim();
 }
 
 // Validaciones locales (sin tocar DB)
 function validateNick(nick) {
-  if (nick.length < 3) return "El nick debe tener al menos 3 caracteres.";
-  if (nick.length > 20) return "El nick no puede superar 20 caracteres.";
-  if (!/^[a-zA-Z0-9]+$/.test(nick)) return "El nick solo puede tener letras y números.";
+  if (!nick || nick.length < 2) return "El nick debe tener al menos 2 caracteres.";
+  if (nick.length > 24) return "El nick no puede superar 24 caracteres.";
   return null;
 }
 
@@ -49,8 +46,11 @@ async function registerUser(nick, email, password) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   const uid = cred.user.uid;
 
+  // Clave del nick en Firebase: solo alfanumérico + guión bajo (para compatibilidad)
+  const nickKey = formattedNick.toLowerCase().replace(/[^a-z0-9_]/g, "").replace(/\s+/g, "_") || `user_${Date.now()}`;
+
   // 2. Ahora sí tenemos sesión — verificar nick duplicado
-  const nickRef = ref(db, `nicks/${formattedNick.toLowerCase()}`);
+  const nickRef = ref(db, `nicks/${nickKey}`);
   const nickSnap = await get(nickRef);
   if (nickSnap.exists()) {
     // Nick tomado — borramos el usuario recién creado y lanzamos error
@@ -69,7 +69,7 @@ async function registerUser(nick, email, password) {
   });
 
   // 4. Reservar el nick
-  await set(ref(db, `nicks/${formattedNick.toLowerCase()}`), uid);
+  await set(ref(db, `nicks/${nickKey}`), uid);
 
   return cred.user;
 }
