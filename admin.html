@@ -215,7 +215,7 @@
         <!-- BUSCADOR -->
         <div style="margin-bottom:12px;">
           <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
-            oninput="renderUsers(currentFilter)"
+            oninput="window.renderUsers()"
             style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
         </div>
 
@@ -277,7 +277,7 @@
           </div>
           <div style="margin-bottom:10px;">
             <input type="text" id="search-sesion" placeholder="🔍 Buscar jugador..."
-              oninput="renderSesionUsuarios()"
+              oninput="window.renderSesionUsuarios()"
               style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);" />
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
@@ -864,6 +864,10 @@
       event.target.classList.add("active");
       renderUsers(filter);
     };
+
+    // Exponer para oninput en HTML (módulos ES6 no son accesibles desde atributos inline)
+    window.renderUsers = (filter) => renderUsers(filter || currentFilter);
+    window.renderSesionUsuarios = () => renderSesionUsuarios();
 
     function renderUsers(filter) {
       const list = document.getElementById("users-list");
