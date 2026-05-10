@@ -129,6 +129,11 @@
             <div class="dash-game-name">El Impostor</div>
             <div class="dash-game-status" id="status-impostor">Jugar</div>
           </a>
+          <a class="dash-game-card" id="game-card-quiensoy" href="quiensoy.html" style="text-decoration:none;">
+            <span class="dash-game-icon">🪪</span>
+            <div class="dash-game-name">¿Quién Soy?</div>
+            <div class="dash-game-status" id="status-quiensoy">Jugar</div>
+          </a>
           <div class="dash-game-card" id="game-card-millonario">
             <span class="dash-game-icon">💰</span>
             <div class="dash-game-name">El Millonario</div>
@@ -203,7 +208,6 @@
 
       initNavbar();
       initDashboard();
-      renderUserHeader();
     });
 
     window.handleLogout = () => logoutUser();
@@ -212,86 +216,13 @@
       listenTablon();
       listenActiveGame();
       initPresence();
-      listenTeamAssignment();
-    }
-
-    // ── Encabezado del usuario con equipo ──
-    function renderUserHeader() {
-      // Insertar el header dinámico antes del lobby
-      const lobby = document.getElementById("dash-lobby");
-      if (!lobby) return;
-      const header = document.createElement("div");
-      header.id = "dash-user-header";
-      header.style.cssText = "width:100%;max-width:480px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;";
-      header.innerHTML = `
-        <div>
-          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:2px;">Jugando como</div>
-          <div style="font-family:var(--font-title);font-size:22px;color:var(--crema);letter-spacing:2px;">${currentUserData.nick || "—"}</div>
-        </div>
-        <div id="dash-team-badge" style="font-size:13px;padding:6px 14px;border-radius:20px;background:rgba(200,150,0,0.07);border:1px solid rgba(200,150,0,0.15);color:var(--crema-3);letter-spacing:0.5px;">
-          Sin equipo
-        </div>
-      `;
-      lobby.parentNode.insertBefore(header, lobby);
-    }
-
-    // ── Escuchar cambio de equipo en tiempo real ──
-    function listenTeamAssignment() {
-      let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
-
-      // Escuchar nombres de equipo
-      onValue(ref(db, "session/teams"), (snap) => {
-        const val = snap.val();
-        if (val) {
-          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
-          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
-        }
-        updateTeamBadge(teamNames);
-      });
-
-      // Escuchar cambio de equipo del usuario
-      onValue(ref(db, `users/${currentUser.uid}/team`), (snap) => {
-        currentUserData.team = snap.val() || null;
-        updateTeamBadge(teamNames);
-        // Actualizar presence con nuevo equipo
-        updatePresenceTeam();
-      });
-
-      function updateTeamBadge(names) {
-        const badge = document.getElementById("dash-team-badge");
-        if (!badge) return;
-        const team = currentUserData.team;
-        if (team === "rojo") {
-          const t = names.rojo;
-          badge.textContent = `${t.emoji} ${t.name}`;
-          badge.style.background = "rgba(200,50,50,0.12)";
-          badge.style.borderColor = "rgba(200,50,50,0.3)";
-          badge.style.color = "#e88";
-        } else if (team === "azul") {
-          const t = names.azul;
-          badge.textContent = `${t.emoji} ${t.name}`;
-          badge.style.background = "rgba(50,100,200,0.12)";
-          badge.style.borderColor = "rgba(50,100,200,0.3)";
-          badge.style.color = "#88c";
-        } else {
-          badge.textContent = "Sin equipo";
-          badge.style.background = "rgba(200,150,0,0.07)";
-          badge.style.borderColor = "rgba(200,150,0,0.15)";
-          badge.style.color = "var(--crema-3)";
-        }
-      }
-    }
-
-    function updatePresenceTeam() {
-      // Se actualiza presence con el equipo actual al próximo ciclo de conexión
-      // (no hace falta forzar, el próximo onValue de .info/connected lo actualizará)
     }
 
     // ── Juego activo ──
     function listenActiveGame() {
       onValue(ref(db, "session/activeGame"), (snap) => {
         const game = snap.val() || "none";
-        const games = ["taboo", "wordle", "impostor", "millonario"];
+        const games = ["taboo", "wordle", "impostor", "quiensoy", "millonario"];
         games.forEach(g => {
           const el = document.getElementById(`status-${g}`);
           const card = document.getElementById(`game-card-${g}`);
@@ -300,7 +231,7 @@
             el.textContent = "🟢 Activo ahora";
             el.className = "dash-game-status active";
             if (card) card.classList.add("active");
-          } else if (g === "taboo" || g === "wordle" || g === "impostor") {
+          } else if (g === "taboo" || g === "wordle" || g === "impostor" || g === "quiensoy") {
             el.textContent = "Jugar";
             el.className = "dash-game-status";
             if (card) card.classList.remove("active");
