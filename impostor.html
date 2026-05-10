@@ -283,7 +283,11 @@
 
     <div class="imp-header">
       <span class="imp-title">El Impostor</span>
-      <span class="imp-nick-pill" id="imp-nick-label">—</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="imp-nick-pill" id="imp-nick-label">—</span>
+        <button onclick="document.getElementById('imp-help-modal').classList.remove('hidden')"
+          style="background:none;border:1px solid rgba(200,150,0,0.25);border-radius:50%;width:28px;height:28px;color:var(--dorado);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">?</button>
+      </div>
     </div>
 
     <div id="imp-loading">Cargando...</div>
@@ -326,6 +330,60 @@
   </main>
 
   <!-- NAV BOTTOM -->
+  <!-- MODAL INSTRUCCIONES IMPOSTOR -->
+  <div id="imp-help-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,0.85);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;
+  " onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="
+      background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:16px;
+      max-width:380px;width:100%;padding:28px 24px;position:relative;
+      max-height:90vh;overflow-y:auto;
+    ">
+      <button onclick="document.getElementById('imp-help-modal').classList.add('hidden')"
+        style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--crema-3);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+
+      <div style="font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--crema);margin-bottom:4px;">CÓMO JUGAR</div>
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:20px;">El Impostor · El Burdel</div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;color:var(--crema-2);line-height:1.7;">
+
+        <div style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:var(--dorado);margin-bottom:6px;">🕵️ EL IMPOSTOR</div>
+          Sos el <strong style="color:#e88;">impostor</strong>. Todos los demás recibieron una palabra secreta, pero vos no (o recibiste una falsa).<br>
+          <strong>Tu misión:</strong> hablar como si supieras cuál es la palabra sin que te descubran. Si te votan a vos, perdés.
+        </div>
+
+        <div style="background:rgba(80,150,80,0.06);border:1px solid rgba(80,150,80,0.15);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#7bc47b;margin-bottom:6px;">👥 LOS JUGADORES</div>
+          Todos reciben la <strong style="color:var(--crema);">misma palabra secreta</strong>, menos el impostor.<br>
+          <strong>Tu misión:</strong> hablar sobre la palabra sin decirla directamente, y tratar de detectar quién no sabe de qué están hablando.
+        </div>
+
+        <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">📋 LA RONDA</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>1️⃣ <strong>Tocá</strong> el botón para ver tu rol en privado.</div>
+            <div>2️⃣ Cada jugador da una <strong>pista o descripción</strong> de la palabra en voz alta.</div>
+            <div>3️⃣ Discuten y <strong>votan</strong> a quién creen que es el impostor.</div>
+            <div>4️⃣ El admin revela el resultado.</div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">🏆 PUNTOS</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div>✅ Equipo descubre al impostor → <strong style="color:#7bc47b;">+1 punto</strong> para cada jugador</div>
+            <div>🎭 Impostor se salva → <strong style="color:var(--dorado);">+3 puntos</strong> para el impostor</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <footer class="nav-bottom">
     <div class="nav-bottom-inner">
       <div class="nav-bottom-links">
@@ -344,27 +402,13 @@
       getPlayerRoundData,
       markPlayerSeenWord
     } from "./games/impostor.js";
-    import { db } from "./js/firebase-init.js";
-    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    // Escuchar nombres de equipo para el resultado
-    window._teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
-    onValue(ref(db, "session/teams"), (snap) => {
-      const val = snap.val();
-      if (val) {
-        if (val.rojo) window._teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
-        if (val.azul) window._teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
-      }
-    });
 
     let currentUser = null;
     let currentUid = null;
     let currentNick = null;
-    let currentTeam = null;
     let currentRoundId = null;
     let currentPhase = null;
     let roundData = null;
-    let prevPhase = null;
 
     // ── Auth ──
     onSession(async (user) => {
@@ -376,7 +420,6 @@
       currentUser = user;
       currentUid = user.uid;
       currentNick = data.nick;
-      currentTeam = data.team || null;
       document.getElementById("imp-nick-label").textContent = data.nick;
 
       document.getElementById("imp-loading").style.display = "none";
@@ -395,12 +438,6 @@
           currentRoundId = newRoundId;
         }
 
-        // Fix PC: si volvemos a "waiting" desde "reveal" o "playing", mostrar banner de nueva ronda
-        if (prevPhase && prevPhase !== "waiting" && newPhase === "waiting") {
-          showReloadBanner();
-        }
-
-        prevPhase = newPhase;
         currentPhase = newPhase;
         await renderState(newPhase, state);
       });
@@ -410,12 +447,6 @@
           renderResult(result);
         }
       });
-    }
-
-    // ── Banner de recarga (fix PC) ──
-    function showReloadBanner() {
-      // Forzar recarga limpia — resetea todo el estado local
-      window.location.reload();
     }
 
     async function renderState(phase, state) {
@@ -498,47 +529,33 @@
       const impostorWon = result.winner === "impostor";
       const iWon = (isImpostor && impostorWon) || (!isImpostor && !impostorWon);
 
-      // Obtener nombre del equipo desde Firebase para mostrarlo
-      const teamRef = window._teamNames || {};
-      const myTeam = currentTeam;
-      const teamLabel = myTeam === "rojo"
-        ? (teamRef.rojo ? `${teamRef.rojo.emoji} ${teamRef.rojo.name}` : "🔴 Equipo Rojo")
-        : myTeam === "azul"
-        ? (teamRef.azul ? `${teamRef.azul.emoji} ${teamRef.azul.name}` : "🔵 Equipo Azul")
-        : null;
-
-      let icon, title, titleClass, detail, pts, teamMsg;
+      let icon, title, titleClass, detail, pts;
 
       if (isImpostor) {
         if (impostorWon) {
-          icon = "🎭"; title = "¡GANASTE!"; titleClass = "win";
+          icon = "🎭"; title = "¡Zafaste!"; titleClass = "win";
           detail = `¡Nadie te descubrió! Votaron a <strong>${result.accusedNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+3 puntos";
-          teamMsg = "Eras el Impostor y zafaste 🎉";
         } else {
-          icon = "😬"; title = "PERDISTE"; titleClass = "lose";
-          detail = `Te descubrieron. La palabra era <span class="imp-result-word">${result.word}</span>`;
+          icon = "😬"; title = "Te descubrieron"; titleClass = "lose";
+          detail = `Te votaron a vos. La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+0 puntos";
-          teamMsg = "Te votaron a vos";
         }
       } else {
         if (!impostorWon) {
-          icon = "🔍"; title = "¡GANASTE!"; titleClass = "win";
+          icon = "🔍"; title = "¡Atrapado!"; titleClass = "win";
           detail = `Encontraron al Impostor: <strong>${result.impostorNick}</strong>.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+1 punto";
-          teamMsg = teamLabel ? `Ganó ${teamLabel}` : "¡Tu equipo ganó!";
         } else {
-          icon = "🕵️"; title = "PERDISTE"; titleClass = "lose";
+          icon = "🕵️"; title = "Se escapó el Impostor"; titleClass = "lose";
           detail = `El Impostor era <strong>${result.impostorNick}</strong> y se salvó.<br>La palabra era <span class="imp-result-word">${result.word}</span>`;
           pts = "+0 puntos";
-          teamMsg = teamLabel ? `Perdió ${teamLabel}` : "El Impostor se escapó";
         }
       }
 
       document.getElementById("imp-result-card").innerHTML = `
         <div class="imp-result-icon">${icon}</div>
         <div class="imp-result-title ${titleClass}">${title}</div>
-        ${teamMsg ? `<div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin:-8px 0;">${teamMsg}</div>` : ""}
         <div class="imp-result-detail">${detail}</div>
         <div class="imp-result-pts">${pts}</div>
       `;
