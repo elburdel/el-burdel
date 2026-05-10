@@ -44,8 +44,12 @@
           <span class="topbar-team-score azul" id="topbar-score-azul">0</span>
         </div>
       </div>
-      <div class="topbar-timer">
-        <span class="timer-display" id="game-timer">60</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="topbar-timer">
+          <span class="timer-display" id="game-timer">60</span>
+        </div>
+        <button onclick="document.getElementById('taboo-help-modal').classList.remove('hidden')"
+          style="background:none;border:1px solid rgba(200,150,0,0.3);border-radius:50%;width:28px;height:28px;color:var(--dorado);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">?</button>
       </div>
     </div>
 
@@ -65,6 +69,81 @@
     <div style="text-align:center;">
       <div class="taboo-timeup-icon">⏰</div>
       <div class="taboo-timeup-text">¡Se acabó el tiempo!</div>
+    </div>
+  </div>
+
+  <!-- MODAL INSTRUCCIONES TABOO -->
+  <div id="taboo-help-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:300;
+    background:rgba(0,0,0,0.88);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;
+  " onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="
+      background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:16px;
+      max-width:380px;width:100%;padding:28px 24px;position:relative;
+      max-height:90vh;overflow-y:auto;
+    ">
+      <button onclick="document.getElementById('taboo-help-modal').classList.add('hidden')"
+        style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--crema-3);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+
+      <div style="font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--crema);margin-bottom:4px;">CÓMO JUGAR</div>
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:20px;">Taboo · El Burdel</div>
+
+      <!-- Roles -->
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+
+        <div style="background:rgba(200,150,0,0.07);border:1px solid rgba(200,150,0,0.18);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:var(--dorado);margin-bottom:6px;">🗣️ EL DESCRIPTOR</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.7;">
+            Te toca describir la palabra de la carta a tu equipo.<br>
+            <strong style="color:var(--crema);">No podés decir</strong> ninguna de las palabras prohibidas que aparecen abajo.<br>
+            No podés usar gestos ni señas.<br>
+            Si la decís, el admin pasa a la siguiente carta.
+          </div>
+        </div>
+
+        <div style="background:rgba(80,120,200,0.07);border:1px solid rgba(80,120,200,0.18);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#88aaee;margin-bottom:6px;">👀 EL VEEDOR</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.7;">
+            Sos del equipo contrario. Mirás la pantalla del descriptor.<br>
+            Si dice alguna palabra prohibida, avisás en voz alta.<br>
+            El admin decide si corresponde pasar la carta.
+          </div>
+        </div>
+
+        <div style="background:rgba(80,200,80,0.05);border:1px solid rgba(80,200,80,0.12);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#7bc47b;margin-bottom:6px;">🙋 EL EQUIPO</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.7;">
+            Escuchás al descriptor y tratás de adivinar la palabra.<br>
+            Podés gritar las respuestas libremente.<br>
+            Cuando adivinan, el admin suma el punto y pasa a la siguiente carta.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Flujo -->
+      <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:16px;margin-bottom:16px;">
+        <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:10px;">📋 LA RONDA</div>
+        <div style="font-size:13px;color:var(--crema-2);line-height:1.8;display:flex;flex-direction:column;gap:6px;">
+          <div>1️⃣ El admin elige qué equipo describe y activa el turno.</div>
+          <div>2️⃣ El descriptor tiene <strong style="color:var(--crema);">60 segundos</strong> (configurable).</div>
+          <div>3️⃣ Por cada carta adivinada, el admin suma <strong style="color:var(--dorado);">+1 punto</strong>.</div>
+          <div>4️⃣ Si se dice una prohibida, el admin pasa la carta sin sumar.</div>
+          <div>5️⃣ Al terminar el tiempo, el turno pasa al otro equipo.</div>
+        </div>
+      </div>
+
+      <!-- Puntos -->
+      <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:16px;">
+        <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">🏆 PUNTOS</div>
+        <div style="font-size:13px;color:var(--crema-2);line-height:1.7;">
+          Cada carta adivinada suma <strong style="color:var(--dorado);">1 punto</strong> al equipo que describía.<br>
+          El marcador está siempre visible arriba. Gana quien más puntos acumule al final.
+        </div>
+      </div>
+
     </div>
   </div>
 
