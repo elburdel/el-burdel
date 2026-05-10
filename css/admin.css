@@ -44,6 +44,7 @@
 .admin-section {
   padding: 36px 20px;
   border-bottom: 1px solid rgba(200,150,0,0.08);
+  display: none;
 }
 
 .admin-section.alt {
