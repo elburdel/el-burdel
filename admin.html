@@ -876,16 +876,16 @@
     }
 
     // ── PROTECCIÓN DE RUTA ──
+    let adminUid = null;
+
     onSession(async (user) => {
       if (!user) { window.location.href = "/el-burdel/login.html"; return; }
       const data = await getUserData(user.uid);
       if (!data || data.role !== "admin") { window.location.href = "/el-burdel/login.html"; return; }
+      adminUid = user.uid;
       document.getElementById("admin-nick").textContent = data.nick;
       initAdmin();
     });
-
-    // ── LOGOUT ──
-
 
     // ── INIT ──
     function initAdmin() {
@@ -898,7 +898,7 @@
       initWordleAdmin();
       listenPresence();
       initImpostorAdmin();
-      initQuienSoyAdmin(currentUser.uid);
+      initQuienSoyAdmin(adminUid);
     }
 
     // ── NOMBRES DE EQUIPOS ──
