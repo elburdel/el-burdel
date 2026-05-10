@@ -166,24 +166,34 @@
     window.handleRecover = async () => {
       const email = document.getElementById("recover-email").value.trim();
       const btn = document.getElementById("btn-recover");
+      if (!email) { showMsg("Ingresá tu email.", "error"); return; }
       btn.disabled = true;
       btn.textContent = "Enviando...";
       try {
         await recoverPassword(email);
-        showMsg("¡Listo! Revisá tu correo.", "success");
+        showMsg("✅ ¡Listo! Revisá tu correo (también el spam). El link expira en 1 hora.", "success");
+        document.getElementById("recover-email").value = "";
       } catch (e) {
-        showMsg(friendlyError(e.code || e.message), "error");
+        const code = e.code || e.message;
+        const msg = code === "auth/user-not-found"
+          ? "No existe una cuenta con ese email."
+          : code === "auth/invalid-email"
+          ? "El email ingresado no es válido."
+          : code === "auth/too-many-requests"
+          ? "Demasiados intentos. Esperá unos minutos."
+          : "No se pudo enviar el email. Intentá de nuevo.";
+        showMsg(msg, "error");
       }
       btn.disabled = false;
       btn.textContent = "Enviar link";
     };
 
     window.previewNick = (input) => {
-      const clean = input.value.replace(/[^a-zA-Z0-9]/g, "");
-      const formatted = clean ? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase() : "";
+      // Permitir letras, números, y emojis — solo bloquear caracteres especiales problemáticos
+      const val = input.value.replace(/[<>"'\/\\]/g, "");
       const preview = document.getElementById("nick-preview");
-      preview.textContent = formatted ? `→ ${formatted}` : "";
-      input.value = clean;
+      preview.textContent = val ? `→ ${val}` : "";
+      input.value = val;
     };
 
     window.showTab = (tab) => {
