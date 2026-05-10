@@ -1700,13 +1700,6 @@
       }).join("");
     }
 
-    function populateImpostorAccusedSelect() {
-      const sel = document.getElementById("imp-accused-select");
-      if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
-        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
-    }
 
     function renderImpostorResult() {
       // Escuchar el result de Firebase
@@ -1747,13 +1740,6 @@
       }
     };
 
-    function populateImpostorPlayerSelect() {
-      const sel = document.getElementById("imp-impostor-select");
-      if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
-        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
-    }
 
     window.handleStartImpostor = async () => {
       const word = document.getElementById("imp-custom-word").value.trim()
