@@ -220,7 +220,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
-  font-style: italic;
+  font-style: normal;
   color: var(--dorado);
   margin-bottom: 6px;
 }
