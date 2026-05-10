@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Quién Soy? — El Burdel</title>
+  <meta name="description" content="Adiviná quién sos haciendo preguntas de sí o no." />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; }
+
+    .qs-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 80px;
+    }
+
+    /* Header */
+    .qs-header {
+      width: 100%; max-width: 480px;
+      padding: 28px 0 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .qs-title { font-family: var(--font-title); font-size: 28px; letter-spacing: 2px; color: var(--crema); }
+    .qs-nick-pill {
+      font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--crema-3); background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 5px 12px;
+    }
+
+    /* Estados */
+    .qs-state { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+    /* Waiting */
+    .qs-waiting { text-align: center; padding: 60px 20px; }
+    .qs-waiting-icon { font-size: 48px; margin-bottom: 16px; }
+    .qs-waiting-title {
+      font-family: var(--font-title); font-size: 28px; letter-spacing: 2px;
+      color: var(--dorado); margin-bottom: 8px;
+    }
+    .qs-waiting-sub { font-size: 13px; color: var(--crema-3); line-height: 1.6; }
+
+    /* Carta de imagen */
+    .qs-card {
+      width: 100%; max-width: 360px;
+      border-radius: 16px; overflow: hidden;
+      border: 2px solid rgba(200,150,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      background: var(--negro-2);
+    }
+    .qs-card-img {
+      width: 100%; aspect-ratio: 1/1;
+      object-fit: cover; display: block;
+    }
+    .qs-card-label {
+      padding: 14px 18px;
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--crema-3); border-top: 1px solid rgba(200,150,0,0.15);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .qs-card-categoria {
+      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--dorado); opacity: 0.7;
+    }
+
+    /* Rol del jugador */
+    .qs-role-card {
+      width: 100%; max-width: 360px; border-radius: 14px;
+      padding: 20px 22px; text-align: center;
+    }
+    .qs-role-card.guesser {
+      background: rgba(80,50,200,0.08);
+      border: 1px solid rgba(80,50,200,0.25);
+    }
+    .qs-role-card.viewer {
+      background: rgba(200,150,0,0.06);
+      border: 1px solid rgba(200,150,0,0.2);
+    }
+    .qs-role-icon { font-size: 36px; margin-bottom: 10px; }
+    .qs-role-title {
+      font-family: var(--font-title); font-size: 22px; letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .qs-role-card.guesser .qs-role-title { color: #aab4f0; }
+    .qs-role-card.viewer .qs-role-title { color: var(--dorado); }
+    .qs-role-desc { font-size: 13px; color: var(--crema-3); line-height: 1.6; }
+
+    /* Timer */
+    .qs-timer {
+      width: 100%; max-width: 360px; border-radius: 12px;
+      padding: 16px 20px; text-align: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .qs-timer-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--crema-3); margin-bottom: 6px;
+    }
+    .qs-timer-display {
+      font-family: var(--font-title); font-size: 52px; letter-spacing: 4px;
+      color: var(--dorado); line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .qs-timer-display.warning { color: #f09040; }
+    .qs-timer-display.danger  { color: #f04040; animation: qsPulse 0.5s infinite; }
+    @keyframes qsPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* Resultado */
+    .qs-result-card {
+      width: 100%; max-width: 360px; border-radius: 16px;
+      padding: 28px 22px; text-align: center;
+    }
+    .qs-result-icon { font-size: 52px; margin-bottom: 12px; }
+    .qs-result-title {
+      font-family: var(--font-title); font-size: 36px; letter-spacing: 3px;
+      margin-bottom: 8px;
+    }
+    .qs-result-title.win  { color: #7bc47b; }
+    .qs-result-title.lose { color: #e88; }
+    .qs-result-detail {
+      font-size: 14px; color: var(--crema-2); line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .qs-result-pts {
+      font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--dorado);
+    }
+
+    /* Loading */
+    .qs-loading { text-align:center; padding:80px 20px; font-size:13px; color:var(--crema-3); }
+  </style>
+</head>
+<body>
+
+  <div id="qs-loading" class="qs-loading">Cargando...</div>
+
+  <main class="qs-main" id="qs-main" style="display:none;">
+
+    <div class="qs-header">
+      <span class="qs-title">¿Quién Soy?</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="qs-nick-pill" id="qs-nick-label">—</span>
+        <button onclick="document.getElementById('qs-help-modal').classList.remove('hidden')"
+          style="background:none;border:1px solid rgba(200,150,0,0.25);border-radius:50%;width:28px;height:28px;color:var(--dorado);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">?</button>
+      </div>
+    </div>
+
+    <!-- WAITING -->
+    <div class="qs-state" id="state-waiting">
+      <div class="qs-waiting">
+        <div class="qs-waiting-icon">🪪</div>
+        <div class="qs-waiting-title">Esperando</div>
+        <div class="qs-waiting-sub">El admin va a iniciar la ronda en cualquier momento.</div>
+      </div>
+    </div>
+
+    <!-- PLAYING -->
+    <div class="qs-state" id="state-playing" style="display:none;">
+
+      <!-- Rol: el que adivina NO ve la imagen -->
+      <div id="qs-role-guesser" class="qs-role-card guesser" style="display:none;">
+        <div class="qs-role-icon">🙈</div>
+        <div class="qs-role-title">TU TURNO</div>
+        <div class="qs-role-desc">
+          ¡Sos vos quien tiene que adivinar!<br>
+          Hacé preguntas de <strong>sí o no</strong> a los demás.<br>
+          Ellos te responden en voz alta.
+        </div>
+      </div>
+
+      <!-- Rol: el resto SÍ ve la imagen -->
+      <div id="qs-role-viewer" class="qs-role-card viewer" style="display:none;">
+        <div class="qs-role-icon">👁️</div>
+        <div class="qs-role-title">VOS VES</div>
+        <div class="qs-role-desc">
+          <span id="qs-guesser-name" style="color:var(--crema);font-weight:600;">—</span> tiene que adivinar quién es.<br>
+          Solo respondé <strong>sí o no</strong> en voz alta.
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div class="qs-timer">
+        <div class="qs-timer-label">Tiempo restante</div>
+        <div class="qs-timer-display" id="qs-timer-display">60</div>
+      </div>
+
+      <!-- Imagen (solo para viewers) -->
+      <div id="qs-card-container" class="qs-card" style="display:none;">
+        <img id="qs-card-img" class="qs-card-img" src="" alt="Carta" />
+        <div class="qs-card-label">
+          <span id="qs-card-nombre"></span>
+          <span class="qs-card-categoria" id="qs-card-categoria"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RESULT -->
+    <div class="qs-state" id="state-result" style="display:none;">
+      <div id="qs-result-card" class="qs-result-card"></div>
+    </div>
+
+  </main>
+
+  <!-- MODAL INSTRUCCIONES -->
+  <div id="qs-help-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.88);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;box-sizing:border-box;
+  " onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="
+      background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:16px;
+      max-width:380px;width:100%;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;
+    ">
+      <button onclick="document.getElementById('qs-help-modal').classList.add('hidden')"
+        style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--crema-3);font-size:20px;cursor:pointer;">✕</button>
+
+      <div style="font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--crema);margin-bottom:4px;">CÓMO JUGAR</div>
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:20px;">¿Quién Soy? · El Burdel</div>
+
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:13px;color:var(--crema-2);line-height:1.7;">
+
+        <div style="background:rgba(80,50,200,0.08);border:1px solid rgba(80,50,200,0.2);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:#aab4f0;margin-bottom:6px;">🙈 EL QUE ADIVINA</div>
+          No ves la imagen. Tenés que descubrir quién sos haciendo preguntas que se respondan con <strong>sí</strong> o <strong>no</strong>.<br>
+          Ejemplo: ¿Soy un animal? ¿Soy famoso? ¿Estoy vivo?
+        </div>
+
+        <div style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--dorado);margin-bottom:6px;">👁️ LOS DEMÁS</div>
+          Ven la imagen. Solo pueden responder <strong>sí</strong> o <strong>no</strong> en voz alta. No pueden dar pistas extra.
+        </div>
+
+        <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">📋 LA RONDA</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div>1️⃣ El admin elige una carta y quién adivina.</div>
+            <div>2️⃣ El jugador hace preguntas de sí o no.</div>
+            <div>3️⃣ Hay un tiempo límite (configurable por el admin).</div>
+            <div>4️⃣ Si adivina → <strong style="color:#7bc47b;">+1 punto</strong> para su equipo.</div>
+            <div>5️⃣ El admin pasa al siguiente jugador.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="dashboard.html" class="nav-bottom-link">Panel</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { onQuienSoyState, getCard } from "./games/quiensoy.js";
+    import { db } from "./js/firebase-init.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    let currentUser = null;
+    let currentUid  = null;
+    let currentNick = null;
+    let currentTeam = null;
+    let timerInterval = null;
+    let prevPhase = null;
+
+    // ── Auth ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.role === "admin") { window.location.href = "/el-burdel/admin.html"; return; }
+
+      currentUser = user;
+      currentUid  = user.uid;
+      currentNick = data.nick;
+      currentTeam = data.team || null;
+      document.getElementById("qs-nick-label").textContent = data.nick;
+
+      document.getElementById("qs-loading").style.display = "none";
+      document.getElementById("qs-main").style.display = "flex";
+
+      // Escuchar nombres de equipo
+      onValue(ref(db, "session/teams"), (snap) => {
+        const val = snap.val();
+        if (val) window._teamNames = val;
+      });
+
+      initQuienSoy();
+    });
+
+    function initQuienSoy() {
+      onQuienSoyState(async (state) => {
+        const phase = state.phase || "waiting";
+
+        // Recarga automática al volver a waiting desde result/playing (fix PC)
+        if (prevPhase && prevPhase !== "waiting" && phase === "waiting") {
+          window.location.reload();
+          return;
+        }
+        prevPhase = phase;
+
+        await renderState(state);
+      });
+    }
+
+    function hideAll() {
+      ["state-waiting", "state-playing", "state-result"].forEach(id => {
+        document.getElementById(id).style.display = "none";
+      });
+    }
+
+    function show(id) {
+      document.getElementById(id).style.display = "flex";
+    }
+
+    async function renderState(state) {
+      clearInterval(timerInterval);
+      hideAll();
+
+      switch (state.phase) {
+        case "waiting":
+          show("state-waiting");
+          break;
+
+        case "playing":
+          show("state-playing");
+          await renderPlaying(state);
+          break;
+
+        case "result":
+          show("state-result");
+          renderResult(state);
+          break;
+      }
+    }
+
+    async function renderPlaying(state) {
+      const isGuesser = state.guesserUid === currentUid;
+
+      // Mostrar rol
+      document.getElementById("qs-role-guesser").style.display = isGuesser ? "flex" : "none";
+      document.getElementById("qs-role-viewer").style.display  = isGuesser ? "none" : "block";
+
+      if (!isGuesser) {
+        document.getElementById("qs-guesser-name").textContent = state.guesserNick || "—";
+      }
+
+      // Imagen: solo si no es el que adivina
+      const cardContainer = document.getElementById("qs-card-container");
+      if (!isGuesser && state.cardId) {
+        const card = await getCard(state.cardId);
+        if (card) {
+          document.getElementById("qs-card-img").src = card.url;
+          document.getElementById("qs-card-nombre").textContent = card.nombre || "";
+          document.getElementById("qs-card-categoria").textContent = card.categoria || "";
+          cardContainer.style.display = "block";
+        }
+      } else {
+        cardContainer.style.display = "none";
+      }
+
+      // Timer
+      startTimer(state);
+    }
+
+    function startTimer(state) {
+      clearInterval(timerInterval);
+      const display = document.getElementById("qs-timer-display");
+
+      function tick() {
+        if (!state.timerActive) {
+          display.textContent = state.timerSecs || 60;
+          display.className = "qs-timer-display";
+          return;
+        }
+        const elapsed = state.timerStart ? Math.floor((Date.now() - state.timerStart) / 1000) : 0;
+        const remaining = Math.max(0, (state.timerSecs || 60) - elapsed);
+        display.textContent = remaining;
+        display.className = "qs-timer-display" +
+          (remaining <= 10 ? " danger" : remaining <= 20 ? " warning" : "");
+        if (remaining === 0) clearInterval(timerInterval);
+      }
+
+      tick();
+      timerInterval = setInterval(tick, 500);
+    }
+
+    function renderResult(state) {
+      const isGuesser = state.guesserUid === currentUid;
+      const adivinó   = state.roundScore === "adivinó";
+
+      const teamNames = window._teamNames || {};
+      const myTeam    = currentTeam;
+      const teamLabel = myTeam === "rojo"
+        ? `${teamNames.rojo?.emoji || "🔴"} ${teamNames.rojo?.name || "Equipo Rojo"}`
+        : myTeam === "azul"
+        ? `${teamNames.azul?.emoji || "🔵"} ${teamNames.azul?.name || "Equipo Azul"}`
+        : null;
+
+      let icon, title, titleClass, detail, pts, teamMsg;
+
+      if (isGuesser) {
+        if (adivinó) {
+          icon = "🎉"; title = "¡ADIVINASTE!"; titleClass = "win";
+          detail = "¡Lo lograste! Tu equipo suma un punto.";
+          pts = "+1 punto para tu equipo";
+          teamMsg = teamLabel ? `Ganó ${teamLabel}` : null;
+        } else {
+          icon = "😅"; title = "NO ADIVINASTE"; titleClass = "lose";
+          detail = "Se acabó el tiempo o el admin pasó la carta.";
+          pts = "+0 puntos";
+          teamMsg = null;
+        }
+      } else {
+        const guesserTeam = state.guesserTeam;
+        const guesserLabel = guesserTeam === "rojo"
+          ? `${teamNames.rojo?.emoji || "🔴"} ${teamNames.rojo?.name || "Equipo Rojo"}`
+          : guesserTeam === "azul"
+          ? `${teamNames.azul?.emoji || "🔵"} ${teamNames.azul?.name || "Equipo Azul"}`
+          : null;
+
+        if (adivinó) {
+          icon = "👏"; title = "ADIVINÓ"; titleClass = "win";
+          detail = `<strong>${state.guesserNick}</strong> adivinó quién era.`;
+          pts = guesserLabel ? `+1 punto para ${guesserLabel}` : "+1 punto";
+          teamMsg = null;
+        } else {
+          icon = "⏰"; title = "NO ADIVINÓ"; titleClass = "lose";
+          detail = `<strong>${state.guesserNick}</strong> no lo logró esta vez.`;
+          pts = "+0 puntos";
+          teamMsg = null;
+        }
+      }
+
+      document.getElementById("qs-result-card").innerHTML = `
+        <div class="qs-result-icon">${icon}</div>
+        <div class="qs-result-title ${titleClass}">${title}</div>
+        ${teamMsg ? `<div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin:-4px 0 8px;">${teamMsg}</div>` : ""}
+        <div class="qs-result-detail">${detail}</div>
+        <div class="qs-result-pts">${pts}</div>
+      `;
+    }
+  </script>
+</body>
+</html>
