@@ -102,19 +102,6 @@
       font-weight: 400;
     }
 
-    /* ── Botón editar usuario ── */
-    .user-btn.edit {
-      background: rgba(200,150,0,0.1);
-      border: 1px solid rgba(200,150,0,0.25);
-      color: var(--dorado);
-      font-size: 13px;
-      padding: 5px 9px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .user-btn.edit:hover { background: rgba(200,150,0,0.2); }
-
   </style>
   <style>
     /* ── Sesión usuarios ── */
@@ -192,6 +179,7 @@
         <button class="active-section" data-section="taboo">🃏 Taboo</button>
         <button class="active-section" data-section="wordle">🔤 Wordle</button>
         <button class="active-section" data-section="impostor">🕵️ Impostor</button>
+        <button class="active-section" data-section="quiensoy">🪪 ¿Quién Soy?</button>
         <button class="active-section" data-section="tablon">📋 Tablón</button>
       </div>
     </div>
@@ -210,13 +198,6 @@
           <button class="admin-tab" onclick="filterUsers('active')">Activos</button>
           <button class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
           <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
-        </div>
-
-        <!-- BUSCADOR -->
-        <div style="margin-bottom:12px;">
-          <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
-            oninput="window.renderUsers()"
-            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
         </div>
 
         <div class="users-list" id="users-list">
@@ -274,11 +255,6 @@
           <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
             <span>Usuarios en sesión</span>
             <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
-          </div>
-          <div style="margin-bottom:10px;">
-            <input type="text" id="search-sesion" placeholder="🔍 Buscar jugador..."
-              oninput="window.renderSesionUsuarios()"
-              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);" />
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
             <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
@@ -560,22 +536,6 @@
           </div>
         </div>
 
-        <!-- ── Selección de jugadores participantes ── -->
-        <div class="admin-card" id="imp-participants-card" style="margin-bottom:16px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-            <div class="admin-card-label" style="margin:0;">Jugadores que participan</div>
-            <div style="display:flex;gap:6px;">
-              <button class="admin-btn secondary small" onclick="impSelectAll()">Todos</button>
-              <button class="admin-btn secondary small" onclick="impSelectByTeam('rojo')">Solo 🔴</button>
-              <button class="admin-btn secondary small" onclick="impSelectByTeam('azul')">Solo 🔵</button>
-              <button class="admin-btn secondary small" onclick="impSelectNone()">Ninguno</button>
-            </div>
-          </div>
-          <div id="imp-participants-list" style="display:flex;flex-wrap:wrap;gap:8px;">
-            <span style="font-size:12px;color:var(--crema-3);">Cargando jugadores...</span>
-          </div>
-        </div>
-
         <!-- ── Configurar ronda ── -->
         <div class="admin-card" id="imp-config-card">
           <div class="admin-card-label">Configurar nueva ronda</div>
@@ -683,6 +643,156 @@
       </div>
     </section>
 
+    <!-- ════════════════════════════════════════
+         SECCIÓN ¿QUIÉN SOY?
+    ════════════════════════════════════════ -->
+    <section class="admin-section" id="section-quiensoy">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🪪 ¿Quién Soy?</h2>
+        </div>
+
+        <!-- ── Timer configurable ── -->
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Configuración del turno</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Tiempo (segundos)</label>
+              <input type="number" id="qs-timer-input" value="60" min="10" max="300"
+                style="width:90px;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:15px;outline:none;text-align:center;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Selección de jugador y carta ── -->
+        <div class="admin-card" id="qs-config-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Nueva ronda</div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Jugador que adivina</label>
+              <select id="qs-guesser-select"
+                style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
+                <option value="">— Elegir jugador —</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Carta</label>
+              <div style="display:flex;gap:8px;">
+                <select id="qs-card-select"
+                  style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
+                  <option value="">— Elegir carta —</option>
+                </select>
+                <button class="admin-btn secondary" onclick="qsPickRandomCard()" title="Carta aleatoria"
+                  style="padding:9px 14px;font-size:16px;">🎲</button>
+              </div>
+            </div>
+
+            <!-- Preview de carta seleccionada -->
+            <div id="qs-card-preview" style="display:none;border-radius:10px;overflow:hidden;border:1px solid rgba(200,150,0,0.2);max-width:200px;">
+              <img id="qs-card-preview-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
+              <div style="padding:8px 10px;font-size:11px;color:var(--crema-3);" id="qs-card-preview-label"></div>
+            </div>
+          </div>
+
+          <div class="admin-card-actions" style="margin-top:16px;">
+            <button class="admin-btn primary" onclick="qsStartRound()">▶ Iniciar turno</button>
+          </div>
+        </div>
+
+        <!-- ── Control de ronda activa ── -->
+        <div class="admin-card hidden" id="qs-playing-card" style="margin-bottom:16px;">
+          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Ronda activa</span>
+            <span style="font-size:11px;color:var(--crema-3);">Jugador: <strong id="qs-active-guesser" style="color:var(--crema);">—</strong></span>
+          </div>
+
+          <!-- Timer admin -->
+          <div style="text-align:center;padding:16px 0 8px;">
+            <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:6px;">Tiempo restante</div>
+            <div id="qs-admin-timer" style="font-family:var(--font-title);font-size:52px;color:var(--dorado);letter-spacing:4px;line-height:1;">60</div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;">
+            <button class="admin-btn secondary" id="qs-pause-btn" onclick="qsTogglePause()">⏸ Pausar</button>
+            <button class="admin-btn secondary" onclick="qsResetTimer()">🔄 Reiniciar tiempo</button>
+          </div>
+
+          <div class="admin-card-label" style="margin-bottom:10px;">Resultado del turno</div>
+          <div style="display:flex;gap:8px;">
+            <button class="admin-btn primary" style="flex:1;background:#3a6e3a;" onclick="qsResolve(true)">✅ Adivinó</button>
+            <button class="admin-btn primary" style="flex:1;background:#6e3a3a;" onclick="qsResolve(false)">❌ No adivinó</button>
+          </div>
+        </div>
+
+        <!-- ── Resultado de ronda ── -->
+        <div class="admin-card hidden" id="qs-result-card-admin" style="margin-bottom:16px;">
+          <div class="admin-card-label">Resultado</div>
+          <div id="qs-result-display" style="font-size:14px;color:var(--crema-2);line-height:1.7;padding:4px 0 12px;"></div>
+          <button class="admin-btn secondary" onclick="qsNextRound()">⏭ Siguiente turno</button>
+        </div>
+
+        <!-- ── Marcador de equipos ── -->
+        <div class="admin-card" style="margin-bottom:24px;">
+          <div class="admin-card-label">Marcador</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="flex:1;text-align:center;padding:12px;background:rgba(200,50,50,0.08);border-radius:8px;border:1px solid rgba(200,50,50,0.15);">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#e88;margin-bottom:4px;" id="qs-score-label-rojo">🔴 Equipo Rojo</div>
+              <div style="font-family:var(--font-title);font-size:40px;color:#e88;line-height:1;" id="qs-score-rojo">0</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:12px;background:rgba(50,100,200,0.08);border-radius:8px;border:1px solid rgba(50,100,200,0.15);">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#88c;margin-bottom:4px;" id="qs-score-label-azul">🔵 Equipo Azul</div>
+              <div style="font-family:var(--font-title);font-size:40px;color:#88c;line-height:1;" id="qs-score-azul">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Biblioteca de cartas ── -->
+        <div class="admin-card">
+          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span>Biblioteca de cartas</span>
+            <button class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
+          </div>
+
+          <!-- Upload form -->
+          <div id="qs-upload-area" class="hidden" style="margin-bottom:16px;padding:16px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px dashed rgba(200,150,0,0.2);">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div>
+                <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nombre / Personaje</label>
+                <input type="text" id="qs-upload-nombre" placeholder="Ej: Albert Einstein"
+                  style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+              </div>
+              <div>
+                <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
+                <input type="text" id="qs-upload-categoria" placeholder="Ej: Científicos, Actores, Animales..."
+                  style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+              </div>
+              <div>
+                <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Imagen (JPG, PNG — máx 5MB)</label>
+                <input type="file" id="qs-upload-file" accept="image/*"
+                  style="font-size:12px;color:var(--crema-3);"
+                  onchange="qsPreviewUpload(this)" />
+                <div id="qs-upload-preview" style="margin-top:8px;display:none;">
+                  <img id="qs-upload-preview-img" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button class="admin-btn primary" onclick="qsUploadCard()" id="qs-upload-btn">Subir carta</button>
+                <span id="qs-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cards grid -->
+          <div id="qs-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;">
+            <div style="font-size:12px;color:var(--crema-3);padding:8px;">Cargando...</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <!-- NAV BOTTOM -->
@@ -708,30 +818,6 @@
     </div>
   </div>
 
-  <!-- MODAL EDITAR USUARIO -->
-  <div class="modal-overlay hidden" id="edit-user-modal">
-    <div class="modal-box" style="max-width:380px;width:100%;">
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:16px;">Editar usuario</div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-        <div>
-          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nick (admite emojis)</label>
-          <input type="text" id="edit-nick-input" maxlength="24"
-            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:15px;outline:none;font-family:var(--font-body);" />
-        </div>
-        <div>
-          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Email</label>
-          <input type="email" id="edit-email-input"
-            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
-          <div style="font-size:11px;color:var(--crema-3);margin-top:4px;line-height:1.4;">Solo actualiza el registro en la base de datos, no cambia el email de acceso de Firebase Auth.</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
-        <button class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
-      </div>
-    </div>
-  </div>
-
 
 
   <script type="module">
@@ -752,6 +838,11 @@
       startImpostorRound, revealImpostorResult, giveImpostorPoints,
       resetImpostor, onImpostorState, onImpostorPlayers
     } from "./games/impostor.js";
+    import {
+      uploadCard, deleteCard, onCards, getCard,
+      onQuienSoyState, startQuienSoyRound, resolveRound,
+      resetQuienSoy, setTimerActive, resetTimer as qsResetTimerFn
+    } from "./games/quiensoy.js";
     import { db } from "./js/firebase-init.js";
     import {
       ref, onValue, update, get, set, remove
@@ -807,6 +898,7 @@
       initWordleAdmin();
       listenPresence();
       initImpostorAdmin();
+      initQuienSoyAdmin(currentUser.uid);
     }
 
     // ── NOMBRES DE EQUIPOS ──
@@ -846,9 +938,9 @@
         updatePendingBadge();
         renderEquipos();
         populateImpostorPlayerSelect();
-        populatePlayerSelects();  // FIX: actualizar selects de Taboo cuando cambian los usuarios
-        renderEquiposTaboo();     // FIX: actualizar equipos en el panel Taboo
-        renderImpostorParticipants(); // Actualizar checkboxes de participantes
+        populatePlayerSelects();
+        renderEquiposTaboo();
+        qsPopulateGuesserSelect(); // Actualizar select de jugadores en Quién Soy
       });
     }
 
@@ -865,30 +957,17 @@
       renderUsers(filter);
     };
 
-    // Exponer para oninput en HTML (módulos ES6 no son accesibles desde atributos inline)
-    window.renderUsers = (filter) => renderUsers(filter || currentFilter);
-    window.renderSesionUsuarios = () => renderSesionUsuarios();
-
     function renderUsers(filter) {
       const list = document.getElementById("users-list");
-      const query = (document.getElementById("search-usuarios")?.value || "").toLowerCase().trim();
       let users = Object.entries(allUsers);
       if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
-      if (query) {
-        users = users.filter(([, u]) =>
-          (u.nick || "").toLowerCase().includes(query) ||
-          (u.email || "").toLowerCase().includes(query)
-        );
-      }
-      // Ordenar alfabéticamente por nick
-      users.sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       if (users.length === 0) {
-        list.innerHTML = `<div class="users-empty">${query ? "Sin resultados para esa búsqueda." : "No hay usuarios en esta categoría."}</div>`;
+        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categoría.</div>`;
         return;
       }
       list.innerHTML = users.map(([uid, u]) => `
         <div class="user-row" data-uid="${uid}">
-          <div class="user-avatar">${u.nick ? [...u.nick][0] : "?"}</div>
+          <div class="user-avatar">${u.nick ? u.nick.charAt(0) : "?"}</div>
           <div class="user-info">
             <span class="user-nick">${u.nick || "—"}</span>
             <span class="user-email">${u.email || "—"}</span>
@@ -898,7 +977,6 @@
             ${u.status === "pending" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
             ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
             ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
-            <button class="user-btn edit" onclick="openEditUser('${uid}')">✏️</button>
             <button class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
           </div>
         </div>
@@ -930,9 +1008,7 @@
       const list = document.getElementById("sesion-usuarios-list");
       if (!list) return;
 
-      const query = (document.getElementById("search-sesion")?.value || "").toLowerCase().trim();
-      let activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
       if (activos.length === 0) {
         list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
         document.getElementById("online-count").textContent = "0 online";
@@ -943,28 +1019,20 @@
       const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
       document.getElementById("online-count").textContent = `${onlineCount} online`;
 
-      if (query) {
-        activos = activos.filter(([, u]) => (u.nick || "").toLowerCase().includes(query));
-      }
-
-      // Online primero, luego alfabético
+      // Ordenar: online primero, luego por equipo, luego por nick
       const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
         const aOnline = onlineUids.has(uidA) ? 0 : 1;
         const bOnline = onlineUids.has(uidB) ? 0 : 1;
         if (aOnline !== bOnline) return aOnline - bOnline;
-        return (uA.nick || "").localeCompare(uB.nick || "", "es", { sensitivity: "base" });
+        return (uA.nick || "").localeCompare(uB.nick || "");
       });
-
-      if (sorted.length === 0) {
-        list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Sin resultados.</p>`;
-        return;
-      }
 
       list.innerHTML = sorted.map(([uid, u]) => {
         const isOnline = onlineUids.has(uid);
         const team = u.team || "sin";
         const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
         const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
+
         return `
           <div class="sesion-user-row" data-uid="${uid}">
             <span class="sesion-presence-dot ${isOnline ? "online" : "offline"}" title="${isOnline ? "Online" : "Offline"}"></span>
@@ -1059,66 +1127,8 @@
           ? "No existe una cuenta con ese email."
           : e.code === "auth/invalid-email"
           ? "Email inválido."
-          : "No se pudo enviar el email. Verificá que el email existe.";
+          : "No se pudo enviar el email.";
         showToast(msg);
-      }
-    };
-
-    // ── EDITAR USUARIO (nick + email) ──
-    let editingUid = null;
-
-    window.openEditUser = (uid) => {
-      editingUid = uid;
-      const u = allUsers[uid];
-      if (!u) return;
-      document.getElementById("edit-nick-input").value = u.nick || "";
-      document.getElementById("edit-email-input").value = u.email || "";
-      document.getElementById("edit-user-modal").classList.remove("hidden");
-    };
-
-    window.closeEditUser = () => {
-      document.getElementById("edit-user-modal").classList.add("hidden");
-      editingUid = null;
-    };
-
-    window.saveEditUser = async () => {
-      if (!editingUid) return;
-      const u = allUsers[editingUid];
-      const newNick = document.getElementById("edit-nick-input").value.trim();
-      const newEmail = document.getElementById("edit-email-input").value.trim();
-
-      if (!newNick) { showToast("El nick no puede estar vacío."); return; }
-
-      const updates = {};
-
-      // Actualizar nick — también actualizar clave en /nicks/
-      if (newNick !== u.nick) {
-        const oldNickKey = (u.nick || "").toLowerCase().replace(/\s+/g, "_");
-        const newNickKey = newNick.toLowerCase().replace(/\s+/g, "_");
-        // Limpiar nick viejo si existe (ignorar emojis para la clave)
-        const oldNickClean = (u.nick || "").toLowerCase().replace(/[^\w]/g, "");
-        const newNickClean = newNick.toLowerCase().replace(/[^\w]/g, "");
-        if (oldNickClean) updates[`nicks/${oldNickClean}`] = null;
-        if (newNickClean) updates[`nicks/${newNickClean}`] = editingUid;
-        updates[`users/${editingUid}/nick`] = newNick;
-      }
-
-      // Actualizar email (solo en DB, no en Auth)
-      if (newEmail && newEmail !== u.email) {
-        updates[`users/${editingUid}/email`] = newEmail;
-      }
-
-      if (Object.keys(updates).length === 0) {
-        closeEditUser();
-        return;
-      }
-
-      try {
-        await update(ref(db), updates);
-        showToast(`✅ Usuario actualizado`);
-        closeEditUser();
-      } catch (e) {
-        showToast("Error al guardar. Intentá de nuevo.");
       }
     };
 
@@ -1357,27 +1367,15 @@
       `;
     }
 
-    // ── Poblar selects con jugadores activos filtrados por equipo ──
+    // ── Poblar selects con jugadores activos ──
     function populatePlayerSelects() {
-      const activos = Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
-
-      const rojos = activos.filter(([, u]) => u.team === "rojo");
-      const azules = activos.filter(([, u]) => u.team === "azul");
-      const sinEquipo = activos.filter(([, u]) => !u.team || (u.team !== "rojo" && u.team !== "azul"));
-
-      // Para "Describe": agrupar por equipo con optgroups
-      const makeOptions = (list) => list.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const options = activos.map(([uid, u]) =>
+        `<option value="${uid}">${u.nick} (${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : "⚪"})</option>`
+      ).join("");
       const defaultOpt = `<option value="">— Elegir jugador —</option>`;
-
-      const describerOpts = defaultOpt
-        + (rojos.length ? `<optgroup label="${teamLabel('rojo')}">${makeOptions(rojos)}</optgroup>` : "")
-        + (azules.length ? `<optgroup label="${teamLabel('azul')}">${makeOptions(azules)}</optgroup>` : "")
-        + (sinEquipo.length ? `<optgroup label="Sin equipo">${makeOptions(sinEquipo)}</optgroup>` : "");
-
-      document.getElementById("select-describer").innerHTML = describerOpts;
-      document.getElementById("select-veedor").innerHTML = describerOpts;
+      document.getElementById("select-describer").innerHTML = defaultOpt + options;
+      document.getElementById("select-veedor").innerHTML = defaultOpt + options;
     }
 
     // ── Reset taboo ──
@@ -1663,9 +1661,6 @@
         });
       }
 
-      // Render participantes iniciales
-      renderImpostorParticipants();
-
       // Listener de estado
       onImpostorState((state) => {
         impostorState = state;
@@ -1743,6 +1738,14 @@
       }).join("");
     }
 
+    function populateImpostorAccusedSelect() {
+      const sel = document.getElementById("imp-accused-select");
+      if (!sel) return;
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
+        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+    }
+
     function renderImpostorResult() {
       // Escuchar el result de Firebase
       // (ya seteado por revealImpostorResult)
@@ -1771,106 +1774,24 @@
     };
 
     window.pickRandomImpostor = () => {
-      const activos = Object.entries(allUsers)
-        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid));
-      if (!activos.length) { showToast("No hay participantes seleccionados."); return; }
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      if (!activos.length) { showToast("No hay jugadores activos."); return; }
       const [randomUid] = activos[Math.floor(Math.random() * activos.length)];
       const sel = document.getElementById("imp-impostor-select");
       if (sel) {
+        // Poblar si está vacío
+        if (sel.options.length <= 1) populateImpostorPlayerSelect();
         sel.value = randomUid;
         showToast(`Impostor random: ${allUsers[randomUid]?.nick}`);
       }
     };
 
-    // ── Jugadores seleccionados para Impostor ──
-    let impostorParticipants = new Set(); // UIDs seleccionados
-
-    function renderImpostorParticipants() {
-      const container = document.getElementById("imp-participants-list");
-      if (!container) return;
-      const activos = Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
-
-      if (activos.length === 0) {
-        container.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">No hay jugadores activos.</span>`;
-        return;
-      }
-
-      // Inicializar con todos si está vacío
-      if (impostorParticipants.size === 0) {
-        activos.forEach(([uid]) => impostorParticipants.add(uid));
-      }
-
-      container.innerHTML = activos.map(([uid, u]) => {
-        const sel = impostorParticipants.has(uid);
-        const team = u.team || "sin";
-        const teamDot = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
-        return `
-          <label style="
-            display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
-            border-radius:20px;cursor:pointer;font-size:12px;
-            background:${sel ? "rgba(200,150,0,0.12)" : "rgba(255,255,255,0.04)"};
-            border:1px solid ${sel ? "rgba(200,150,0,0.35)" : "rgba(255,255,255,0.08)"};
-            color:${sel ? "var(--crema)" : "var(--crema-3)"};
-            transition:all 0.15s;
-          ">
-            <input type="checkbox" style="display:none;" ${sel ? "checked" : ""}
-              onchange="toggleImpostorParticipant('${uid}', this.checked)" />
-            ${teamDot} ${u.nick}
-          </label>
-        `;
-      }).join("");
-
-      // Actualizar select de impostor con solo los seleccionados
-      populateImpostorPlayerSelect();
-      populateImpostorAccusedSelect();
-    }
-
-    window.toggleImpostorParticipant = (uid, checked) => {
-      if (checked) impostorParticipants.add(uid);
-      else impostorParticipants.delete(uid);
-      renderImpostorParticipants();
-    };
-
-    window.impSelectAll = () => {
-      Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .forEach(([uid]) => impostorParticipants.add(uid));
-      renderImpostorParticipants();
-    };
-
-    window.impSelectNone = () => {
-      impostorParticipants.clear();
-      renderImpostorParticipants();
-    };
-
-    window.impSelectByTeam = (team) => {
-      impostorParticipants.clear();
-      Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin" && u.team === team)
-        .forEach(([uid]) => impostorParticipants.add(uid));
-      renderImpostorParticipants();
-    };
-
     function populateImpostorPlayerSelect() {
       const sel = document.getElementById("imp-impostor-select");
       if (!sel) return;
-      const participants = Object.entries(allUsers)
-        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid))
-        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
       sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
-        participants.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
-    }
-
-    function populateImpostorAccusedSelect() {
-      const sel = document.getElementById("imp-accused-select");
-      if (!sel) return;
-      const participants = Object.entries(allUsers)
-        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && impostorParticipants.has(uid))
-        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
-      sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
-        participants.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+        activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
 
     window.handleStartImpostor = async () => {
@@ -1906,8 +1827,11 @@
 
       await revealImpostorResult({ accusedUid, accusedNick, winner });
 
-      // Puntos SOLO a los participantes seleccionados
-      const playerUids = [...impostorParticipants];
+      // Otorgar puntos
+      const playerUids = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .map(([uid]) => uid);
+
       await giveImpostorPoints({ winner, impostorUid: impostorState.impostorUid, playerUids });
 
       // Mostrar resultado en admin
@@ -1923,13 +1847,14 @@
             <span style="color:var(--crema-3);font-size:13px;">+3 puntos para ${impostorNick}</span>
           `;
         } else {
+          const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin" && u.uid !== impostorState.impostorUid);
           const count = playerUids.filter(uid => uid !== impostorState.impostorUid).length;
           resultEl.innerHTML = `
             🔍 <strong style="color:var(--dorado)">¡Descubrieron al Impostor!</strong><br>
             Votaron a: <strong>${accusedNick}</strong> ✓<br>
             Impostor era: <strong style="color:#c84040;">${impostorNick}</strong><br>
             Palabra era: <strong style="color:var(--dorado);">${impostorState.word}</strong><br>
-            <span style="color:var(--crema-3);font-size:13px;">+1 punto para cada jugador (${count} participantes)</span>
+            <span style="color:var(--crema-3);font-size:13px;">+1 punto para cada jugador (${count} personas)</span>
           `;
         }
       }
@@ -1951,7 +1876,7 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "tablon"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "tablon"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
@@ -1978,6 +1903,288 @@
     document.querySelectorAll(".active-section").forEach(link => {
       link.addEventListener("click", () => showSection(link.dataset.section));
     });
+
+    // ════════════════════════════════════════════════════════
+    //  ¿QUIÉN SOY? — Admin Logic
+    // ════════════════════════════════════════════════════════
+
+    let qsCards = {};
+    let qsState = { phase: "waiting" };
+    let qsTimerInterval = null;
+    let qsTimerPaused = false;
+    let qsAdminUid = null;
+
+    function initQuienSoyAdmin(uid) {
+      qsAdminUid = uid;
+
+      // Escuchar cartas
+      onCards((cards) => {
+        qsCards = cards || {};
+        qsRenderCardsGrid();
+        qsPopulateCardSelect();
+      });
+
+      // Escuchar estado
+      onQuienSoyState((state) => {
+        qsState = state || { phase: "waiting" };
+        qsRenderAdminState(state);
+        qsUpdateScores();
+      });
+
+      // Escuchar marcador
+      onValue(ref(db, "session/scores"), (snap) => {
+        const scores = snap.val() || {};
+        document.getElementById("qs-score-rojo").textContent = scores.rojo || 0;
+        document.getElementById("qs-score-azul").textContent = scores.azul || 0;
+      });
+
+      // Escuchar nombres de equipo para labels del marcador
+      onValue(ref(db, "session/teams"), (snap) => {
+        const t = snap.val();
+        if (t) {
+          if (t.rojo) document.getElementById("qs-score-label-rojo").textContent =
+            `${t.rojo.emoji || "🔴"} ${t.rojo.name || "Equipo Rojo"}`;
+          if (t.azul) document.getElementById("qs-score-label-azul").textContent =
+            `${t.azul.emoji || "🔵"} ${t.azul.name || "Equipo Azul"}`;
+        }
+      });
+
+      // Poblar select de jugadores
+      qsPopulateGuesserSelect();
+    }
+
+    function qsPopulateGuesserSelect() {
+      const sel = document.getElementById("qs-guesser-select");
+      if (!sel) return;
+      const activos = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+      const rojos = activos.filter(([, u]) => u.team === "rojo");
+      const azules = activos.filter(([, u]) => u.team === "azul");
+      const sin = activos.filter(([, u]) => !u.team || (u.team !== "rojo" && u.team !== "azul"));
+      const makeOpts = (list) => list.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+      sel.innerHTML = `<option value="">— Elegir jugador —</option>`
+        + (rojos.length ? `<optgroup label="${teamLabel('rojo')}">${makeOpts(rojos)}</optgroup>` : "")
+        + (azules.length ? `<optgroup label="${teamLabel('azul')}">${makeOpts(azules)}</optgroup>` : "")
+        + (sin.length ? `<optgroup label="Sin equipo">${makeOpts(sin)}</optgroup>` : "");
+    }
+
+    function qsPopulateCardSelect() {
+      const sel = document.getElementById("qs-card-select");
+      if (!sel) return;
+      const cards = Object.values(qsCards).sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+      sel.innerHTML = `<option value="">— Elegir carta —</option>`
+        + cards.map(c => `<option value="${c.id}">${c.nombre} (${c.categoria || "General"})</option>`).join("");
+      sel.onchange = () => qsUpdateCardPreview(sel.value);
+    }
+
+    function qsUpdateCardPreview(cardId) {
+      const preview = document.getElementById("qs-card-preview");
+      const img = document.getElementById("qs-card-preview-img");
+      const label = document.getElementById("qs-card-preview-label");
+      if (!cardId || !qsCards[cardId]) { preview.style.display = "none"; return; }
+      const card = qsCards[cardId];
+      img.src = card.url;
+      label.textContent = `${card.nombre} · ${card.categoria || "General"}`;
+      preview.style.display = "block";
+    }
+
+    window.qsPickRandomCard = () => {
+      const cards = Object.keys(qsCards);
+      if (!cards.length) { showToast("No hay cartas cargadas."); return; }
+      const randomId = cards[Math.floor(Math.random() * cards.length)];
+      const sel = document.getElementById("qs-card-select");
+      if (sel) { sel.value = randomId; qsUpdateCardPreview(randomId); }
+    };
+
+    window.qsStartRound = async () => {
+      const guesserUid = document.getElementById("qs-guesser-select").value;
+      const cardId     = document.getElementById("qs-card-select").value;
+      const timerSecs  = parseInt(document.getElementById("qs-timer-input").value) || 60;
+      if (!guesserUid) { showToast("Elegí un jugador."); return; }
+      if (!cardId)     { showToast("Elegí una carta."); return; }
+      const u = allUsers[guesserUid];
+      await startQuienSoyRound({
+        cardId, guesserUid,
+        guesserNick: u?.nick || "—",
+        guesserTeam: u?.team || null,
+        timerSecs
+      });
+    };
+
+    window.qsTogglePause = async () => {
+      qsTimerPaused = !qsTimerPaused;
+      await setTimerActive(!qsTimerPaused);
+      document.getElementById("qs-pause-btn").textContent = qsTimerPaused ? "▶ Reanudar" : "⏸ Pausar";
+    };
+
+    window.qsResetTimer = async () => {
+      const secs = parseInt(document.getElementById("qs-timer-input").value) || 60;
+      qsTimerPaused = false;
+      document.getElementById("qs-pause-btn").textContent = "⏸ Pausar";
+      await qsResetTimerFn(secs);
+    };
+
+    window.qsResolve = async (adivinó) => {
+      await resolveRound(qsState.guesserUid, qsState.guesserTeam, adivinó);
+    };
+
+    window.qsNextRound = async () => {
+      await resetQuienSoy();
+    };
+
+    function qsRenderAdminState(state) {
+      clearInterval(qsTimerInterval);
+      const phase = state?.phase || "waiting";
+      const configCard  = document.getElementById("qs-config-card");
+      const playingCard = document.getElementById("qs-playing-card");
+      const resultCard  = document.getElementById("qs-result-card-admin");
+
+      configCard.classList.toggle("hidden",  phase !== "waiting");
+      playingCard.classList.toggle("hidden", phase !== "playing");
+      resultCard.classList.toggle("hidden",  phase !== "result");
+
+      if (phase === "playing") {
+        document.getElementById("qs-active-guesser").textContent = state.guesserNick || "—";
+        qsTimerPaused = !state.timerActive;
+        document.getElementById("qs-pause-btn").textContent = qsTimerPaused ? "▶ Reanudar" : "⏸ Pausar";
+        qsRunAdminTimer(state);
+      }
+
+      if (phase === "result") {
+        const adivinó = state.roundScore === "adivinó";
+        const guesserNick = state.guesserNick || "—";
+        const teamLabel_ = state.guesserTeam ? teamLabel(state.guesserTeam) : null;
+        document.getElementById("qs-result-display").innerHTML = adivinó
+          ? `🎉 <strong>${guesserNick}</strong> adivinó.<br>${teamLabel_ ? `+1 punto para ${teamLabel_}` : "+1 punto"}`
+          : `⏰ <strong>${guesserNick}</strong> no adivinó esta vez.<br>+0 puntos`;
+      }
+    }
+
+    function qsRunAdminTimer(state) {
+      const display = document.getElementById("qs-admin-timer");
+      function tick() {
+        if (!state.timerActive) { display.textContent = state.timerSecs || 60; return; }
+        const elapsed = state.timerStart ? Math.floor((Date.now() - state.timerStart) / 1000) : 0;
+        const remaining = Math.max(0, (state.timerSecs || 60) - elapsed);
+        display.textContent = remaining;
+        display.style.color = remaining <= 10 ? "#f04040" : remaining <= 20 ? "#f09040" : "var(--dorado)";
+        if (remaining === 0) clearInterval(qsTimerInterval);
+      }
+      tick();
+      qsTimerInterval = setInterval(tick, 500);
+    }
+
+    function qsUpdateScores() {}
+
+    // ── Cartas: render grid ──
+    function qsRenderCardsGrid() {
+      const grid = document.getElementById("qs-cards-grid");
+      if (!grid) return;
+      const cards = Object.values(qsCards);
+      if (!cards.length) {
+        grid.innerHTML = `<div style="font-size:12px;color:var(--crema-3);padding:8px;grid-column:1/-1;">Aún no hay cartas. Subí la primera.</div>`;
+        return;
+      }
+      grid.innerHTML = cards
+        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"))
+        .map(c => `
+          <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(200,150,0,0.15);">
+            <img src="${c.url}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
+            <div style="padding:5px 6px;background:var(--negro-2);">
+              <div style="font-size:11px;color:var(--crema);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nombre}</div>
+              <div style="font-size:10px;color:var(--crema-3);">${c.categoria || "General"}</div>
+            </div>
+            <button onclick="qsDeleteCard('${c.id}','${c.fileId || ""}')"
+              style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.7);border:none;color:#f88;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+          </div>
+        `).join("");
+    }
+
+    window.qsDeleteCard = (cardId, fileId) => {
+      if (!confirm("¿Eliminar esta carta?")) return;
+      deleteCard(qsAdminUid, cardId, fileId)
+        .then(() => showToast("Carta eliminada."))
+        .catch(e => showToast("Error al eliminar: " + e.message));
+    };
+
+    // ── Preview antes de subir ──
+    window.qsPreviewUpload = (input) => {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById("qs-upload-preview-img").src = e.target.result;
+        document.getElementById("qs-upload-preview").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // ── Subir carta ──
+    window.qsUploadCard = async () => {
+      const nombre    = document.getElementById("qs-upload-nombre").value.trim();
+      const categoria = document.getElementById("qs-upload-categoria").value.trim();
+      const fileInput = document.getElementById("qs-upload-file");
+      const status    = document.getElementById("qs-upload-status");
+      const btn       = document.getElementById("qs-upload-btn");
+
+      if (!nombre)           { showToast("Poné el nombre del personaje."); return; }
+      if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
+
+      const file = fileInput.files[0];
+      if (file.size > 5 * 1024 * 1024) { showToast("La imagen no puede superar 5MB."); return; }
+
+      btn.disabled = true;
+      status.textContent = "Comprimiendo...";
+
+      try {
+        // Comprimir imagen a ~800×800 JPG liviano
+        const b64 = await compressImage(file, 800, 0.82);
+        status.textContent = "Subiendo...";
+
+        const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
+        await uploadCard(qsAdminUid, b64, cardNombre, categoria || "General");
+
+        showToast("✅ Carta subida: " + cardNombre);
+        document.getElementById("qs-upload-nombre").value = "";
+        document.getElementById("qs-upload-categoria").value = "";
+        fileInput.value = "";
+        document.getElementById("qs-upload-preview").style.display = "none";
+        status.textContent = "";
+        document.getElementById("qs-upload-area").classList.add("hidden");
+      } catch(e) {
+        showToast("Error al subir: " + e.message);
+        status.textContent = "";
+      }
+      btn.disabled = false;
+    };
+
+    // Comprimir imagen: canvas → JPEG base64
+    function compressImage(file, maxSize, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+            else       { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            // Fondo blanco para imágenes con transparencia
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
     // ── STATUS DOT ──
     document.getElementById("status-dot").classList.add("online");
