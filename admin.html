@@ -839,7 +839,7 @@
       resetImpostor, onImpostorState, onImpostorPlayers
     } from "./games/impostor.js";
     import {
-      uploadCard, deleteCard, onCards, getCard,
+      uploadCard as qsUploadCard, deleteCard as qsDeleteCard, onCards, getCard,
       onQuienSoyState, startQuienSoyRound, resolveRound,
       resetQuienSoy, setTimerActive, resetTimer as qsResetTimerFn
     } from "./games/quiensoy.js";
@@ -2103,7 +2103,7 @@
 
     window.qsDeleteCard = (cardId, fileId) => {
       if (!confirm("¿Eliminar esta carta?")) return;
-      deleteCard(qsAdminUid, cardId, fileId)
+      qsDeleteCard(qsAdminUid, cardId, fileId)
         .then(() => showToast("Carta eliminada."))
         .catch(e => showToast("Error al eliminar: " + e.message));
     };
@@ -2143,7 +2143,7 @@
         status.textContent = "Subiendo...";
 
         const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
-        await uploadCard(qsAdminUid, b64, cardNombre, categoria || "General");
+        await qsUploadCard(qsAdminUid, b64, cardNombre, categoria || "General");
 
         showToast("✅ Carta subida: " + cardNombre);
         document.getElementById("qs-upload-nombre").value = "";
