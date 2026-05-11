@@ -77,6 +77,11 @@
           <div class="game-name">El Impostor</div>
           <div class="game-desc">¿Quién no tiene la palabra?</div>
         </a>
+        <a href="quiensoy.html" class="game-card">
+          <span class="game-icon">🪪</span>
+          <div class="game-name">¿Quién Soy?</div>
+          <div class="game-desc">Adiviná quién sos con preguntas de sí o no</div>
+        </a>
         <div class="game-card" style="opacity: 0.7; cursor: not-allowed;" title="Próximamente">
           <span class="game-icon">💰</span>
           <div class="game-name">El Millonario</div>
@@ -177,8 +182,17 @@
     import { onSession, getUserData } from "./js/auth.js";
     import { onRanking } from "./games/wordle.js";
     import { initNavbar } from "./js/navbar.js";
-    
+    import { db } from "./js/firebase-init.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
     initNavbar();
+
+    // ── Tablón en tiempo real ──
+    onValue(ref(db, "session/broadcast"), (snap) => {
+      const msg = snap.val();
+      const el = document.getElementById("tablon-msg");
+      if (el) el.textContent = msg ? `"${msg}"` : `"Bienvenidos a El Burdel."`;
+    });
 
 
 
