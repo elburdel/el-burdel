@@ -819,7 +819,25 @@
       </div>
     </section>
 
-  </main>
+    <!-- MODAL EDITAR USUARIO -->
+  <div id="edit-user-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:360px;width:100%;">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:16px;">Editar usuario</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nick (admite emojis)</label>
+          <input type="text" id="edit-nick-input" maxlength="24"
+            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:15px;outline:none;font-family:var(--font-body);" />
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
+        <button class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+</main>
 
   <!-- NAV BOTTOM -->
   <footer class="nav-bottom">
@@ -1012,6 +1030,7 @@
             ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
             ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
             <button class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
+            <button class="user-btn" onclick="openEditUser('${uid}')" style="background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.25);color:var(--dorado);">✏️</button>
           </div>
         </div>
       `).join("");
@@ -2264,6 +2283,38 @@
         reader.readAsDataURL(file);
       });
     }
+
+    // ── EDITAR NICK ──
+    let editingUid = null;
+
+    window.openEditUser = (uid) => {
+      editingUid = uid;
+      const u = allUsers[uid];
+      if (!u) return;
+      document.getElementById("edit-nick-input").value = u.nick || "";
+      document.getElementById("edit-user-modal").classList.remove("hidden");
+    };
+
+    window.closeEditUser = () => {
+      document.getElementById("edit-user-modal").classList.add("hidden");
+      editingUid = null;
+    };
+
+    window.saveEditUser = async () => {
+      if (!editingUid) return;
+      const newNick = document.getElementById("edit-nick-input").value.trim();
+      if (!newNick) { showToast("El nick no puede estar vacío."); return; }
+      if (newNick.length < 2) { showToast("El nick debe tener al menos 2 caracteres."); return; }
+
+      try {
+        // Actualizar nick en users
+        await update(ref(db), { [`users/${editingUid}/nick`]: newNick });
+        showToast(`✅ Nick actualizado: ${newNick}`);
+        closeEditUser();
+      } catch(e) {
+        showToast("Error al guardar. Intentá de nuevo.");
+      }
+    };
 
     // ── STATUS DOT ──
     document.getElementById("status-dot").classList.add("online");
