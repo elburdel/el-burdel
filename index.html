@@ -215,21 +215,22 @@
 
       const medals = ["🥇", "🥈", "🥉", "4."];
       const top4 = ranking.slice(0, 4);
-      list.innerHTML = top4.map((u, i) => {
-        const medal    = medals[i] || `${i + 1}.`;
-        const fontSize = i === 0 ? "20px" : i === 1 ? "17px" : "15px";
-        return `
-          <div class="ranking-row" style="justify-content:center;font-size:${fontSize};margin-bottom:12px;display:flex;align-items:center;width:100%;">
-            <span class="ranking-medal" style="margin-right:8px;display:flex;align-items:center;">${medal}</span>
-            <span class="ranking-nick" style="font-weight:500;color:var(--crema);">${u.nick}</span>
-            <span class="ranking-points" style="margin-left:8px;color:var(--dorado);font-family:var(--font-display);">${u.total} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span></span>
-          </div>
-        `;
-      }).join("") + `
-        <div style="text-align:center;margin-top:16px;">
+      list.innerHTML = `<div style="width:100%;display:flex;flex-direction:column;gap:4px;">` +
+        top4.map((u, i) => {
+          const medal    = medals[i] || `${i + 1}.`;
+          const fontSize = i === 0 ? "20px" : i === 1 ? "17px" : "15px";
+          return `
+            <div class="ranking-row" style="justify-content:center;font-size:${fontSize};display:flex;align-items:center;width:100%;">
+              <span class="ranking-medal" style="margin-right:8px;">${medal}</span>
+              <span class="ranking-nick" style="font-weight:500;color:var(--crema);">${u.nick}</span>
+              <span class="ranking-points" style="margin-left:8px;color:var(--dorado);font-family:var(--font-display);">${u.total} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span></span>
+            </div>
+          `;
+        }).join("") +
+        `<div style="text-align:center;margin-top:16px;">
           <a href="ranking.html" class="hero-btn" style="padding:10px 24px;font-size:11px;">Ver ranking completo</a>
         </div>
-      `;
+      </div>`;
     });
 
 
