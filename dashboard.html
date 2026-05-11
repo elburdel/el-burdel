@@ -98,6 +98,14 @@
       from { transform: translateY(16px); opacity: 0; }
       to   { transform: translateY(0);    opacity: 1; }
     }
+    @keyframes slideDown {
+      from { opacity:0; transform:translateX(-50%) translateY(-12px); }
+      to   { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity:1; transform:translateX(-50%) translateY(0); }
+      to   { opacity:0; transform:translateX(-50%) translateY(-12px); }
+    }
   </style>
 </head>
 <body>
@@ -220,9 +228,41 @@
 
     // ── Juego activo ──
     function listenActiveGame() {
+      let prevGame = null;
+
+      // ── Sonido de notificación (Web Audio API — sin archivos externos) ──
+      function playNotif() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          // Dos tonos cortos ascendentes
+          [0, 0.15].forEach((delay, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = i === 0 ? 520 : 660;
+            osc.type = "sine";
+            gain.gain.setValueAtTime(0.35, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.25);
+          });
+        } catch(e) {}
+      }
+
       onValue(ref(db, "session/activeGame"), (snap) => {
         const game = snap.val() || "none";
         const games = ["taboo", "wordle", "impostor", "quiensoy", "millonario"];
+
+        // Notificar solo cuando cambia a un juego real (no a "none") y no es la primera carga
+        if (prevGame !== null && game !== "none" && game !== prevGame) {
+          playNotif();
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          // Banner de notificación
+          showGameNotif(game);
+        }
+        prevGame = game;
+
         games.forEach(g => {
           const el = document.getElementById(`status-${g}`);
           const card = document.getElementById(`game-card-${g}`);
@@ -242,6 +282,50 @@
           }
         });
       });
+    }
+
+    // ── Banner de notificación de juego activo ──
+    function showGameNotif(game) {
+      const labels = {
+        taboo:    { icon: "🃏", name: "Taboo",        href: "taboo.html" },
+        wordle:   { icon: "🔤", name: "Wordle",       href: "wordle.html" },
+        impostor: { icon: "🕵️", name: "El Impostor",  href: "impostor.html" },
+        quiensoy: { icon: "🪪", name: "¿Quién Soy?",  href: "quiensoy.html" },
+      };
+      const info = labels[game];
+      if (!info) return;
+
+      // Crear o reusar el banner
+      let banner = document.getElementById("game-notif-banner");
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "game-notif-banner";
+        banner.style.cssText = `
+          position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:999;
+          background:var(--negro-2);border:1px solid rgba(200,150,0,0.4);border-radius:12px;
+          padding:14px 20px;display:flex;align-items:center;gap:12px;
+          box-shadow:0 8px 32px rgba(0,0,0,0.6);
+          animation:slideDown 0.3s ease;max-width:320px;width:90%;
+        `;
+        document.body.appendChild(banner);
+      }
+
+      banner.innerHTML = `
+        <span style="font-size:24px;">${info.icon}</span>
+        <div style="flex:1;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);">¡Juego activo!</div>
+          <div style="font-family:var(--font-title);font-size:18px;color:var(--dorado);letter-spacing:1px;">${info.name}</div>
+        </div>
+        <a href="${info.href}" style="background:var(--dorado);color:var(--negro);border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;letter-spacing:1px;text-decoration:none;text-transform:uppercase;cursor:pointer;">IR →</a>
+      `;
+      banner.style.display = "flex";
+
+      // Auto-ocultar a los 6 segundos
+      clearTimeout(banner._timeout);
+      banner._timeout = setTimeout(() => {
+        banner.style.animation = "slideUp 0.3s ease forwards";
+        setTimeout(() => { banner.style.display = "none"; }, 280);
+      }, 6000);
     }
 
     // ── Tablón emergente ──
