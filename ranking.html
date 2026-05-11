@@ -71,60 +71,68 @@
 
   <script type="module">
     import { onSession, getUserData } from "./js/auth.js";
-    import { onRanking } from "./games/wordle.js";
+    import { initNavbar } from "./js/navbar.js";
+    import { db } from "./js/firebase-init.js";
+    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Mostrar estado de sesión en el nav
-    onSession(async (user) => {
-      const navAuth = document.getElementById("nav-auth");
-      if (user) {
-        const data = await getUserData(user.uid);
-        if (!data) {
-          navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
-          return;
-        }
-        let href = "dashboard.html";
-        if (data.role === "admin") href = "admin.html";
-        else if (data.status === "pending") href = "pending.html";
-        else if (data.status === "paused") href = "paused.html";
+    initNavbar();
 
-        navAuth.innerHTML = `
-          <a href="${href}" class="nav-user-pill">
-            <span class="nav-user-dot"></span>
-            <span class="nav-user-nick">${data.nick}</span>
-          </a>
-        `;
-      } else {
-        navAuth.innerHTML = `<a href="login.html" class="nav-cta">Entrar</a>`;
-      }
-    });
-
-    // Ranking completo en tiempo real
-    onRanking((ranking) => {
+    // ── Ranking general — suma puntos de todos los juegos ──
+    onValue(ref(db, "users"), (snap) => {
+      const users = snap.val() || {};
       const container = document.getElementById("ranking-full-container");
       if (!container) return;
-      if (ranking.length === 0) {
-        container.innerHTML = `<div class="media-placeholder" style="text-align: center;">Aún no hay datos de ranking.</div>`;
+
+      const ranking = Object.entries(users)
+        .filter(([, u]) => u.role !== "admin" && u.status === "active")
+        .map(([uid, u]) => {
+          const wordlePoints   = u.wordleStats?.totalPoints || 0;
+          const impostorPoints = u.points || 0;
+          const quienSoyPoints = u.quienSoyPoints || 0;
+          const total = wordlePoints + impostorPoints + quienSoyPoints;
+          return {
+            uid,
+            nick:     u.nick || "—",
+            team:     u.team || null,
+            total,
+            wordle:   wordlePoints,
+            impostor: impostorPoints,
+            quienSoy: quienSoyPoints,
+            played:   u.wordleStats?.played || 0,
+          };
+        })
+        .sort((a, b) => b.total - a.total);
+
+      if (!ranking.length) {
+        container.innerHTML = `<div class="media-placeholder" style="text-align:center;">Aún no hay datos de ranking.</div>`;
         return;
       }
-      
-      let html = ranking.map((u, i) => {
-        let medal = "";
-        let fontSize = "16px";
-        if (i === 0) { medal = "🥇"; fontSize = "24px"; }
-        else if (i === 1) { medal = "🥈"; fontSize = "20px"; }
-        else if (i === 2) { medal = "🥉"; fontSize = "18px"; }
-        else { medal = `${i + 1}.`; fontSize = "16px"; }
-        
+
+      const medals = ["🥇", "🥈", "🥉"];
+      const rows = ranking.map((u, i) => {
+        const medal    = medals[i] || `${i + 1}.`;
+        const fontSize = i === 0 ? "24px" : i === 1 ? "20px" : i === 2 ? "18px" : "15px";
+        const breakdown = [
+          u.wordle   ? `🔤 ${u.wordle}`   : "",
+          u.impostor ? `🕵️ ${u.impostor}` : "",
+          u.quienSoy ? `🪪 ${u.quienSoy}` : "",
+        ].filter(Boolean).join("  ·  ");
+
         return `
-          <div class="ranking-row-full" style="font-size: ${fontSize};">
-            <span class="ranking-medal" style="margin-right: 12px;">${medal}</span>
-            <span class="ranking-nick" style="font-weight: 500; color: var(--crema);">${u.nick}</span>
-            <span class="ranking-points" style="margin-left: 12px; color: var(--dorado); font-family: var(--font-display);">${u.totalPoints} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span></span>
+          <div class="ranking-row-full" style="font-size:${fontSize};flex-direction:column;align-items:flex-start;gap:4px;">
+            <div style="display:flex;align-items:center;width:100%;gap:10px;">
+              <span style="min-width:32px;font-size:${fontSize};">${medal}</span>
+              <span style="flex:1;font-weight:500;color:var(--crema);">${u.nick}</span>
+              <span style="color:var(--dorado);font-family:var(--font-display);font-size:${fontSize};">
+                ${u.total} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span>
+              </span>
+            </div>
+            ${breakdown ? `<div style="font-size:11px;color:var(--crema-3);letter-spacing:0.5px;padding-left:42px;">${breakdown}</div>` : ""}
           </div>
         `;
       }).join("");
 
-      container.innerHTML = `<div class="ranking-full-list">${html}</div>`;
+      container.innerHTML = `<div class="ranking-full-list">${rows}</div>`;
     });
   </script>
 
