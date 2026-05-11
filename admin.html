@@ -199,6 +199,11 @@
           <button class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
           <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
         </div>
+        <div style="margin-bottom:12px;">
+          <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
+            oninput="filterUsers(currentFilter)"
+            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
+        </div>
 
         <div class="users-list" id="users-list">
           <div class="users-loading">Cargando usuarios...</div>
@@ -255,6 +260,11 @@
           <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
             <span>Usuarios en sesión</span>
             <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
+          </div>
+          <div style="margin-bottom:10px;">
+            <input type="text" id="search-sesion" placeholder="🔍 Buscar jugador..."
+              oninput="renderSesionUsuarios()"
+              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);" />
           </div>
           <div id="sesion-usuarios-list" style="margin-bottom:16px;">
             <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
@@ -537,6 +547,22 @@
         </div>
 
         <!-- ── Configurar ronda ── -->
+        <!-- ── Jugadores que participan ── -->
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div class="admin-card-label" style="margin:0;">Jugadores que participan</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="admin-btn secondary small" onclick="impSelectAll()">Todos</button>
+              <button class="admin-btn secondary small" onclick="impSelectByTeam('rojo')">Solo 🔴</button>
+              <button class="admin-btn secondary small" onclick="impSelectByTeam('azul')">Solo 🔵</button>
+              <button class="admin-btn secondary small" onclick="impSelectNone()">Ninguno</button>
+            </div>
+          </div>
+          <div id="imp-participants-list" style="display:flex;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:12px;color:var(--crema-3);">Cargando...</span>
+          </div>
+        </div>
+
         <div class="admin-card" id="imp-config-card">
           <div class="admin-card-label">Configurar nueva ronda</div>
 
@@ -937,10 +963,11 @@
         renderUsers(currentFilter);
         updatePendingBadge();
         renderEquipos();
-        populateImpostorPlayerSelect();
+        renderSesionUsuarios();
+        renderImpostorParticipants();
         populatePlayerSelects();
         renderEquiposTaboo();
-        qsPopulateGuesserSelect(); // Actualizar select de jugadores en Quién Soy
+        qsPopulateGuesserSelect();
       });
     }
 
@@ -959,10 +986,16 @@
 
     function renderUsers(filter) {
       const list = document.getElementById("users-list");
+      const query = (document.getElementById("search-usuarios")?.value || "").toLowerCase().trim();
       let users = Object.entries(allUsers);
       if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
+      if (query) users = users.filter(([, u]) =>
+        (u.nick || "").toLowerCase().includes(query) ||
+        (u.email || "").toLowerCase().includes(query)
+      );
+      users.sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       if (users.length === 0) {
-        list.innerHTML = `<div class="users-empty">No hay usuarios en esta categoría.</div>`;
+        list.innerHTML = `<div class="users-empty">${query ? "Sin resultados." : "No hay usuarios en esta categoría."}</div>`;
         return;
       }
       list.innerHTML = users.map(([uid, u]) => `
@@ -1007,32 +1040,29 @@
     function renderSesionUsuarios() {
       const list = document.getElementById("sesion-usuarios-list");
       if (!list) return;
-
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const query = (document.getElementById("search-sesion")?.value || "").toLowerCase().trim();
+      let activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
       if (activos.length === 0) {
         list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
         document.getElementById("online-count").textContent = "0 online";
         return;
       }
-
       const onlineUids = new Set(Object.keys(presenceData));
       const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
       document.getElementById("online-count").textContent = `${onlineCount} online`;
-
-      // Ordenar: online primero, luego por equipo, luego por nick
+      if (query) activos = activos.filter(([, u]) => (u.nick || "").toLowerCase().includes(query));
       const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
         const aOnline = onlineUids.has(uidA) ? 0 : 1;
         const bOnline = onlineUids.has(uidB) ? 0 : 1;
         if (aOnline !== bOnline) return aOnline - bOnline;
-        return (uA.nick || "").localeCompare(uB.nick || "");
+        return (uA.nick || "").localeCompare(uB.nick || "", "es", { sensitivity: "base" });
       });
-
+      if (!sorted.length) { list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Sin resultados.</p>`; return; }
       list.innerHTML = sorted.map(([uid, u]) => {
         const isOnline = onlineUids.has(uid);
         const team = u.team || "sin";
         const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
         const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
-
         return `
           <div class="sesion-user-row" data-uid="${uid}">
             <span class="sesion-presence-dot ${isOnline ? "online" : "offline"}" title="${isOnline ? "Online" : "Offline"}"></span>
@@ -1738,10 +1768,57 @@
       }).join("");
     }
 
+    // ── Participantes seleccionados para Impostor ──
+    let impostorParticipants = new Set();
+
+    function renderImpostorParticipants() {
+      const container = document.getElementById("imp-participants-list");
+      if (!container) return;
+      const activos = Object.entries(allUsers)
+        .filter(([, u]) => u.status === "active" && u.role !== "admin")
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+      if (!activos.length) {
+        container.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">No hay jugadores activos.</span>`;
+        return;
+      }
+      if (impostorParticipants.size === 0) activos.forEach(([uid]) => impostorParticipants.add(uid));
+      container.innerHTML = activos.map(([uid, u]) => {
+        const sel = impostorParticipants.has(uid);
+        const dot = u.team === "rojo" ? teamNames.rojo.emoji : u.team === "azul" ? teamNames.azul.emoji : "⚪";
+        return `<label style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:12px;
+          background:${sel ? "rgba(200,150,0,0.12)" : "rgba(255,255,255,0.04)"};
+          border:1px solid ${sel ? "rgba(200,150,0,0.35)" : "rgba(255,255,255,0.08)"};
+          color:${sel ? "var(--crema)" : "var(--crema-3)"};transition:all 0.15s;">
+          <input type="checkbox" style="display:none;" ${sel ? "checked" : ""}
+            onchange="toggleImpostorParticipant('${uid}', this.checked)" />
+          ${dot} ${u.nick}
+        </label>`;
+      }).join("");
+      populateImpostorPlayerSelect();
+      populateImpostorAccusedSelect();
+    }
+
+    window.toggleImpostorParticipant = (uid, checked) => {
+      if (checked) impostorParticipants.add(uid); else impostorParticipants.delete(uid);
+      renderImpostorParticipants();
+    };
+    window.impSelectAll = () => {
+      Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin").forEach(([uid]) => impostorParticipants.add(uid));
+      renderImpostorParticipants();
+    };
+    window.impSelectNone = () => { impostorParticipants.clear(); renderImpostorParticipants(); };
+    window.impSelectByTeam = (team) => {
+      impostorParticipants.clear();
+      Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin" && u.team === team).forEach(([uid]) => impostorParticipants.add(uid));
+      renderImpostorParticipants();
+    };
+
     function populateImpostorAccusedSelect() {
       const sel = document.getElementById("imp-accused-select");
       if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const activos = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && (impostorParticipants.size === 0 || impostorParticipants.has(uid)))
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       sel.innerHTML = `<option value="">— ¿A quién votaron? —</option>` +
         activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
@@ -1774,22 +1851,20 @@
     };
 
     window.pickRandomImpostor = () => {
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      if (!activos.length) { showToast("No hay jugadores activos."); return; }
+      const activos = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && (impostorParticipants.size === 0 || impostorParticipants.has(uid)));
+      if (!activos.length) { showToast("No hay participantes seleccionados."); return; }
       const [randomUid] = activos[Math.floor(Math.random() * activos.length)];
       const sel = document.getElementById("imp-impostor-select");
-      if (sel) {
-        // Poblar si está vacío
-        if (sel.options.length <= 1) populateImpostorPlayerSelect();
-        sel.value = randomUid;
-        showToast(`Impostor random: ${allUsers[randomUid]?.nick}`);
-      }
+      if (sel) { sel.value = randomUid; showToast(`Impostor random: ${allUsers[randomUid]?.nick}`); }
     };
 
     function populateImpostorPlayerSelect() {
       const sel = document.getElementById("imp-impostor-select");
       if (!sel) return;
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
+      const activos = Object.entries(allUsers)
+        .filter(([uid, u]) => u.status === "active" && u.role !== "admin" && (impostorParticipants.size === 0 || impostorParticipants.has(uid)))
+        .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
       sel.innerHTML = `<option value="">— Elegir jugador —</option>` +
         activos.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
     }
@@ -1827,10 +1902,10 @@
 
       await revealImpostorResult({ accusedUid, accusedNick, winner });
 
-      // Otorgar puntos
-      const playerUids = Object.entries(allUsers)
-        .filter(([, u]) => u.status === "active" && u.role !== "admin")
-        .map(([uid]) => uid);
+      // Otorgar puntos solo a los participantes seleccionados
+      const playerUids = impostorParticipants.size > 0
+        ? [...impostorParticipants]
+        : Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin").map(([uid]) => uid);
 
       await giveImpostorPoints({ winner, impostorUid: impostorState.impostorUid, playerUids });
 
@@ -1890,7 +1965,7 @@
     function showSection(sectionId) {
       SECTION_IDS.forEach(id => {
         const el = document.getElementById(`section-${id}`);
-        if (el) el.style.display = id === sectionId ? "block" : "none";
+        if (el) el.style.display = id === sectionId ? "" : "none";
       });
       document.querySelectorAll(".active-section").forEach(link => {
         link.classList.toggle("active", link.dataset.section === sectionId);
