@@ -254,11 +254,12 @@
         const game = snap.val() || "none";
         const games = ["taboo", "wordle", "impostor", "quiensoy", "millonario"];
 
-        // Notificar solo cuando cambia a un juego real (no a "none") y no es la primera carga
+        // Notificar solo si el usuario está mirando la página activamente
         if (prevGame !== null && game !== "none" && game !== prevGame) {
-          playNotif();
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-          // Banner de notificación
+          if (!document.hidden) {
+            playNotif();
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          }
           showGameNotif(game);
         }
         prevGame = game;
