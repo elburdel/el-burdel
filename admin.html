@@ -980,7 +980,8 @@
     window.filterUsers = (filter) => {
       currentFilter = filter;
       document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
-      event.target.classList.add("active");
+      const activeBtn = document.querySelector(`.admin-tab[onclick*="'${filter}'"]`);
+      if (activeBtn) activeBtn.classList.add("active");
       renderUsers(filter);
     };
 
