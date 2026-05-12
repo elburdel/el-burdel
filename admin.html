@@ -249,6 +249,9 @@
             <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
               <span>🕵️</span> Impostor
             </button>
+            <button class="game-toggle" data-game="quiensoy" onclick="setActiveGame('quiensoy')">
+              <span>🪪</span> ¿Quién Soy?
+            </button>
             <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
               <span>💰</span> Millonario
             </button>
@@ -1104,7 +1107,7 @@
 
     // ── SESIÓN / JUEGO ACTIVO ──
     function listenSession() {
-      const GAME_LABELS = { none: "🚫 Ninguno", taboo: "🃏 Taboo", wordle: "🔤 Wordle", impostor: "🕵️ Impostor", millonario: "💰 Millonario" };
+      const GAME_LABELS = { none: "🚫 Ninguno", taboo: "🃏 Taboo", wordle: "🔤 Wordle", impostor: "🕵️ Impostor", quiensoy: "🪪 ¿Quién Soy?", millonario: "💰 Millonario" };
       onValue(ref(db, "session/activeGame"), (snap) => {
         activeGame = snap.val() || "none";
         document.querySelectorAll(".game-toggle").forEach(btn => {
@@ -1978,6 +1981,7 @@
       taboo:      "taboo",
       wordle:     "wordle",
       impostor:   "impostor",
+      quiensoy:   "quiensoy",
       millonario: "sesion",
       none:       "tablon"
     };
