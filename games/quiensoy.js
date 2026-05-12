@@ -18,13 +18,19 @@ const CARDS_REF  = ref(db, "quiensoy/cards");
 //  CARTAS — admin
 // ============================================================
 
+// ── Helper para llamar al GAS (evita CORS con FormData) ──
+async function callGAS(payload) {
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  const res = await fetch(GAS_URL, { method: "POST", body: form });
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch(e) { throw new Error("Respuesta inválida del servidor: " + text.slice(0, 100)); }
+}
+
 export async function uploadCard(uid, b64, nombre, categoria) {
   // 1. Subir imagen al GAS → Drive → URL lh3
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    body: JSON.stringify({ action: "subirImagenQuienSoy", uid, b64, nombre })
-  });
-  const data = await res.json();
+  const data = await callGAS({ action: "subirImagenQuienSoy", uid, b64, nombre });
   if (!data.ok) throw new Error(data.error || "Error al subir imagen");
 
   // 2. Guardar carta en Firebase
@@ -42,14 +48,9 @@ export async function uploadCard(uid, b64, nombre, categoria) {
 }
 
 export async function deleteCard(uid, cardId, fileId) {
-  // Borrar imagen de Drive
   if (fileId) {
-    await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "eliminarImagenQuienSoy", uid, fileId })
-    });
+    await callGAS({ action: "eliminarImagenQuienSoy", uid, fileId });
   }
-  // Borrar de Firebase
   await remove(ref(db, `quiensoy/cards/${cardId}`));
 }
 
