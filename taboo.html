@@ -200,6 +200,7 @@
       listenScores();
       listenState();
       initPresence();
+      listenTabooResult();
     }
 
     // ── PRESENCE ──
@@ -377,7 +378,89 @@
         console.error(e);
       }
     }
+
+    // ── Escuchar resultado final del Taboo ──
+    let lastTabooResultTs = null;
+
+    function listenTabooResult() {
+      onValue(ref(db, "session/tabooResult"), (snap) => {
+        const result = snap.val();
+        if (!result || !result.ts) return;
+        // No mostrar si ya lo vimos o si es muy viejo (más de 30 segundos)
+        if (result.ts === lastTabooResultTs) return;
+        if (Date.now() - result.ts > 30000) return;
+        lastTabooResultTs = result.ts;
+
+        showTabooResult(result);
+      });
+    }
+
+    function showTabooResult(result) {
+      const modal     = document.getElementById("taboo-result-modal");
+      const icon      = document.getElementById("taboo-result-icon");
+      const title     = document.getElementById("taboo-result-title");
+      const sub       = document.getElementById("taboo-result-sub");
+      const myTeam    = currentUserData?.team || null;
+
+      if (result.tipo === "empate") {
+        icon.textContent  = "🤝";
+        title.textContent = "EMPATE";
+        title.style.color = "var(--crema)";
+        sub.textContent   = `${result.pRojo} – ${result.pAzul}. Sin puntos asignados.`;
+      } else {
+        const gané = myTeam === result.ganador;
+        icon.textContent  = gané ? "🏆" : "😔";
+        title.textContent = gané ? "¡GANASTE!" : "PERDISTE";
+        title.style.color = gané ? "#7bc47b" : "#e88";
+        sub.innerHTML     = gané
+          ? `${result.ganadorLabel} gana ${result.ganadorScore}–${result.perdedorScore}<br>+3 puntos para tu equipo 🎉`
+          : `${result.ganadorLabel} gana ${result.ganadorScore}–${result.perdedorScore}<br>¡Mejor suerte la próxima!`;
+      }
+
+      modal.classList.remove("hidden");
+
+      // Sonido
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const tonosFrecuencias = result.tipo === "empate"
+          ? [440, 440]
+          : (myTeam === result.ganador ? [520, 660, 780] : [330, 260]);
+        tonosFrecuencias.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = freq; osc.type = "sine";
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.3);
+          osc.start(ctx.currentTime + i * 0.18);
+          osc.stop(ctx.currentTime + i * 0.18 + 0.3);
+        });
+      } catch(e) {}
+
+      // Vibración
+      if (navigator.vibrate) {
+        navigator.vibrate(result.tipo === "empate"
+          ? [100, 100, 100]
+          : (myTeam === result.ganador ? [100, 50, 100, 50, 300] : [300]));
+      }
+    }
   </script>
+
+  <!-- MODAL RESULTADO FINAL TABOO -->
+  <div id="taboo-result-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.9);
+    display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+    <div style="background:var(--negro-2);border:1px solid rgba(200,150,0,0.25);border-radius:16px;
+      max-width:340px;width:100%;padding:32px 24px;text-align:center;">
+      <div id="taboo-result-icon" style="font-size:56px;margin-bottom:12px;"></div>
+      <div id="taboo-result-title" style="font-family:var(--font-title);font-size:36px;letter-spacing:3px;margin-bottom:8px;"></div>
+      <div id="taboo-result-sub" style="font-size:13px;color:var(--crema-3);line-height:1.6;margin-bottom:20px;"></div>
+      <button onclick="document.getElementById('taboo-result-modal').classList.add('hidden')"
+        style="background:var(--dorado);color:var(--negro);border:none;border-radius:8px;padding:11px 28px;font-family:var(--font-title);font-size:16px;letter-spacing:2px;cursor:pointer;">
+        OK
+      </button>
+    </div>
+  </div>
 
 <script type="module">
   import { initNavbar } from "./js/navbar.js";
