@@ -89,7 +89,8 @@
           const wordlePoints   = u.wordleStats?.totalPoints || 0;
           const impostorPoints = u.points || 0;
           const quienSoyPoints = u.quienSoyPoints || 0;
-          const total = wordlePoints + impostorPoints + quienSoyPoints;
+          const tabooPoints    = u.tabooPoints || 0;
+          const total = wordlePoints + impostorPoints + quienSoyPoints + tabooPoints;
           return {
             uid,
             nick:     u.nick || "—",
@@ -98,6 +99,7 @@
             wordle:   wordlePoints,
             impostor: impostorPoints,
             quienSoy: quienSoyPoints,
+            taboo:    tabooPoints,
             played:   u.wordleStats?.played || 0,
           };
         })
@@ -116,6 +118,7 @@
           u.wordle   ? `🔤 ${u.wordle}`   : "",
           u.impostor ? `🕵️ ${u.impostor}` : "",
           u.quienSoy ? `🪪 ${u.quienSoy}` : "",
+          u.taboo    ? `🃏 ${u.taboo}`    : "",
         ].filter(Boolean).join("  ·  ");
 
         return `
