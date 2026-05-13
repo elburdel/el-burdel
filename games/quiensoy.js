@@ -122,12 +122,18 @@ export async function resolveRound(guesserUid, guesserTeam, adivinó) {
     roundScore:  adivinó ? "adivinó" : "noAdivinó"
   });
 
-  // Sumar punto al equipo del que adivinó
   if (adivinó && guesserTeam) {
+    // Sumar al marcador de sesión (equipo)
     const teamScoreRef = ref(db, `session/scores/${guesserTeam}`);
-    const snap = await get(teamScoreRef);
-    const current = snap.val() || 0;
-    await set(teamScoreRef, current + 1);
+    const snapTeam = await get(teamScoreRef);
+    await set(teamScoreRef, (snapTeam.val() || 0) + 1);
+  }
+
+  if (adivinó && guesserUid) {
+    // Sumar punto al usuario individual para el ranking general
+    const userPointsRef = ref(db, `users/${guesserUid}/quienSoyPoints`);
+    const snapUser = await get(userPointsRef);
+    await set(userPointsRef, (snapUser.val() || 0) + 1);
   }
 }
 
