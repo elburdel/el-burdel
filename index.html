@@ -204,7 +204,7 @@
         .map(([uid, u]) => ({
           uid,
           nick:  u.nick || "—",
-          total: (u.wordleStats?.totalPoints || 0) + (u.points || 0) + (u.quienSoyPoints || 0),
+          total: (u.wordleStats?.totalPoints || 0) + (u.points || 0) + (u.quienSoyPoints || 0) + (u.tabooPoints || 0),
         }))
         .sort((a, b) => b.total - a.total);
 
