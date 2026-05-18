@@ -274,10 +274,6 @@
               style="font-size:12px;padding:8px 14px;text-align:left;width:fit-content;">
               📎 Elegir imagen
             </button>
-            <span id="add-file-name" style="font-size:11px;color:var(--crema-3);margin-top:3px;"></span>
-            <div class="bib-preview-wrap" id="add-preview-wrap">
-              <img id="add-preview-img" />
-            </div>
           </div>
 
           <!-- Botón -->
@@ -286,7 +282,14 @@
             <span id="add-status" style="font-size:11px;color:var(--crema-3);margin-top:4px;"></span>
           </div>
         </div>
-      </div>
+
+        <!-- Nombre archivo + preview (fuera del flex para no afectar alineación) -->
+        <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span id="add-file-name" style="font-size:11px;color:var(--crema-3);"></span>
+          <div class="bib-preview-wrap" id="add-preview-wrap" style="margin:0;">
+            <img id="add-preview-img" />
+          </div>
+        </div>
 
       <!-- ── FILTROS ── -->
       <div class="bib-filters">
