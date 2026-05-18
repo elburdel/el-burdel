@@ -823,8 +823,11 @@
               <div>
                 <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Imagen (JPG, PNG — máx 5MB)</label>
                 <input type="file" id="qs-upload-file" accept="image/*"
-                  style="font-size:12px;color:var(--crema-3);"
+                  style="display:none;"
                   onchange="qsPreviewUpload(this)" />
+                <button type="button" class="admin-btn secondary" onclick="document.getElementById('qs-upload-file').click()"
+                  style="font-size:12px;padding:8px 14px;width:fit-content;">📎 Elegir imagen</button>
+                <span id="qs-upload-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:3px;"></span>
                 <div id="qs-upload-preview" style="margin-top:8px;display:none;">
                   <img id="qs-upload-preview-img" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
                 </div>
@@ -836,10 +839,6 @@
             </div>
           </div>
 
-          <!-- Cards grid -->
-          <div id="qs-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;">
-            <div style="font-size:12px;color:var(--crema-3);padding:8px;">Cargando...</div>
-          </div>
         </div>
 
       </div>
@@ -2061,7 +2060,6 @@
       // Escuchar cartas
       onCards((cards) => {
         qsCards = cards || {};
-        qsRenderCardsGrid();
         qsPopulateCardSelect();
       });
 
@@ -2282,41 +2280,15 @@
 
     function qsUpdateScores() {}
 
-    // ── Cartas: render grid ──
-    function qsRenderCardsGrid() {
-      const grid = document.getElementById("qs-cards-grid");
-      if (!grid) return;
-      const cards = Object.values(qsCards);
-      if (!cards.length) {
-        grid.innerHTML = `<div style="font-size:12px;color:var(--crema-3);padding:8px;grid-column:1/-1;">Aún no hay cartas. Subí la primera.</div>`;
-        return;
-      }
-      grid.innerHTML = cards
-        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"))
-        .map(c => `
-          <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(200,150,0,0.15);">
-            <img src="${c.url}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
-            <div style="padding:5px 6px;background:var(--negro-2);">
-              <div style="font-size:11px;color:var(--crema);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nombre}</div>
-              <div style="font-size:10px;color:var(--crema-3);">${c.categoria || "General"}</div>
-            </div>
-            <button onclick="qsDeleteCard('${c.id}','${c.fileId || ""}')"
-              style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.7);border:none;color:#f88;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-          </div>
-        `).join("");
-    }
 
-    window.qsDeleteCard = (cardId, fileId) => {
-      if (!confirm("¿Eliminar esta carta?")) return;
-      qsDeleteCard(qsAdminUid, cardId, fileId)
-        .then(() => showToast("Carta eliminada."))
-        .catch(e => showToast("Error al eliminar: " + e.message));
-    };
+
 
     // ── Preview antes de subir ──
     window.qsPreviewUpload = (input) => {
       const file = input.files[0];
-      if (!file) return;
+      const nameEl = document.getElementById("qs-upload-file-name");
+      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+      if (nameEl) nameEl.textContent = file.name;
       const reader = new FileReader();
       reader.onload = (e) => {
         document.getElementById("qs-upload-preview-img").src = e.target.result;
@@ -2369,6 +2341,8 @@
         if (catSel) catSel.value = "";
         if (catInput) { catInput.value = ""; catInput.style.display = "none"; }
         fileInput.value = "";
+        const fnEl = document.getElementById("qs-upload-file-name");
+        if (fnEl) fnEl.textContent = "";
         document.getElementById("qs-upload-preview").style.display = "none";
         status.textContent = "";
         document.getElementById("qs-upload-area").classList.add("hidden");
