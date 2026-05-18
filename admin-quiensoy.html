@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biblioteca ¿Quién Soy? — El Burdel</title>
+  <meta name="description" content="Gestión de la biblioteca de cartas de ¿Quién Soy?." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="Biblioteca ¿Quién Soy? — El Burdel" />
+  <meta property="og:description" content="Gestión de la biblioteca de cartas de ¿Quién Soy?." />
+  <meta property="og:url" content="https://elburdel.github.io/el-burdel/admin-quiensoy.html" />
+  <meta property="og:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Biblioteca ¿Quién Soy? — El Burdel" />
+  <meta name="twitter:description" content="Gestión de la biblioteca de cartas de ¿Quién Soy?." />
+  <meta name="twitter:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+
+  <style>
+    .bib-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    .bib-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .bib-title {
+      font-family: var(--font-title);
+      font-size: 34px;
+      color: var(--crema);
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    /* ── Formulario agregar ── */
+    .bib-add-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.18);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+    .bib-add-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      margin-bottom: 14px;
+    }
+    .bib-add-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .bib-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .bib-field label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+    }
+    .bib-input {
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.22);
+      border-radius: 5px;
+      padding: 9px 12px;
+      color: var(--crema);
+      font-size: 14px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .bib-input:focus {
+      border-color: var(--dorado);
+    }
+    select.bib-input {
+      cursor: pointer;
+    }
+    .bib-nombre-input { width: 200px; }
+    .bib-cat-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .bib-cat-inner {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .bib-cat-inner select { width: 170px; }
+    .bib-cat-inner input  { width: 170px; display: none; }
+    .bib-cat-toggle {
+      background: none;
+      border: none;
+      color: var(--crema-3);
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+    .bib-cat-toggle:hover { color: var(--crema); }
+    .bib-preview-wrap {
+      display: none;
+      margin-top: 8px;
+    }
+    .bib-preview-wrap img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid rgba(200,150,0,0.2);
+    }
+
+    /* ── Filtros / búsqueda ── */
+    .bib-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .bib-filters input,
+    .bib-filters select {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      padding: 9px 12px;
+      color: var(--crema);
+      font-size: 13px;
+      outline: none;
+      font-family: var(--font-body);
+      transition: border-color 0.2s;
+    }
+    .bib-filters input:focus,
+    .bib-filters select:focus { border-color: var(--dorado); }
+    .bib-filters input { flex: 1; min-width: 180px; }
+    .bib-filters select { min-width: 160px; }
+    .bib-count {
+      font-size: 12px;
+      color: var(--crema-3);
+      margin-bottom: 14px;
+    }
+
+    /* ── Grid de cartas ── */
+    .bib-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px;
+    }
+    .bib-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.14);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s;
+    }
+    .bib-card:hover { border-color: rgba(200,150,0,0.35); }
+    .bib-card img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      display: block;
+    }
+    .bib-card-info {
+      padding: 8px 10px;
+    }
+    .bib-card-name {
+      font-size: 12px;
+      color: var(--crema);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .bib-card-cat {
+      font-size: 10px;
+      color: var(--crema-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bib-card-del {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.72);
+      border: none;
+      color: #f88;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .bib-card-del:hover { background: rgba(200,40,40,0.75); color: #fff; }
+    .bib-card-img-wrap { position: relative; }
+  </style>
+</head>
+<body>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div class="admin-header-inner">
+        <div>
+          <span class="section-label">Gestión</span>
+          <h1 class="admin-title">Biblioteca ¿Quién Soy?</h1>
+        </div>
+        <a href="admin.html" class="admin-btn secondary small" style="text-decoration:none;">← Volver al Admin</a>
+      </div>
+    </div>
+
+    <div class="bib-container">
+
+      <!-- ── FORMULARIO AGREGAR ── -->
+      <div class="bib-add-card">
+        <div class="bib-add-label">Agregar nueva carta</div>
+        <div class="bib-add-row">
+
+          <!-- Nombre -->
+          <div class="bib-field">
+            <label>Nombre / Personaje</label>
+            <input type="text" id="add-nombre" class="bib-input bib-nombre-input"
+              placeholder="Ej: Lionel Messi" maxlength="60" />
+          </div>
+
+          <!-- Categoría: select inteligente -->
+          <div class="bib-cat-wrapper">
+            <label class="bib-field" style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);">Categoría</label>
+            <div class="bib-cat-inner" id="cat-inner">
+              <select class="bib-input" id="cat-select">
+                <option value="">— Elegir categoría —</option>
+                <!-- Se llena dinámicamente -->
+                <option value="__nueva__">+ Nueva categoría…</option>
+              </select>
+              <input type="text" class="bib-input" id="cat-nueva-input"
+                placeholder="Nombre de categoría" maxlength="40" />
+            </div>
+          </div>
+
+          <!-- Imagen -->
+          <div class="bib-field">
+            <label>Imagen (JPG/PNG — máx 5MB)</label>
+            <input type="file" id="add-file" accept="image/*"
+              style="font-size:12px;color:var(--crema-3);"
+              onchange="handlePreview(this)" />
+            <div class="bib-preview-wrap" id="add-preview-wrap">
+              <img id="add-preview-img" />
+            </div>
+          </div>
+
+          <!-- Botón -->
+          <div class="bib-field" style="justify-content:flex-end;">
+            <button class="admin-btn primary" id="add-btn" onclick="handleAddCard()">Subir carta</button>
+            <span id="add-status" style="font-size:11px;color:var(--crema-3);margin-top:4px;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── FILTROS ── -->
+      <div class="bib-filters">
+        <input type="text" id="search-input" placeholder="Buscar por nombre..."
+          oninput="renderGrid()" />
+        <select id="filter-cat" onchange="renderGrid()">
+          <option value="">Todas las categorías</option>
+        </select>
+      </div>
+      <p class="bib-count" id="bib-count">Cargando...</p>
+
+      <!-- ── GRID ── -->
+      <div class="bib-grid" id="bib-grid">
+        <p style="color:var(--crema-3);font-size:13px;">Cargando cartas...</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL CONFIRMAR -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal-box">
+      <p class="modal-text" id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import {
+      uploadCard, deleteCard, onCards
+    } from "./games/quiensoy.js";
+
+    let allCards = {};       // { id: cardData }
+    let categories = [];     // lista de categorías únicas detectadas de Firebase
+    let adminUid = null;
+
+    // ── Auth guard ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.role !== "admin") { window.location.href = "login.html"; return; }
+      adminUid = user.uid;
+      init();
+    });
+
+    function init() {
+      onCards((cards) => {
+        allCards = cards || {};
+        updateCategories();
+        renderGrid();
+      });
+    }
+
+    // ── Extraer categorías únicas de las cartas ──
+    function updateCategories() {
+      const set = new Set();
+      Object.values(allCards).forEach(c => {
+        if (c.categoria && c.categoria !== "General") set.add(c.categoria);
+      });
+      // Siempre incluir General al final
+      categories = [...set].sort((a, b) => a.localeCompare(b, "es"));
+      if (Object.values(allCards).some(c => !c.categoria || c.categoria === "General")) {
+        categories.push("General");
+      }
+      rebuildCatSelects();
+    }
+
+    // ── Rebuild ambos selects (add-form y filter) ──
+    function rebuildCatSelects() {
+      const addSel = document.getElementById("cat-select");
+      const filterSel = document.getElementById("filter-cat");
+
+      // Select del formulario de agregar
+      const prevVal = addSel.value;
+      addSel.innerHTML =
+        `<option value="">— Elegir categoría —</option>` +
+        categories.map(c => `<option value="${c}">${c}</option>`).join("") +
+        `<option value="__nueva__">+ Nueva categoría…</option>`;
+      // Restaurar valor si seguía válido
+      if (prevVal && prevVal !== "__nueva__" && categories.includes(prevVal)) {
+        addSel.value = prevVal;
+      }
+
+      // Select del filtro
+      const prevFilter = filterSel.value;
+      filterSel.innerHTML =
+        `<option value="">Todas las categorías</option>` +
+        categories.map(c => `<option value="${c}">${c}</option>`).join("");
+      if (prevFilter && categories.includes(prevFilter)) {
+        filterSel.value = prevFilter;
+      }
+    }
+
+    // ── Render grid ──
+    window.renderGrid = function() {
+      const query = (document.getElementById("search-input").value || "").toLowerCase().trim();
+      const catFilter = document.getElementById("filter-cat").value;
+      const grid = document.getElementById("bib-grid");
+
+      let cards = Object.values(allCards);
+
+      if (catFilter) {
+        cards = cards.filter(c => (c.categoria || "General") === catFilter);
+      }
+      if (query) {
+        cards = cards.filter(c => (c.nombre || "").toLowerCase().includes(query));
+      }
+      cards.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+
+      document.getElementById("bib-count").textContent =
+        `${cards.length} carta${cards.length !== 1 ? "s" : ""}` +
+        (catFilter ? ` en "${catFilter}"` : " en total");
+
+      if (!cards.length) {
+        grid.innerHTML = `<p style="color:var(--crema-3);font-size:13px;grid-column:1/-1;">No se encontraron cartas.</p>`;
+        return;
+      }
+
+      grid.innerHTML = cards.map(c => `
+        <div class="bib-card">
+          <div class="bib-card-img-wrap">
+            <img src="${c.url}" alt="${c.nombre}" loading="lazy" />
+            <button class="bib-card-del" onclick="confirmDelete('${c.id}','${(c.fileId||'')}','${escAttr(c.nombre)}')" title="Eliminar">✕</button>
+          </div>
+          <div class="bib-card-info">
+            <div class="bib-card-name" title="${escAttr(c.nombre)}">${c.nombre}</div>
+            <div class="bib-card-cat">${c.categoria || "General"}</div>
+          </div>
+        </div>
+      `).join("");
+    };
+
+    function escAttr(s) {
+      return (s || "").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    // ── Lógica del select "Nueva categoría" ──
+    document.getElementById("cat-select").addEventListener("change", function() {
+      const input = document.getElementById("cat-nueva-input");
+      if (this.value === "__nueva__") {
+        input.style.display = "block";
+        input.focus();
+      } else {
+        input.style.display = "none";
+        input.value = "";
+      }
+    });
+
+    // ── Preview imagen antes de subir ──
+    window.handlePreview = function(fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById("add-preview-img").src = e.target.result;
+        document.getElementById("add-preview-wrap").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // ── Subir carta ──
+    window.handleAddCard = async function() {
+      const nombre = document.getElementById("add-nombre").value.trim();
+      const catSel = document.getElementById("cat-select").value;
+      const catNueva = document.getElementById("cat-nueva-input").value.trim();
+      const fileInput = document.getElementById("add-file");
+      const status = document.getElementById("add-status");
+      const btn = document.getElementById("add-btn");
+
+      if (!nombre) { showToast("Poné el nombre del personaje."); return; }
+
+      let categoria;
+      if (catSel === "__nueva__") {
+        if (!catNueva) { showToast("Escribí el nombre de la nueva categoría."); return; }
+        categoria = catNueva;
+      } else if (catSel) {
+        categoria = catSel;
+      } else {
+        categoria = "General";
+      }
+
+      if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
+      const file = fileInput.files[0];
+      if (file.size > 5 * 1024 * 1024) { showToast("La imagen no puede superar 5MB."); return; }
+
+      btn.disabled = true;
+      status.textContent = "Comprimiendo...";
+
+      try {
+        const b64 = await compressImage(file, 800, 0.82);
+        status.textContent = "Subiendo...";
+        const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
+        await uploadCard(adminUid, b64, cardNombre, categoria);
+
+        showToast("✅ Carta subida: " + cardNombre);
+        document.getElementById("add-nombre").value = "";
+        document.getElementById("cat-select").value = "";
+        document.getElementById("cat-nueva-input").value = "";
+        document.getElementById("cat-nueva-input").style.display = "none";
+        fileInput.value = "";
+        document.getElementById("add-preview-wrap").style.display = "none";
+        status.textContent = "";
+      } catch(e) {
+        showToast("Error al subir: " + e.message);
+        status.textContent = "";
+      }
+      btn.disabled = false;
+    };
+
+    // ── Eliminar carta ──
+    window.confirmDelete = function(cardId, fileId, nombre) {
+      showModal(`¿Eliminar la carta "${nombre}"?`, async () => {
+        try {
+          await deleteCard(adminUid, cardId, fileId || null);
+          showToast("Carta eliminada.");
+          closeModal();
+        } catch(e) {
+          showToast("Error al eliminar: " + e.message);
+        }
+      });
+    };
+
+    // ── Comprimir imagen ──
+    function compressImage(file, maxPx, quality) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width  = Math.round(img.width  * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", quality).split(",")[1]);
+        };
+        img.onerror = () => reject(new Error("No se pudo leer la imagen."));
+        img.src = url;
+      });
+    }
+
+    // ── Modal ──
+    function showModal(text, onConfirm) {
+      document.getElementById("modal-text").textContent = text;
+      document.getElementById("modal-overlay").classList.remove("hidden");
+      document.getElementById("modal-confirm").onclick = onConfirm;
+    }
+    window.closeModal = function() {
+      document.getElementById("modal-overlay").classList.add("hidden");
+    };
+
+    // ── Toast ──
+    function showToast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2800);
+    }
+  </script>
+
+  <script type="module">
+    import { initNavbar } from "./js/navbar.js";
+    initNavbar();
+  </script>
+</body>
+</html>
