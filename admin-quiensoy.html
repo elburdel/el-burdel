@@ -267,8 +267,14 @@
           <div class="bib-field">
             <label>Imagen (JPG/PNG — máx 5MB)</label>
             <input type="file" id="add-file" accept="image/*"
-              style="font-size:12px;color:var(--crema-3);"
+              style="display:none;"
               onchange="handlePreview(this)" />
+            <button type="button" class="admin-btn secondary" id="add-file-btn"
+              onclick="document.getElementById('add-file').click()"
+              style="font-size:12px;padding:8px 14px;text-align:left;width:fit-content;">
+              📎 Elegir imagen
+            </button>
+            <span id="add-file-name" style="font-size:11px;color:var(--crema-3);margin-top:3px;"></span>
             <div class="bib-preview-wrap" id="add-preview-wrap">
               <img id="add-preview-img" />
             </div>
@@ -436,7 +442,9 @@
     // ── Preview imagen antes de subir ──
     window.handlePreview = function(fileInput) {
       const file = fileInput.files[0];
-      if (!file) return;
+      const nameEl = document.getElementById("add-file-name");
+      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+      if (nameEl) nameEl.textContent = file.name;
       const reader = new FileReader();
       reader.onload = (e) => {
         document.getElementById("add-preview-img").src = e.target.result;
@@ -485,6 +493,8 @@
         document.getElementById("cat-nueva-input").value = "";
         document.getElementById("cat-nueva-input").style.display = "none";
         fileInput.value = "";
+        const nameEl = document.getElementById("add-file-name");
+        if (nameEl) nameEl.textContent = "";
         document.getElementById("add-preview-wrap").style.display = "none";
         status.textContent = "";
       } catch(e) {
