@@ -211,7 +211,7 @@
             <div class="track-num">TEMA ${String(items.length - i).padStart(2, "0")}</div>
             <div class="track-titulo">${t.titulo}</div>
             ${t.artista ? `<div class="track-artista">${t.artista}</div>` : `<div style="margin-bottom:14px;"></div>`}
-            <audio class="track-audio" controls preload="none" src="${t.url}"></audio>
+            <iframe src="${t.url}" style="width:100%;height:54px;border:none;border-radius:6px;margin:4px 0;" loading="lazy" allow="autoplay"></iframe>
             ${t.letra ? `
               <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
                 <span class="arrow">▶</span> Ver letra
