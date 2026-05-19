@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>El Burdel Suena</title>
-  <meta name="description" content="Nuestra música. Solo para miembros del Burdel." />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css?v=2" />
   <link rel="stylesheet" href="css/landing.css" />
@@ -24,7 +23,24 @@
     .track-num { font-size: 11px; letter-spacing: 2px; color: var(--dorado); text-transform: uppercase; margin-bottom: 4px; }
     .track-titulo { font-family: var(--font-display); font-size: 22px; color: var(--crema); letter-spacing: 1.5px; line-height: 1.1; margin-bottom: 4px; }
     .track-artista { font-size: 12px; color: var(--crema-3); margin-bottom: 14px; }
-    .track-audio { width: 100%; height: 40px; accent-color: var(--dorado); margin-bottom: 4px; }
+
+    /* Player con estado de carga */
+    .track-player-wrap { position: relative; margin-bottom: 4px; }
+    .track-audio { width: 100%; height: 40px; accent-color: var(--dorado); display: block; }
+    .track-loading {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--crema-3);
+      padding: 8px 0;
+    }
+    .track-loading-spinner {
+      width: 16px; height: 16px; border: 2px solid rgba(200,150,0,0.3);
+      border-top-color: var(--dorado); border-radius: 50%;
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .track-error { font-size: 12px; color: #f88; padding: 6px 0; }
+
+    /* Letra */
     .track-letra-toggle {
       display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
       font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
@@ -32,14 +48,10 @@
       background: none; border: none; padding: 0; font-family: var(--font-body);
     }
     .track-letra-toggle:hover { opacity: 0.75; }
-    .track-letra-body {
-      display: none; margin-top: 14px; padding: 16px;
-      background: rgba(255,255,255,0.03);
-      border-left: 2px solid rgba(200,150,0,0.3);
-      border-radius: 0 6px 6px 0;
-    }
+    .track-letra-body { display: none; margin-top: 14px; padding: 16px; background: rgba(255,255,255,0.03); border-left: 2px solid rgba(200,150,0,0.3); border-radius: 0 6px 6px 0; }
     .track-letra-body.visible { display: block; }
     .track-letra-body pre { font-size: 13px; color: var(--crema); line-height: 1.8; white-space: pre-wrap; font-family: var(--font-body); margin: 0; opacity: 0.85; }
+
     .musica-estado { text-align: center; padding: 60px 0; }
     .musica-estado p { color: var(--crema-3); font-size: 14px; margin-bottom: 20px; }
     .musica-vacio { text-align: center; padding: 40px 0; color: var(--crema-3); font-size: 14px; }
@@ -76,7 +88,7 @@
   <script type="module">
     import { onSession, getUserData } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
-    import { onTracks } from "./games/musica.js";
+    import { onTracks, loadAudioBlob } from "./games/musica.js";
 
     initNavbar();
 
@@ -86,9 +98,7 @@
 
     onSession(async (user) => {
       elLoading.style.display = "none";
-
       if (!user) { elLocked.style.display = "block"; return; }
-
       const data = await getUserData(user.uid);
       if (!data || data.status !== "active") { elLocked.style.display = "block"; return; }
 
@@ -108,7 +118,12 @@
             <div class="track-num">TEMA ${String(items.length - i).padStart(2, "0")}</div>
             <div class="track-titulo">${esc(t.titulo)}</div>
             ${t.artista ? `<div class="track-artista">${esc(t.artista)}</div>` : `<div style="margin-bottom:14px;"></div>`}
-            <audio class="track-audio" controls preload="none" src="${t.url}"></audio>
+            <div class="track-player-wrap" id="player-wrap-${t.id}">
+              <div class="track-loading" id="loading-${t.id}">
+                <div class="track-loading-spinner"></div>
+                <span>Cargando audio...</span>
+              </div>
+            </div>
             ${t.letra ? `
               <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
                 <span id="arrow-${t.id}" style="display:inline-block;transition:transform 0.2s;">▶</span> Ver letra
@@ -119,21 +134,46 @@
             ` : ""}
           </div>
         `).join("");
+
+        // Cargar cada audio como blob
+        items.forEach(t => loadPlayer(t));
       });
     });
 
+    async function loadPlayer(t) {
+      const wrap    = document.getElementById("player-wrap-" + t.id);
+      const loading = document.getElementById("loading-"      + t.id);
+      if (!wrap || !loading) return;
+      try {
+        const blobUrl = await loadAudioBlob(t.audioUrl);
+        loading.remove();
+        const audio = document.createElement("audio");
+        audio.className = "track-audio";
+        audio.controls  = true;
+        audio.preload   = "none";
+        audio.src       = blobUrl;
+        wrap.appendChild(audio);
+      } catch(e) {
+        loading.remove();
+        const err = document.createElement("div");
+        err.className = "track-error";
+        err.textContent = "No se pudo cargar el audio.";
+        wrap.appendChild(err);
+      }
+    }
+
     window.toggleLetra = function(id) {
-      const body   = document.getElementById("letra-" + id);
+      const body   = document.getElementById("letra-"  + id);
+      const arrow  = document.getElementById("arrow-"  + id);
       const toggle = document.getElementById("toggle-" + id);
-      const arrow  = document.getElementById("arrow-" + id);
-      if (!body || !toggle) return;
+      if (!body) return;
       const open = body.classList.toggle("visible");
       if (arrow) arrow.style.transform = open ? "rotate(90deg)" : "";
-      toggle.childNodes[1].textContent = open ? " Ocultar letra" : " Ver letra";
+      if (toggle) toggle.childNodes[1].textContent = open ? " Ocultar letra" : " Ver letra";
     };
 
     function esc(s) {
-      return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
   </script>
 </body>
