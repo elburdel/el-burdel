@@ -1,84 +1,140 @@
-// ============================================================
-//  El Burdel — Música
-//  Firebase Realtime Database + Google Drive (vía GAS)
-// ============================================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Burdel Suena</title>
+  <meta name="description" content="Nuestra música. Solo para miembros del Burdel." />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=2" />
+  <link rel="stylesheet" href="css/landing.css" />
+  <style>
+    .musica-page { padding-top: 110px; min-height: 80vh; }
+    .musica-inner { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; }
+    .musica-header { margin-bottom: 36px; }
+    .track-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.14);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .track-card:hover { border-color: rgba(200,150,0,0.3); }
+    .track-num { font-size: 11px; letter-spacing: 2px; color: var(--dorado); text-transform: uppercase; margin-bottom: 4px; }
+    .track-titulo { font-family: var(--font-display); font-size: 22px; color: var(--crema); letter-spacing: 1.5px; line-height: 1.1; margin-bottom: 4px; }
+    .track-artista { font-size: 12px; color: var(--crema-3); margin-bottom: 14px; }
+    .track-audio { width: 100%; height: 40px; accent-color: var(--dorado); margin-bottom: 4px; }
+    .track-letra-toggle {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+      font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--dorado); cursor: pointer; user-select: none;
+      background: none; border: none; padding: 0; font-family: var(--font-body);
+    }
+    .track-letra-toggle:hover { opacity: 0.75; }
+    .track-letra-body {
+      display: none; margin-top: 14px; padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid rgba(200,150,0,0.3);
+      border-radius: 0 6px 6px 0;
+    }
+    .track-letra-body.visible { display: block; }
+    .track-letra-body pre { font-size: 13px; color: var(--crema); line-height: 1.8; white-space: pre-wrap; font-family: var(--font-body); margin: 0; opacity: 0.85; }
+    .musica-estado { text-align: center; padding: 60px 0; }
+    .musica-estado p { color: var(--crema-3); font-size: 14px; margin-bottom: 20px; }
+    .musica-vacio { text-align: center; padding: 40px 0; color: var(--crema-3); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main class="musica-page">
+    <div class="musica-inner">
+      <div class="musica-header">
+        <span class="section-label">Nuestros temas</span>
+        <h1 class="section-title">El Burdel Suena</h1>
+      </div>
+      <div id="musica-locked" class="musica-estado" style="display:none;">
+        <p>Esta página es exclusiva para miembros del Burdel.</p>
+        <a href="login.html" class="hero-btn" style="padding:10px 28px;font-size:11px;">Entrar</a>
+      </div>
+      <div id="musica-loading" class="musica-estado">
+        <p style="font-size:13px;">Cargando...</p>
+      </div>
+      <div id="musica-tracks" style="display:none;"></div>
+    </div>
+  </main>
 
-import { db } from "../js/firebase-init.js";
-import {
-  ref, onValue, set, remove, push, get
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="index.html#musica" class="nav-bottom-link">← Volver</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel — Todos los derechos reservados</p>
+    </div>
+  </footer>
 
-const GAS_URL   = "https://script.google.com/macros/s/AKfycbzIj-RX_YCbunbJs2zU4-y9GX4ZnRM6G7zenIw5x2_D19VAObu3YwQJTHiFNVmOj691/exec";
-const MUSIC_REF = ref(db, "musica");
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { initNavbar } from "./js/navbar.js";
+    import { onTracks } from "./games/musica.js";
 
-// ── Helper GAS con logs ──
-async function callGAS(payload) {
-  const payloadStr = JSON.stringify(payload);
-  console.log("[musica] callGAS action:", payload.action, "| payload size:", (payloadStr.length / 1024).toFixed(1) + " KB");
+    initNavbar();
 
-  const form = new FormData();
-  form.append("payload", payloadStr);
+    const elLocked  = document.getElementById("musica-locked");
+    const elLoading = document.getElementById("musica-loading");
+    const elTracks  = document.getElementById("musica-tracks");
 
-  let res;
-  try {
-    res = await fetch(GAS_URL, { method: "POST", body: form });
-  } catch(e) {
-    console.error("[musica] fetch falló:", e);
-    throw new Error("No se pudo conectar con el servidor: " + e.message);
-  }
+    onSession(async (user) => {
+      elLoading.style.display = "none";
 
-  console.log("[musica] HTTP status:", res.status);
-  const text = await res.text();
-  console.log("[musica] respuesta raw:", text.slice(0, 300));
+      if (!user) { elLocked.style.display = "block"; return; }
 
-  try { return JSON.parse(text); }
-  catch(e) { throw new Error("Respuesta inválida del servidor: " + text.slice(0, 200)); }
-}
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") { elLocked.style.display = "block"; return; }
 
-// ── Subir MP3 → Drive → Firebase ──
-export async function uploadTrack(uid, b64, titulo, artista, letra) {
-  console.log("[musica] uploadTrack start — titulo:", titulo, "| b64 size:", (b64.length / 1024).toFixed(1) + " KB");
+      elTracks.style.display = "block";
 
-  const data = await callGAS({
-    action: "subirMusicaBurdel",
-    uid,
-    b64,
-    nombre: titulo
-  });
+      onTracks((tracks) => {
+        const items = Object.values(tracks)
+          .sort((a, b) => (b.creadoEn || 0) - (a.creadoEn || 0));
 
-  console.log("[musica] GAS response:", data);
-  if (!data.ok) throw new Error(data.error || "Error al subir el archivo");
+        if (!items.length) {
+          elTracks.innerHTML = `<div class="musica-vacio">Próximamente nuestros primeros temas. 🎶</div>`;
+          return;
+        }
 
-  const trackRef = push(MUSIC_REF);
-  await set(trackRef, {
-    id:        trackRef.key,
-    titulo:    titulo,
-    artista:   artista  || "",
-    letra:     letra    || "",
-    url:       data.url,
-    fileId:    data.fileId,
-    creadoEn:  Date.now()
-  });
+        elTracks.innerHTML = items.map((t, i) => `
+          <div class="track-card">
+            <div class="track-num">TEMA ${String(items.length - i).padStart(2, "0")}</div>
+            <div class="track-titulo">${esc(t.titulo)}</div>
+            ${t.artista ? `<div class="track-artista">${esc(t.artista)}</div>` : `<div style="margin-bottom:14px;"></div>`}
+            <audio class="track-audio" controls preload="none" src="${t.url}"></audio>
+            ${t.letra ? `
+              <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
+                <span id="arrow-${t.id}" style="display:inline-block;transition:transform 0.2s;">▶</span> Ver letra
+              </button>
+              <div class="track-letra-body" id="letra-${t.id}">
+                <pre>${esc(t.letra)}</pre>
+              </div>
+            ` : ""}
+          </div>
+        `).join("");
+      });
+    });
 
-  console.log("[musica] guardado en Firebase:", trackRef.key);
-  return { id: trackRef.key, url: data.url };
-}
+    window.toggleLetra = function(id) {
+      const body   = document.getElementById("letra-" + id);
+      const toggle = document.getElementById("toggle-" + id);
+      const arrow  = document.getElementById("arrow-" + id);
+      if (!body || !toggle) return;
+      const open = body.classList.toggle("visible");
+      if (arrow) arrow.style.transform = open ? "rotate(90deg)" : "";
+      toggle.childNodes[1].textContent = open ? " Ocultar letra" : " Ver letra";
+    };
 
-// ── Eliminar track ──
-export async function deleteTrack(uid, trackId, fileId) {
-  if (fileId) {
-    await callGAS({ action: "eliminarMusicaBurdel", uid, fileId });
-  }
-  await remove(ref(db, `musica/${trackId}`));
-}
-
-// ── Listener en tiempo real ──
-export function onTracks(cb) {
-  return onValue(MUSIC_REF, snap => cb(snap.val() || {}));
-}
-
-// ── Get una vez ──
-export async function getTracks() {
-  const snap = await get(MUSIC_REF);
-  return snap.val() || {};
-}
+    function esc(s) {
+      return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+  </script>
+</body>
+</html>
