@@ -2418,10 +2418,19 @@
 
   let adminUid = null;
 
+  // showToast local — los módulos ES6 no comparten scope entre sí
+  function showToast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add("show"), 10);
+    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2800);
+  }
+
   onSession((user) => {
     if (!user) return;
     adminUid = user.uid;
-    // La lista completa está en musica-admin.html
     const list = document.getElementById("music-list");
     if (list) list.innerHTML = `<p style="font-size:12px;color:var(--crema-3);">Usá el botón "Gestionar música" para ver y eliminar temas.</p>`;
   });
