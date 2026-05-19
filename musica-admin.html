@@ -214,7 +214,7 @@
               </div>
               <button class="track-del-btn" onclick="confirmDelete('${t.id}','${t.fileId || ""}','${escAttr(t.titulo)}')">Eliminar</button>
             </div>
-            <audio class="track-audio" controls preload="none" src="${t.url}"></audio>
+            <audio class="track-audio" controls preload="none" src="${t.url}" crossorigin="anonymous"></audio>
             ${t.letra ? `
               <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
                 ▶ Ver letra
