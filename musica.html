@@ -164,12 +164,10 @@
 
     window.toggleLetra = function(id) {
       const body   = document.getElementById("letra-"  + id);
-      const arrow  = document.getElementById("arrow-"  + id);
       const toggle = document.getElementById("toggle-" + id);
-      if (!body) return;
+      if (!body || !toggle) return;
       const open = body.classList.toggle("visible");
-      if (arrow) arrow.style.transform = open ? "rotate(90deg)" : "";
-      if (toggle) toggle.childNodes[1].textContent = open ? " Ocultar letra" : " Ver letra";
+      toggle.innerHTML = `<span style="display:inline-block;transition:transform 0.2s;transform:${open ? "rotate(90deg)" : ""}">▶</span> ${open ? "Ocultar letra" : "Ver letra"}`;
     };
 
     function esc(s) {
