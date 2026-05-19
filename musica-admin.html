@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestionar Música — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=2" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <style>
+    .bib-container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    /* ── Lista de tracks ── */
+    .track-row {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.14);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .track-row:hover { border-color: rgba(200,150,0,0.3); }
+
+    .track-row-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .track-row-info { flex: 1; min-width: 140px; }
+    .track-titulo {
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--crema);
+      letter-spacing: 1px;
+      line-height: 1.1;
+    }
+    .track-artista {
+      font-size: 11px;
+      color: var(--crema-3);
+      margin-top: 3px;
+    }
+    .track-fecha {
+      font-size: 10px;
+      color: var(--crema-3);
+      margin-top: 4px;
+      opacity: 0.6;
+    }
+    .track-audio {
+      width: 100%;
+      height: 36px;
+      accent-color: var(--dorado);
+      margin: 12px 0 4px;
+    }
+    .track-badge-letra {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dorado);
+      margin-top: 6px;
+    }
+    .track-del-btn {
+      background: none;
+      border: 1px solid rgba(200,80,80,0.35);
+      color: #f88;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .track-del-btn:hover { background: rgba(200,80,80,0.15); }
+
+    /* ── Letra expandible ── */
+    .track-letra-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dorado);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: var(--font-body);
+    }
+    .track-letra-toggle:hover { opacity: 0.7; }
+    .track-letra-body {
+      display: none;
+      margin-top: 12px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid rgba(200,150,0,0.3);
+      border-radius: 0 6px 6px 0;
+    }
+    .track-letra-body.visible { display: block; }
+    .track-letra-body pre {
+      font-size: 12px;
+      color: var(--crema);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      font-family: var(--font-body);
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    /* ── Empty ── */
+    .tracks-empty {
+      text-align: center;
+      padding: 50px 0;
+      color: var(--crema-3);
+      font-size: 14px;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; }
+    .modal-overlay.visible { display:flex; }
+    .modal-box { background:var(--negro-2); border:1px solid rgba(200,150,0,0.2); border-radius:12px; padding:28px 24px; max-width:360px; width:90%; }
+    .modal-text { color:var(--crema); font-size:14px; margin-bottom:20px; line-height:1.5; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+  </style>
+</head>
+<body>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div class="admin-header-inner">
+        <div>
+          <span class="section-label">Gestión</span>
+          <h1 class="admin-title">Música</h1>
+        </div>
+        <a href="admin.html" class="admin-btn secondary small" style="text-decoration:none;">← Volver al Admin</a>
+      </div>
+    </div>
+
+    <div class="bib-container">
+
+      <!-- ── Contador ── -->
+      <p id="tracks-count" style="font-size:12px;color:var(--crema-3);margin-bottom:18px;">Cargando...</p>
+
+      <!-- ── Lista ── -->
+      <div id="tracks-list">
+        <p style="color:var(--crema-3);font-size:13px;">Cargando...</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL CONFIRMAR -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <p class="modal-text" id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button class="admin-btn primary" id="modal-confirm">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { initNavbar } from "./js/navbar.js";
+    import { onTracks, deleteTrack } from "./games/musica.js";
+
+    initNavbar();
+
+    let adminUid = null;
+
+    onSession(async (user) => {
+      if (!user) { window.location.href = "login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.role !== "admin") { window.location.href = "login.html"; return; }
+      adminUid = user.uid;
+
+      onTracks((tracks) => renderList(tracks));
+    });
+
+    function renderList(tracks) {
+      const list  = document.getElementById("tracks-list");
+      const count = document.getElementById("tracks-count");
+      if (!list) return;
+
+      const items = Object.values(tracks)
+        .sort((a, b) => (b.creadoEn || 0) - (a.creadoEn || 0));
+
+      if (count) count.textContent = `${items.length} tema${items.length !== 1 ? "s" : ""} en total`;
+
+      if (!items.length) {
+        list.innerHTML = `<div class="tracks-empty">Aún no hay temas subidos. Podés agregar desde el Admin.</div>`;
+        return;
+      }
+
+      list.innerHTML = items.map((t, i) => {
+        const fecha = t.creadoEn ? new Date(t.creadoEn).toLocaleDateString("es-AR", { day:"2-digit", month:"short", year:"numeric" }) : "";
+        return `
+          <div class="track-row">
+            <div class="track-row-header">
+              <div class="track-row-info">
+                <div class="track-titulo">${esc(t.titulo)}</div>
+                ${t.artista ? `<div class="track-artista">${esc(t.artista)}</div>` : ""}
+                ${fecha ? `<div class="track-fecha">Subido el ${fecha}</div>` : ""}
+              </div>
+              <button class="track-del-btn" onclick="confirmDelete('${t.id}','${t.fileId || ""}','${escAttr(t.titulo)}')">Eliminar</button>
+            </div>
+            <audio class="track-audio" controls preload="none" src="${t.url}"></audio>
+            ${t.letra ? `
+              <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
+                ▶ Ver letra
+              </button>
+              <div class="track-letra-body" id="letra-${t.id}">
+                <pre>${esc(t.letra)}</pre>
+              </div>
+            ` : `<span style="font-size:10px;color:var(--crema-3);opacity:.5;">Sin letra</span>`}
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.toggleLetra = function(id) {
+      const body   = document.getElementById("letra-" + id);
+      const toggle = document.getElementById("toggle-" + id);
+      if (!body || !toggle) return;
+      const open = body.classList.toggle("visible");
+      toggle.textContent = open ? "▼ Ocultar letra" : "▶ Ver letra";
+    };
+
+    // ── Eliminar ──
+    window.confirmDelete = function(trackId, fileId, titulo) {
+      document.getElementById("modal-text").textContent = `¿Eliminar "${titulo}"? Esta acción no se puede deshacer.`;
+      document.getElementById("modal-overlay").classList.add("visible");
+      document.getElementById("modal-confirm").onclick = async () => {
+        try {
+          await deleteTrack(adminUid, trackId, fileId || null);
+          showToast("Tema eliminado.");
+          closeModal();
+        } catch(e) {
+          showToast("Error: " + e.message);
+        }
+      };
+    };
+
+    window.closeModal = function() {
+      document.getElementById("modal-overlay").classList.remove("visible");
+    };
+
+    function esc(s) {
+      return (s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    function escAttr(s) {
+      return (s || "").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function showToast(msg) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2800);
+    }
+    window.showToast = showToast;
+  </script>
+</body>
+</html>
