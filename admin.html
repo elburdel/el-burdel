@@ -180,6 +180,7 @@
         <button class="active-section" data-section="wordle">🔤 Wordle</button>
         <button class="active-section" data-section="impostor">🕵️ Impostor</button>
         <button class="active-section" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+        <button class="active-section" data-section="musica">🎵 Música</button>
         <button class="active-section" data-section="tablon">📋 Tablón</button>
       </div>
     </div>
@@ -658,6 +659,67 @@
       </div>
     </section>
 
+    <!-- ════════════════════════════════════════
+         SECCIÓN MÚSICA
+    ════════════════════════════════════════ -->
+    <section class="admin-section" id="section-musica">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🎵 Música</h2>
+        </div>
+
+        <!-- Upload -->
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Subir nuevo tema</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Título del tema</label>
+              <input type="text" id="music-titulo" maxlength="80" placeholder="Ej: Bienvenidos al Burdel"
+                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Artista / Descripción (opcional)</label>
+              <input type="text" id="music-artista" maxlength="80" placeholder="Ej: Los Burdeleros"
+                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+            </div>
+
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Archivo MP3</label>
+              <input type="file" id="music-file" accept="audio/mpeg,audio/mp3,.mp3" style="display:none;" onchange="musicPreviewFile(this)" />
+              <button type="button" class="admin-btn secondary" onclick="document.getElementById('music-file').click()"
+                style="font-size:12px;padding:8px 14px;width:fit-content;">🎵 Elegir MP3</button>
+              <span id="music-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:4px;"></span>
+            </div>
+
+            <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Letra (opcional)</label>
+              <textarea id="music-letra" maxlength="5000" placeholder="Pegá la letra acá si querés mostrársela a los usuarios..."
+                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;resize:vertical;min-height:90px;font-family:var(--font-body);"></textarea>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="admin-btn primary" id="music-upload-btn" onclick="musicUpload()">Subir tema</button>
+              <span id="music-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de temas -->
+        <div class="admin-card">
+          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Temas subidos</span>
+            <a href="musica-admin.html" class="admin-btn secondary small" style="text-decoration:none;">🎵 Gestionar música</a>
+          </div>
+          <div id="music-list">
+            <p style="font-size:12px;color:var(--crema-3);">Cargando...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <section class="admin-section" id="section-tablon">
       <div class="admin-section-inner">
         <h2 class="admin-section-title">Tablón</h2>
@@ -703,16 +765,6 @@
               <select id="qs-guesser-select"
                 style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
                 <option value="">— Elegir jugador —</option>
-              </select>
-            </div>
-
-            <!-- Filtro por categoría -->
-            <div>
-              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
-              <select id="qs-cat-filter"
-                style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;"
-                onchange="qsOnCatFilterChange()">
-                <option value="">Todas las categorías</option>
               </select>
             </div>
 
@@ -791,10 +843,7 @@
         <div class="admin-card">
           <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
             <span>Biblioteca de cartas</span>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <a href="admin-quiensoy.html" class="admin-btn secondary small" style="text-decoration:none;">📚 Gestionar biblioteca</a>
-              <button class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
-            </div>
+            <button class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
           </div>
 
           <!-- Upload form -->
@@ -807,27 +856,14 @@
               </div>
               <div>
                 <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
-                <!-- Select inteligente: categorías existentes + "Nueva…" -->
-                <div style="display:flex;gap:6px;align-items:center;">
-                  <select id="qs-upload-cat-select"
-                    style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);"
-                    onchange="qsCatSelectChange()">
-                    <option value="">— Elegir categoría —</option>
-                    <!-- Se llena con qsRebuildCatSelect() -->
-                    <option value="__nueva__">+ Nueva categoría…</option>
-                  </select>
-                  <input type="text" id="qs-upload-categoria" placeholder="Nombre de categoría"
-                    style="flex:1;display:none;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
-                </div>
+                <input type="text" id="qs-upload-categoria" placeholder="Ej: Científicos, Actores, Animales..."
+                  style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
               </div>
               <div>
                 <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Imagen (JPG, PNG — máx 5MB)</label>
                 <input type="file" id="qs-upload-file" accept="image/*"
-                  style="display:none;"
+                  style="font-size:12px;color:var(--crema-3);"
                   onchange="qsPreviewUpload(this)" />
-                <button type="button" class="admin-btn secondary" onclick="document.getElementById('qs-upload-file').click()"
-                  style="font-size:12px;padding:8px 14px;width:fit-content;">📎 Elegir imagen</button>
-                <span id="qs-upload-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:3px;"></span>
                 <div id="qs-upload-preview" style="margin-top:8px;display:none;">
                   <img id="qs-upload-preview-img" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
                 </div>
@@ -839,6 +875,10 @@
             </div>
           </div>
 
+          <!-- Cards grid -->
+          <div id="qs-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;">
+            <div style="font-size:12px;color:var(--crema-3);padding:8px;">Cargando...</div>
+          </div>
         </div>
 
       </div>
@@ -2060,6 +2100,7 @@
       // Escuchar cartas
       onCards((cards) => {
         qsCards = cards || {};
+        qsRenderCardsGrid();
         qsPopulateCardSelect();
       });
 
@@ -2109,72 +2150,11 @@
     }
 
     function qsPopulateCardSelect() {
-      // Extraer categorías únicas
-      const catSet = new Set();
-      Object.values(qsCards).forEach(c => { if (c.categoria) catSet.add(c.categoria); });
-      const cats = [...catSet].sort((a, b) => a.localeCompare(b, "es"));
-
-      // Rebuild select de categorías en el picker de ronda
-      const catFilter = document.getElementById("qs-cat-filter");
-      if (catFilter) {
-        const prev = catFilter.value;
-        catFilter.innerHTML =
-          `<option value="">Todas las categorías</option>` +
-          cats.map(c => `<option value="${c}">${c}</option>`).join("");
-        if (prev && cats.includes(prev)) catFilter.value = prev;
-      }
-
-      // Rebuild select de categorías en el formulario de upload
-      qsRebuildUploadCatSelect(cats);
-
-      // Actualizar select de cartas según categoría seleccionada
-      qsRefreshCardSelect();
-    }
-
-    function qsRebuildUploadCatSelect(cats) {
-      const sel = document.getElementById("qs-upload-cat-select");
-      if (!sel) return;
-      const prev = sel.value;
-      sel.innerHTML =
-        `<option value="">— Elegir categoría —</option>` +
-        cats.map(c => `<option value="${c}">${c}</option>`).join("") +
-        `<option value="__nueva__">+ Nueva categoría…</option>`;
-      if (prev && prev !== "__nueva__" && cats.includes(prev)) sel.value = prev;
-    }
-
-    window.qsCatSelectChange = function() {
-      const sel = document.getElementById("qs-upload-cat-select");
-      const input = document.getElementById("qs-upload-categoria");
-      if (!sel || !input) return;
-      if (sel.value === "__nueva__") {
-        input.style.display = "block";
-        input.focus();
-      } else {
-        input.style.display = "none";
-        input.value = "";
-      }
-    };
-
-    window.qsOnCatFilterChange = function() {
-      qsRefreshCardSelect();
-      const cardSel = document.getElementById("qs-card-select");
-      if (cardSel) cardSel.value = "";
-      qsUpdateCardPreview("");
-    };
-
-    function qsRefreshCardSelect() {
       const sel = document.getElementById("qs-card-select");
       if (!sel) return;
-      const catFilter = document.getElementById("qs-cat-filter");
-      const cat = catFilter ? catFilter.value : "";
-      let cards = Object.values(qsCards);
-      if (cat) cards = cards.filter(c => (c.categoria || "General") === cat);
-      cards.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
-      const prev = sel.value;
-      sel.innerHTML =
-        `<option value="">— Elegir carta —</option>` +
-        cards.map(c => `<option value="${c.id}">${c.nombre}${cat ? "" : " (" + (c.categoria || "General") + ")"}</option>`).join("");
-      if (prev && cards.find(c => c.id === prev)) sel.value = prev;
+      const cards = Object.values(qsCards).sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+      sel.innerHTML = `<option value="">— Elegir carta —</option>`
+        + cards.map(c => `<option value="${c.id}">${c.nombre} (${c.categoria || "General"})</option>`).join("");
       sel.onchange = () => qsUpdateCardPreview(sel.value);
     }
 
@@ -2190,14 +2170,11 @@
     }
 
     window.qsPickRandomCard = () => {
-      const catFilter = document.getElementById("qs-cat-filter");
-      const cat = catFilter ? catFilter.value : "";
-      let cards = Object.values(qsCards);
-      if (cat) cards = cards.filter(c => (c.categoria || "General") === cat);
-      if (!cards.length) { showToast(cat ? `No hay cartas en "${cat}".` : "No hay cartas cargadas."); return; }
-      const random = cards[Math.floor(Math.random() * cards.length)];
+      const cards = Object.keys(qsCards);
+      if (!cards.length) { showToast("No hay cartas cargadas."); return; }
+      const randomId = cards[Math.floor(Math.random() * cards.length)];
       const sel = document.getElementById("qs-card-select");
-      if (sel) { sel.value = random.id; qsUpdateCardPreview(random.id); }
+      if (sel) { sel.value = randomId; qsUpdateCardPreview(randomId); }
     };
 
     window.qsStartRound = async () => {
@@ -2280,15 +2257,41 @@
 
     function qsUpdateScores() {}
 
+    // ── Cartas: render grid ──
+    function qsRenderCardsGrid() {
+      const grid = document.getElementById("qs-cards-grid");
+      if (!grid) return;
+      const cards = Object.values(qsCards);
+      if (!cards.length) {
+        grid.innerHTML = `<div style="font-size:12px;color:var(--crema-3);padding:8px;grid-column:1/-1;">Aún no hay cartas. Subí la primera.</div>`;
+        return;
+      }
+      grid.innerHTML = cards
+        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"))
+        .map(c => `
+          <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(200,150,0,0.15);">
+            <img src="${c.url}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
+            <div style="padding:5px 6px;background:var(--negro-2);">
+              <div style="font-size:11px;color:var(--crema);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nombre}</div>
+              <div style="font-size:10px;color:var(--crema-3);">${c.categoria || "General"}</div>
+            </div>
+            <button onclick="qsDeleteCard('${c.id}','${c.fileId || ""}')"
+              style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.7);border:none;color:#f88;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+          </div>
+        `).join("");
+    }
 
-
+    window.qsDeleteCard = (cardId, fileId) => {
+      if (!confirm("¿Eliminar esta carta?")) return;
+      qsDeleteCard(qsAdminUid, cardId, fileId)
+        .then(() => showToast("Carta eliminada."))
+        .catch(e => showToast("Error al eliminar: " + e.message));
+    };
 
     // ── Preview antes de subir ──
     window.qsPreviewUpload = (input) => {
       const file = input.files[0];
-      const nameEl = document.getElementById("qs-upload-file-name");
-      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
-      if (nameEl) nameEl.textContent = file.name;
+      if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
         document.getElementById("qs-upload-preview-img").src = e.target.result;
@@ -2300,26 +2303,12 @@
     // ── Subir carta ──
     window.qsUploadCard = async () => {
       const nombre    = document.getElementById("qs-upload-nombre").value.trim();
-      const catSel    = document.getElementById("qs-upload-cat-select");
-      const catInput  = document.getElementById("qs-upload-categoria");
+      const categoria = document.getElementById("qs-upload-categoria").value.trim();
       const fileInput = document.getElementById("qs-upload-file");
       const status    = document.getElementById("qs-upload-status");
       const btn       = document.getElementById("qs-upload-btn");
 
-      if (!nombre) { showToast("Poné el nombre del personaje."); return; }
-
-      // Resolver categoría desde select inteligente
-      let categoria;
-      if (catSel && catSel.value === "__nueva__") {
-        const nueva = catInput ? catInput.value.trim() : "";
-        if (!nueva) { showToast("Escribí el nombre de la nueva categoría."); return; }
-        categoria = nueva;
-      } else if (catSel && catSel.value) {
-        categoria = catSel.value;
-      } else {
-        categoria = "General";
-      }
-
+      if (!nombre)           { showToast("Poné el nombre del personaje."); return; }
       if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
 
       const file = fileInput.files[0];
@@ -2334,15 +2323,12 @@
         status.textContent = "Subiendo...";
 
         const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
-        await qsUploadCard(qsAdminUid, b64, cardNombre, categoria);
+        await qsUploadCard(qsAdminUid, b64, cardNombre, categoria || "General");
 
         showToast("✅ Carta subida: " + cardNombre);
         document.getElementById("qs-upload-nombre").value = "";
-        if (catSel) catSel.value = "";
-        if (catInput) { catInput.value = ""; catInput.style.display = "none"; }
+        document.getElementById("qs-upload-categoria").value = "";
         fileInput.value = "";
-        const fnEl = document.getElementById("qs-upload-file-name");
-        if (fnEl) fnEl.textContent = "";
         document.getElementById("qs-upload-preview").style.display = "none";
         status.textContent = "";
         document.getElementById("qs-upload-area").classList.add("hidden");
@@ -2419,6 +2405,73 @@
 <script type="module">
   import { initNavbar } from "./js/navbar.js";
   initNavbar();
+</script>
+
+<script type="module">
+  import { uploadTrack } from "./games/musica.js";
+  import { onSession } from "./js/auth.js";
+
+  let adminUid = null;
+
+  onSession((user) => {
+    if (!user) return;
+    adminUid = user.uid;
+    // La lista completa está en musica-admin.html
+    const list = document.getElementById("music-list");
+    if (list) list.innerHTML = `<p style="font-size:12px;color:var(--crema-3);">Usá el botón "Gestionar música" para ver y eliminar temas.</p>`;
+  });
+
+  // ── Preview nombre del archivo ──
+  window.musicPreviewFile = function(input) {
+    const file = input.files[0];
+    const nameEl = document.getElementById("music-file-name");
+    if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+    if (nameEl) nameEl.textContent = file.name;
+  };
+
+  // ── Subir track ──
+  window.musicUpload = async function() {
+    const titulo  = (document.getElementById("music-titulo").value  || "").trim();
+    const artista = (document.getElementById("music-artista").value || "").trim();
+    const letra   = (document.getElementById("music-letra").value   || "").trim();
+    const file    = document.getElementById("music-file").files[0];
+    const status  = document.getElementById("music-upload-status");
+    const btn     = document.getElementById("music-upload-btn");
+
+    if (!titulo) { showToast("Poné el título del tema.");        return; }
+    if (!file)   { showToast("Seleccioná un archivo MP3.");      return; }
+    if (file.size > 30 * 1024 * 1024) { showToast("El MP3 no puede superar 30 MB."); return; }
+
+    btn.disabled = true;
+    status.textContent = "Leyendo archivo...";
+
+    try {
+      const b64 = await fileToBase64(file);
+      status.textContent = "Subiendo...";
+      await uploadTrack(adminUid, b64, titulo, artista, letra);
+
+      showToast("✅ Tema subido: " + titulo);
+      document.getElementById("music-titulo").value  = "";
+      document.getElementById("music-artista").value = "";
+      document.getElementById("music-letra").value   = "";
+      document.getElementById("music-file").value    = "";
+      document.getElementById("music-file-name").textContent = "";
+      status.textContent = "";
+    } catch(e) {
+      showToast("Error: " + e.message);
+      status.textContent = "";
+    }
+    btn.disabled = false;
+  };
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = (e) => resolve(e.target.result.split(",")[1]);
+      reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+      reader.readAsDataURL(file);
+    });
+  }
 </script>
 </body>
 </html>
