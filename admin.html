@@ -957,6 +957,7 @@
       onQuienSoyState, startQuienSoyRound, resolveRound,
       resetQuienSoy, setTimerActive, resetTimer as qsResetTimerFn
     } from "./games/quiensoy.js";
+    import { uploadTrack as musicUploadTrack } from "./games/musica.js";
     import { db } from "./js/firebase-init.js";
     import {
       ref, onValue, update, get, set, remove
@@ -1013,6 +1014,7 @@
       listenPresence();
       initImpostorAdmin();
       initQuienSoyAdmin(adminUid);
+      initMusicAdmin();
     }
 
     // ── NOMBRES DE EQUIPOS ──
@@ -2405,87 +2407,67 @@
 
     // ── STATUS DOT ──
     document.getElementById("status-dot").classList.add("online");
+
+    // ════════════════════════════════════════════════════════
+    //  MÚSICA — Admin Logic
+    // ════════════════════════════════════════════════════════
+    function initMusicAdmin() {
+      const list = document.getElementById("music-list");
+      if (list) list.innerHTML = `<p style="font-size:12px;color:var(--crema-3);">Usá el botón "Gestionar música" para ver y eliminar temas.</p>`;
+    }
+
+    window.musicPreviewFile = function(input) {
+      const file = input.files[0];
+      const nameEl = document.getElementById("music-file-name");
+      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+      if (nameEl) nameEl.textContent = file.name;
+    };
+
+    window.musicUpload = async function() {
+      const titulo  = (document.getElementById("music-titulo").value  || "").trim();
+      const artista = (document.getElementById("music-artista").value || "").trim();
+      const letra   = (document.getElementById("music-letra").value   || "").trim();
+      const file    = document.getElementById("music-file").files[0];
+      const status  = document.getElementById("music-upload-status");
+      const btn     = document.getElementById("music-upload-btn");
+
+      if (!adminUid) { showToast("Sesión no cargada, esperá un momento."); return; }
+      if (!titulo)   { showToast("Poné el título del tema.");              return; }
+      if (!file)     { showToast("Seleccioná un archivo MP3.");            return; }
+      if (file.size > 30 * 1024 * 1024) { showToast("El MP3 no puede superar 30 MB."); return; }
+
+      btn.disabled = true;
+      status.textContent = "Leyendo archivo...";
+
+      try {
+        const b64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = (e) => resolve(e.target.result.split(",")[1]);
+          reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+          reader.readAsDataURL(file);
+        });
+        status.textContent = "Subiendo...";
+        await musicUploadTrack(adminUid, b64, titulo, artista, letra);
+
+        showToast("✅ Tema subido: " + titulo);
+        document.getElementById("music-titulo").value  = "";
+        document.getElementById("music-artista").value = "";
+        document.getElementById("music-letra").value   = "";
+        document.getElementById("music-file").value    = "";
+        document.getElementById("music-file-name").textContent = "";
+        status.textContent = "";
+      } catch(e) {
+        showToast("Error: " + e.message);
+        status.textContent = "";
+      }
+      btn.disabled = false;
+    };
+
   </script>
 
 <script type="module">
   import { initNavbar } from "./js/navbar.js";
   initNavbar();
-</script>
-
-<script type="module">
-  import { uploadTrack } from "./games/musica.js";
-  import { onSession } from "./js/auth.js";
-
-  let adminUid = null;
-
-  // showToast local — los módulos ES6 no comparten scope entre sí
-  function showToast(msg) {
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.classList.add("show"), 10);
-    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2800);
-  }
-
-  onSession((user) => {
-    if (!user) return;
-    adminUid = user.uid;
-    const list = document.getElementById("music-list");
-    if (list) list.innerHTML = `<p style="font-size:12px;color:var(--crema-3);">Usá el botón "Gestionar música" para ver y eliminar temas.</p>`;
-  });
-
-  // ── Preview nombre del archivo ──
-  window.musicPreviewFile = function(input) {
-    const file = input.files[0];
-    const nameEl = document.getElementById("music-file-name");
-    if (!file) { if (nameEl) nameEl.textContent = ""; return; }
-    if (nameEl) nameEl.textContent = file.name;
-  };
-
-  // ── Subir track ──
-  window.musicUpload = async function() {
-    const titulo  = (document.getElementById("music-titulo").value  || "").trim();
-    const artista = (document.getElementById("music-artista").value || "").trim();
-    const letra   = (document.getElementById("music-letra").value   || "").trim();
-    const file    = document.getElementById("music-file").files[0];
-    const status  = document.getElementById("music-upload-status");
-    const btn     = document.getElementById("music-upload-btn");
-
-    if (!titulo) { showToast("Poné el título del tema.");        return; }
-    if (!file)   { showToast("Seleccioná un archivo MP3.");      return; }
-    if (file.size > 30 * 1024 * 1024) { showToast("El MP3 no puede superar 30 MB."); return; }
-
-    btn.disabled = true;
-    status.textContent = "Leyendo archivo...";
-
-    try {
-      const b64 = await fileToBase64(file);
-      status.textContent = "Subiendo...";
-      await uploadTrack(adminUid, b64, titulo, artista, letra);
-
-      showToast("✅ Tema subido: " + titulo);
-      document.getElementById("music-titulo").value  = "";
-      document.getElementById("music-artista").value = "";
-      document.getElementById("music-letra").value   = "";
-      document.getElementById("music-file").value    = "";
-      document.getElementById("music-file-name").textContent = "";
-      status.textContent = "";
-    } catch(e) {
-      showToast("Error: " + e.message);
-      status.textContent = "";
-    }
-    btn.disabled = false;
-  };
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload  = (e) => resolve(e.target.result.split(",")[1]);
-      reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
-      reader.readAsDataURL(file);
-    });
-  }
 </script>
 </body>
 </html>
