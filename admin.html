@@ -78,6 +78,11 @@
       gap: 0;
       padding: 0 16px;
       overflow-x: auto;
+      scrollbar-width: none;       /* Firefox */
+      -ms-overflow-style: none;    /* IE/Edge */
+    }
+    .admin-section-nav-inner::-webkit-scrollbar {
+      display: none;               /* Chrome/Safari */
     }
     .active-section {
       background: transparent;
@@ -2052,7 +2057,7 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "tablon"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
