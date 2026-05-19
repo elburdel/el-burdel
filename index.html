@@ -129,6 +129,21 @@
     </div>
   </section>
 
+  <!-- MÚSICA -->
+  <section class="section" id="musica">
+    <div class="section-inner">
+      <span class="section-label">Nuestros temas</span>
+      <h2 class="section-title">El Burdel Suena</h2>
+      <div id="musica-content">
+        <div id="musica-locked" style="text-align:center;padding:40px 0;">
+          <p style="color:var(--crema-3);font-size:14px;margin-bottom:16px;">Esta sección es exclusiva para miembros del Burdel.</p>
+          <a href="login.html" class="hero-btn" style="padding:10px 24px;font-size:11px;">Entrar</a>
+        </div>
+        <div id="musica-preview" style="display:none;flex-direction:column;gap:12px;"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- REDES -->
   <section class="section" id="redes">
     <div class="section-inner">
@@ -176,6 +191,7 @@
         <a href="#galeria" class="nav-bottom-link">Galería</a>
         <a href="#curiosidad" class="nav-bottom-link">Curiosidad</a>
         <a href="#ranking" class="nav-bottom-link">Ranking</a>
+        <a href="#musica" class="nav-bottom-link">Música</a>
         <a href="#redes" class="nav-bottom-link">Redes</a>
       </div>
       <div class="nav-bottom-divider"></div>
@@ -649,6 +665,48 @@
         curtain.style.pointerEvents = "none";
         setTimeout(() => { curtain.style.display = "none"; }, 400);
       }, 3100);
+    });
+  </script>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { onTracks } from "./games/musica.js";
+
+    onSession(async (user) => {
+      const locked  = document.getElementById("musica-locked");
+      const preview = document.getElementById("musica-preview");
+      if (!locked || !preview) return;
+
+      if (!user) return; // queda mensaje "Entrar"
+
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") return;
+
+      locked.style.display  = "none";
+      preview.style.display = "flex";
+
+      onTracks((tracks) => {
+        const items = Object.values(tracks)
+          .sort((a, b) => (b.creadoEn || 0) - (a.creadoEn || 0))
+          .slice(0, 2); // teaser: últimos 2
+
+        if (!items.length) {
+          preview.innerHTML = `<p style="color:var(--crema-3);font-size:13px;text-align:center;">Próximamente nuestros primeros temas. 🎶</p>`;
+          return;
+        }
+
+        preview.innerHTML =
+          items.map(t => `
+            <div style="background:var(--negro-2);border:1px solid rgba(200,150,0,0.12);border-radius:10px;padding:16px 18px;">
+              <div style="font-family:var(--font-display);font-size:18px;color:var(--crema);letter-spacing:1px;margin-bottom:${t.artista ? "3px" : "12px"};">${t.titulo}</div>
+              ${t.artista ? `<div style="font-size:11px;color:var(--crema-3);margin-bottom:12px;">${t.artista}</div>` : ""}
+              <audio controls preload="none" style="width:100%;height:36px;accent-color:var(--dorado);" src="${t.url}"></audio>
+            </div>
+          `).join("") +
+          `<div style="text-align:center;margin-top:8px;">
+            <a href="musica.html" class="hero-btn" style="padding:10px 24px;font-size:11px;">Ver todos los temas</a>
+          </div>`;
+      });
     });
   </script>
 </body>
