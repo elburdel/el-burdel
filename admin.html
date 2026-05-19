@@ -774,6 +774,15 @@
             </div>
 
             <div>
+              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
+              <select id="qs-cat-filter"
+                style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;"
+                onchange="qsOnCatFilterChange()">
+                <option value="">Todas las categorías</option>
+              </select>
+            </div>
+
+            <div>
               <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Carta</label>
               <div style="display:flex;gap:8px;">
                 <select id="qs-card-select"
@@ -864,14 +873,24 @@
               </div>
               <div>
                 <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
-                <input type="text" id="qs-upload-categoria" placeholder="Ej: Científicos, Actores, Animales..."
-                  style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <select id="qs-upload-cat-select"
+                    style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);"
+                    onchange="qsCatSelectChange()">
+                    <option value="">— Elegir categoría —</option>
+                    <option value="__nueva__">+ Nueva categoría…</option>
+                  </select>
+                  <input type="text" id="qs-upload-categoria" placeholder="Nombre de categoría"
+                    style="flex:1;display:none;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+                </div>
               </div>
               <div>
                 <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Imagen (JPG, PNG — máx 5MB)</label>
                 <input type="file" id="qs-upload-file" accept="image/*"
-                  style="font-size:12px;color:var(--crema-3);"
-                  onchange="qsPreviewUpload(this)" />
+                  style="display:none;" onchange="qsPreviewUpload(this)" />
+                <button type="button" class="admin-btn secondary" onclick="document.getElementById('qs-upload-file').click()"
+                  style="font-size:12px;padding:8px 14px;width:fit-content;">📎 Elegir imagen</button>
+                <span id="qs-upload-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:3px;"></span>
                 <div id="qs-upload-preview" style="margin-top:8px;display:none;">
                   <img id="qs-upload-preview-img" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
                 </div>
@@ -883,10 +902,6 @@
             </div>
           </div>
 
-          <!-- Cards grid -->
-          <div id="qs-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;">
-            <div style="font-size:12px;color:var(--crema-3);padding:8px;">Cargando...</div>
-          </div>
         </div>
 
       </div>
@@ -2110,7 +2125,6 @@
       // Escuchar cartas
       onCards((cards) => {
         qsCards = cards || {};
-        qsRenderCardsGrid();
         qsPopulateCardSelect();
       });
 
@@ -2160,11 +2174,64 @@
     }
 
     function qsPopulateCardSelect() {
+      // Extraer categorías únicas para el filtro y el select de upload
+      const catSet = new Set();
+      Object.values(qsCards).forEach(c => { if (c.categoria) catSet.add(c.categoria); });
+      const cats = [...catSet].sort((a, b) => a.localeCompare(b, "es"));
+
+      // Rebuild select de categorías del filtro (picker de ronda)
+      const catFilter = document.getElementById("qs-cat-filter");
+      if (catFilter) {
+        const prev = catFilter.value;
+        catFilter.innerHTML = `<option value="">Todas las categorías</option>`
+          + cats.map(c => `<option value="${c}">${c}</option>`).join("");
+        if (prev && cats.includes(prev)) catFilter.value = prev;
+      }
+
+      // Rebuild select de categorías del formulario de upload
+      qsRebuildUploadCatSelect(cats);
+
+      // Actualizar select de cartas
+      qsRefreshCardSelect();
+    }
+
+    function qsRebuildUploadCatSelect(cats) {
+      const sel = document.getElementById("qs-upload-cat-select");
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = `<option value="">— Elegir categoría —</option>`
+        + cats.map(c => `<option value="${c}">${c}</option>`).join("")
+        + `<option value="__nueva__">+ Nueva categoría…</option>`;
+      if (prev && prev !== "__nueva__" && cats.includes(prev)) sel.value = prev;
+    }
+
+    window.qsCatSelectChange = function() {
+      const sel   = document.getElementById("qs-upload-cat-select");
+      const input = document.getElementById("qs-upload-categoria");
+      if (!sel || !input) return;
+      if (sel.value === "__nueva__") { input.style.display = "block"; input.focus(); }
+      else { input.style.display = "none"; input.value = ""; }
+    };
+
+    window.qsOnCatFilterChange = function() {
+      qsRefreshCardSelect();
+      const cardSel = document.getElementById("qs-card-select");
+      if (cardSel) cardSel.value = "";
+      qsUpdateCardPreview("");
+    };
+
+    function qsRefreshCardSelect() {
       const sel = document.getElementById("qs-card-select");
       if (!sel) return;
-      const cards = Object.values(qsCards).sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+      const catFilter = document.getElementById("qs-cat-filter");
+      const cat = catFilter ? catFilter.value : "";
+      let cards = Object.values(qsCards);
+      if (cat) cards = cards.filter(c => (c.categoria || "General") === cat);
+      cards.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+      const prev = sel.value;
       sel.innerHTML = `<option value="">— Elegir carta —</option>`
-        + cards.map(c => `<option value="${c.id}">${c.nombre} (${c.categoria || "General"})</option>`).join("");
+        + cards.map(c => `<option value="${c.id}">${c.nombre}${cat ? "" : " (" + (c.categoria || "General") + ")"}</option>`).join("");
+      if (prev && cards.find(c => c.id === prev)) sel.value = prev;
       sel.onchange = () => qsUpdateCardPreview(sel.value);
     }
 
@@ -2268,40 +2335,12 @@
     function qsUpdateScores() {}
 
     // ── Cartas: render grid ──
-    function qsRenderCardsGrid() {
-      const grid = document.getElementById("qs-cards-grid");
-      if (!grid) return;
-      const cards = Object.values(qsCards);
-      if (!cards.length) {
-        grid.innerHTML = `<div style="font-size:12px;color:var(--crema-3);padding:8px;grid-column:1/-1;">Aún no hay cartas. Subí la primera.</div>`;
-        return;
-      }
-      grid.innerHTML = cards
-        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"))
-        .map(c => `
-          <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(200,150,0,0.15);">
-            <img src="${c.url}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
-            <div style="padding:5px 6px;background:var(--negro-2);">
-              <div style="font-size:11px;color:var(--crema);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nombre}</div>
-              <div style="font-size:10px;color:var(--crema-3);">${c.categoria || "General"}</div>
-            </div>
-            <button onclick="qsDeleteCard('${c.id}','${c.fileId || ""}')"
-              style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.7);border:none;color:#f88;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
-          </div>
-        `).join("");
-    }
-
-    window.qsDeleteCard = (cardId, fileId) => {
-      if (!confirm("¿Eliminar esta carta?")) return;
-      qsDeleteCard(qsAdminUid, cardId, fileId)
-        .then(() => showToast("Carta eliminada."))
-        .catch(e => showToast("Error al eliminar: " + e.message));
-    };
-
     // ── Preview antes de subir ──
     window.qsPreviewUpload = (input) => {
       const file = input.files[0];
-      if (!file) return;
+      const nameEl = document.getElementById("qs-upload-file-name");
+      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+      if (nameEl) nameEl.textContent = file.name;
       const reader = new FileReader();
       reader.onload = (e) => {
         document.getElementById("qs-upload-preview-img").src = e.target.result;
@@ -2313,14 +2352,26 @@
     // ── Subir carta ──
     window.qsUploadCard = async () => {
       const nombre    = document.getElementById("qs-upload-nombre").value.trim();
-      const categoria = document.getElementById("qs-upload-categoria").value.trim();
+      const catSel    = document.getElementById("qs-upload-cat-select");
+      const catInput  = document.getElementById("qs-upload-categoria");
       const fileInput = document.getElementById("qs-upload-file");
       const status    = document.getElementById("qs-upload-status");
       const btn       = document.getElementById("qs-upload-btn");
 
-      if (!nombre)           { showToast("Poné el nombre del personaje."); return; }
-      if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
+      if (!nombre) { showToast("Poné el nombre del personaje."); return; }
 
+      let categoria;
+      if (catSel && catSel.value === "__nueva__") {
+        const nueva = catInput ? catInput.value.trim() : "";
+        if (!nueva) { showToast("Escribí el nombre de la nueva categoría."); return; }
+        categoria = nueva;
+      } else if (catSel && catSel.value) {
+        categoria = catSel.value;
+      } else {
+        categoria = "General";
+      }
+
+      if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
       const file = fileInput.files[0];
       if (file.size > 5 * 1024 * 1024) { showToast("La imagen no puede superar 5MB."); return; }
 
@@ -2328,17 +2379,18 @@
       status.textContent = "Comprimiendo...";
 
       try {
-        // Comprimir imagen a ~800×800 JPG liviano
         const b64 = await compressImage(file, 800, 0.82);
         status.textContent = "Subiendo...";
-
         const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
-        await qsUploadCard(qsAdminUid, b64, cardNombre, categoria || "General");
+        await qsUploadCard(qsAdminUid, b64, cardNombre, categoria);
 
         showToast("✅ Carta subida: " + cardNombre);
         document.getElementById("qs-upload-nombre").value = "";
-        document.getElementById("qs-upload-categoria").value = "";
+        if (catSel) catSel.value = "";
+        if (catInput) { catInput.value = ""; catInput.style.display = "none"; }
         fileInput.value = "";
+        const fnEl = document.getElementById("qs-upload-file-name");
+        if (fnEl) fnEl.textContent = "";
         document.getElementById("qs-upload-preview").style.display = "none";
         status.textContent = "";
         document.getElementById("qs-upload-area").classList.add("hidden");
