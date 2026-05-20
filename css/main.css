@@ -190,10 +190,19 @@ img {
 
 /* ─── REDES ─── */
 .redes-grid {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* 2 columnas siempre */
+  gap: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Desktop: hasta 4 por fila según el espacio */
+@media (min-width: 640px) {
+  .redes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    max-width: 720px;
+  }
 }
 
 .red-card {
@@ -201,14 +210,13 @@ img {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 28px 40px;
+  padding: 24px 16px;
   border: 1px solid rgba(200,150,0,0.2);
   border-radius: 12px;
   background: var(--negro-2);
   color: var(--crema-3);
   text-decoration: none;
   transition: border-color 0.2s, color 0.2s, background 0.2s;
-  min-width: 160px;
 }
 
 .red-card:hover {
@@ -220,14 +228,16 @@ img {
 .red-icon {
   width: 44px;
   height: 44px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .red-icon svg {
-  width: 100%;
-  height: 100%;
+  width: 44px;    /* tamaño fijo — todos los iconos iguales */
+  height: 44px;
+  display: block;
 }
 
 .red-nombre {
@@ -242,6 +252,7 @@ img {
   font-size: 12px;
   letter-spacing: 1px;
   opacity: 0.6;
+  text-align: center;
 }
 
 /* ─── NAV BOTTOM ─── */
