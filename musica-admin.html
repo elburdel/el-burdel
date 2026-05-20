@@ -81,8 +81,8 @@
     .track-del-btn:hover { background: rgba(200,80,80,0.15); }
 
     /* ── Letra expandible ── */
-    .track-letra-toggle {
-      display: inline-flex;
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .track-letra-toggle {      display: inline-flex;
       align-items: center;
       gap: 5px;
       margin-top: 10px;
@@ -172,7 +172,7 @@
   <script type="module">
     import { onSession, getUserData } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
-    import { onTracks, deleteTrack } from "./games/musica.js";
+    import { onTracks, deleteTrack, loadAudioBlob } from "./games/musica.js";
 
     initNavbar();
 
@@ -202,7 +202,7 @@
         return;
       }
 
-      list.innerHTML = items.map((t, i) => {
+      list.innerHTML = items.map((t) => {
         const fecha = t.creadoEn ? new Date(t.creadoEn).toLocaleDateString("es-AR", { day:"2-digit", month:"short", year:"numeric" }) : "";
         return `
           <div class="track-row">
@@ -214,7 +214,13 @@
               </div>
               <button class="track-del-btn" onclick="confirmDelete('${t.id}','${t.fileId || ""}','${escAttr(t.titulo)}')">Eliminar</button>
             </div>
-            <audio class="track-audio" controls preload="none" src="${t.url}" crossorigin="anonymous"></audio>
+            <!-- Player lazy: carga el blob solo cuando el admin hace click -->
+            <div id="player-wrap-${t.id}" style="margin:10px 0 4px;">
+              <button onclick="loadAdminPlayer('${t.id}','${t.audioUrl || ""}')"
+                style="background:none;border:1px solid rgba(200,150,0,0.3);color:var(--dorado);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;letter-spacing:1px;">
+                ▶ Cargar audio
+              </button>
+            </div>
             ${t.letra ? `
               <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
                 ▶ Ver letra
@@ -227,6 +233,27 @@
         `;
       }).join("");
     }
+
+    window.loadAdminPlayer = async function(trackId, audioUrl) {
+      const wrap = document.getElementById("player-wrap-" + trackId);
+      if (!wrap) return;
+      wrap.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--crema-3);padding:6px 0;">
+        <div style="width:14px;height:14px;border:2px solid rgba(200,150,0,0.3);border-top-color:var(--dorado);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+        Cargando...
+      </div>`;
+      try {
+        const blobUrl = await loadAudioBlob(audioUrl);
+        const audio = document.createElement("audio");
+        audio.className = "track-audio";
+        audio.controls  = true;
+        audio.src       = blobUrl;
+        wrap.innerHTML  = "";
+        wrap.appendChild(audio);
+        audio.play();
+      } catch(e) {
+        wrap.innerHTML = `<span style="font-size:12px;color:#f88;">Error al cargar: ${e.message}</span>`;
+      }
+    };
 
     window.toggleLetra = function(id) {
       const body   = document.getElementById("letra-" + id);
