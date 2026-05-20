@@ -24,7 +24,19 @@
     .track-titulo { font-family: var(--font-display); font-size: 22px; color: var(--crema); letter-spacing: 1.5px; line-height: 1.1; margin-bottom: 4px; }
     .track-artista { font-size: 12px; color: var(--crema-3); margin-bottom: 14px; }
 
-    /* Player con estado de carga */
+    .track-play-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(200,150,0,0.1);
+      border: 1px solid rgba(200,150,0,0.35);
+      color: var(--dorado);
+      border-radius: 8px; padding: 10px 20px;
+      font-size: 13px; letter-spacing: 1px;
+      cursor: pointer; font-family: var(--font-body);
+      transition: background 0.15s;
+      width: 100%; justify-content: center;
+      margin-bottom: 4px;
+    }
+    .track-play-btn:hover { background: rgba(200,150,0,0.2); }
     .track-player-wrap { position: relative; margin-bottom: 4px; }
     .track-audio { width: 100%; height: 40px; accent-color: var(--dorado); display: block; }
     .track-loading {
@@ -119,10 +131,9 @@
             <div class="track-titulo">${esc(t.titulo)}</div>
             ${t.artista ? `<div class="track-artista">${esc(t.artista)}</div>` : `<div style="margin-bottom:14px;"></div>`}
             <div class="track-player-wrap" id="player-wrap-${t.id}">
-              <div class="track-loading" id="loading-${t.id}">
-                <div class="track-loading-spinner"></div>
-                <span>Cargando audio...</span>
-              </div>
+              <button class="track-play-btn" onclick="loadPlayer('${t.id}','${t.audioUrl || ""}')">
+                <span class="track-play-icon">▶</span> Reproducir
+              </button>
             </div>
             ${t.letra ? `
               <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
@@ -135,32 +146,30 @@
           </div>
         `).join("");
 
-        // Cargar cada audio como blob
-        items.forEach(t => loadPlayer(t));
       });
     });
 
-    async function loadPlayer(t) {
-      const wrap    = document.getElementById("player-wrap-" + t.id);
-      const loading = document.getElementById("loading-"      + t.id);
-      if (!wrap || !loading) return;
+    window.loadPlayer = async function(trackId, audioUrl) {
+      const wrap = document.getElementById("player-wrap-" + trackId);
+      if (!wrap) return;
+      // Mostrar spinner mientras carga
+      wrap.innerHTML = `<div class="track-loading">
+        <div class="track-loading-spinner"></div>
+        <span>Cargando audio...</span>
+      </div>`;
       try {
-        const blobUrl = await loadAudioBlob(t.audioUrl);
-        loading.remove();
+        const blobUrl = await loadAudioBlob(audioUrl);
         const audio = document.createElement("audio");
         audio.className = "track-audio";
         audio.controls  = true;
-        audio.preload   = "none";
         audio.src       = blobUrl;
+        wrap.innerHTML  = "";
         wrap.appendChild(audio);
+        audio.play();
       } catch(e) {
-        loading.remove();
-        const err = document.createElement("div");
-        err.className = "track-error";
-        err.textContent = "No se pudo cargar el audio.";
-        wrap.appendChild(err);
+        wrap.innerHTML = `<div class="track-error">No se pudo cargar el audio.</div>`;
       }
-    }
+    };
 
     window.toggleLetra = function(id) {
       const body   = document.getElementById("letra-"  + id);
