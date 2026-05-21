@@ -176,6 +176,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  justify-content: center;
 }
 
 .game-card {
@@ -210,27 +211,17 @@
   letter-spacing: 1px;
 }
 
-
 .game-desc {
   font-size: 13px;
   color: var(--crema-3);
   line-height: 1.4;
 }
 
-/* Centrar último elemento impar sin agrandarlo */
-.games-grid > .game-card:last-child:nth-child(odd),
-.redes-grid > .red-card:last-child:nth-child(odd) {
+/* Centrar el último elemento impar sin agrandarlo */
+.games-grid > .game-card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
   justify-self: center;
-  width: 100%;
-}
-
-.games-grid > .game-card:last-child:nth-child(odd) {
-  max-width: calc(50% - 6px);
-}
-
-.redes-grid > .red-card:last-child:nth-child(odd) {
-  max-width: calc(50% - 8px);
+  width: calc(50% - 6px);
 }
 
 /* ─── MEDIA ─── */
@@ -275,6 +266,12 @@
 @media (min-width: 600px) {
   .games-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* En desktop de 4 col, el 5to (impar) se centra en su columna normal */
+  .games-grid > .game-card:last-child:nth-child(odd) {
+    grid-column: 2 / 4;   /* ocupa las columnas centrales */
+    width: auto;
   }
 }
 
