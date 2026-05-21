@@ -190,22 +190,17 @@ img {
 
 /* ─── REDES ─── */
 .redes-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* 2 columnas siempre */
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
+  justify-content: center;
   max-width: 520px;
   margin: 0 auto;
 }
 
-/* Desktop: hasta 4 por fila según el espacio */
-@media (min-width: 640px) {
-  .redes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    max-width: 720px;
-  }
-}
-
 .red-card {
+  flex: 0 0 calc(50% - 8px);   /* exactamente la mitad menos el gap */
+  max-width: 240px;
   display: flex;
   flex-direction: column;
   align-items: center;
