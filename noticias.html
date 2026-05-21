@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noticias — El Burdel</title>
+  <meta name="description" content="Novedades y noticias de El Burdel." />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=2" />
+  <link rel="stylesheet" href="css/noticias.css" />
+</head>
+<body>
+
+  <div class="noticias-page">
+
+    <div class="noticias-page-header">
+      <h1 class="noticias-page-title">📰 Noticias</h1>
+      <p class="noticias-page-sub">Novedades del Burdel</p>
+    </div>
+
+    <div id="noticias-root">
+      <div class="noticias-loading">Cargando...</div>
+    </div>
+
+  </div>
+
+  <!-- Lightbox -->
+  <div class="noticias-lightbox" id="noticiasLightbox" onclick="cerrarLightbox()">
+    <button class="lb-cerrar" onclick="cerrarLightbox()">✕</button>
+    <button class="lb-nav lb-prev" id="lbPrev" onclick="lbNav(-1,event)">‹</button>
+    <img class="lb-img" id="lbImg" src="" alt="">
+    <button class="lb-nav lb-next" id="lbNext" onclick="lbNav(1,event)">›</button>
+    <div class="lb-counter" id="lbCounter"></div>
+  </div>
+
+  <script type="module">
+    import { onSession } from "./js/auth.js";
+    import { initNavbar } from "./js/navbar.js";
+    import { onNoticiasVisibles } from "./games/noticias.js";
+
+    initNavbar();
+
+    // ── Lightbox ──────────────────────────────
+    let lbImgs = [], lbIdx = 0;
+
+    window.cerrarLightbox = function() {
+      document.getElementById("noticiasLightbox").classList.remove("activo");
+      document.body.style.overflow = "";
+    };
+    window.lbNav = function(dir, e) {
+      e.stopPropagation();
+      lbIdx = Math.max(0, Math.min(lbImgs.length - 1, lbIdx + dir));
+      renderLb();
+    };
+    function renderLb() {
+      document.getElementById("lbImg").src           = lbImgs[lbIdx];
+      document.getElementById("lbCounter").textContent = (lbIdx+1) + " / " + lbImgs.length;
+      document.getElementById("lbPrev").disabled     = lbIdx === 0;
+      document.getElementById("lbNext").disabled     = lbIdx === lbImgs.length - 1;
+    }
+    window.abrirLightbox = function(imgs, idx) {
+      lbImgs = imgs; lbIdx = idx;
+      renderLb();
+      document.getElementById("noticiasLightbox").classList.add("activo");
+      document.body.style.overflow = "hidden";
+    };
+    document.addEventListener("keydown", e => {
+      const lb = document.getElementById("noticiasLightbox");
+      if (!lb.classList.contains("activo")) return;
+      if (e.key === "Escape")       cerrarLightbox();
+      if (e.key === "ArrowLeft"  && lbIdx > 0)              { lbIdx--; renderLb(); }
+      if (e.key === "ArrowRight" && lbIdx < lbImgs.length-1){ lbIdx++; renderLb(); }
+    });
+
+    // ── Helpers ───────────────────────────────
+    function formatFecha(iso) {
+      if (!iso) return "Sin fecha";
+      const [y,m,d] = iso.split("-");
+      const meses = ["enero","febrero","marzo","abril","mayo","junio",
+                     "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+      return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+    }
+    function esc(s) {
+      return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                          .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ── Render ────────────────────────────────
+    function renderTimeline(noticias) {
+      const root = document.getElementById("noticias-root");
+      if (!noticias.length) {
+        root.innerHTML = `<div class="noticias-empty">Sin noticias por ahora</div>`;
+        return;
+      }
+      const porFecha = {};
+      noticias.forEach(n => {
+        const f = n.fecha || "sin-fecha";
+        if (!porFecha[f]) porFecha[f] = [];
+        porFecha[f].push(n);
+      });
+      const fechas = Object.keys(porFecha).sort((a,b) => b.localeCompare(a));
+
+      root.innerHTML = `<div class="noticias-timeline">` +
+        fechas.map(fecha => {
+          const label = formatFecha(fecha === "sin-fecha" ? "" : fecha);
+          const cards = porFecha[fecha].map(n => renderCard(n)).join("");
+          return `
+            <div class="noticias-dia">
+              <div class="noticias-dia-header">
+                <span class="noticias-dia-label">${label}</span>
+                <div class="noticias-dia-linea"></div>
+              </div>
+              <div class="noticias-dia-cards">${cards}</div>
+            </div>`;
+        }).join("") +
+      `</div>`;
+    }
+
+    function renderCard(n) {
+      const imgs = [n.img1,n.img2,n.img3,n.img4].filter(Boolean);
+      const cnt  = imgs.length;
+      const imgsJson = JSON.stringify(imgs).replace(/"/g,"&quot;");
+      const imgsHtml = cnt ? (() => {
+        const items = imgs.map((url,i) =>
+          `<img class="noticia-img" src="${esc(url)}" alt="" loading="lazy"
+            onclick="abrirLightbox(JSON.parse(this.closest('[data-imgs]').dataset.imgs.replace(/&quot;/g,'\\\"')),${i})">`
+        ).join("");
+        return `<div class="noticia-imgs imgs-${cnt}">${items}</div>`;
+      })() : "";
+
+      return `
+        <article class="noticia-card" data-imgs="${imgsJson}">
+          ${imgsHtml}
+          <div class="noticia-body">
+            ${n.titulo ? `<h2 class="noticia-titulo">${esc(n.titulo)}</h2>` : ""}
+            ${n.texto  ? `<p  class="noticia-texto">${esc(n.texto)}</p>`  : ""}
+          </div>
+        </article>`;
+    }
+
+    // ── Auth + carga ──────────────────────────
+    onSession(user => {
+      const root = document.getElementById("noticias-root");
+      if (!user) {
+        root.innerHTML = `
+          <div class="noticias-gate">
+            <span class="noticias-gate-icon">🔒</span>
+            <p>Tenés que estar logueado para ver las noticias</p>
+            <a href="login.html" class="noticias-gate-btn">Ingresar</a>
+          </div>`;
+        return;
+      }
+      if (user.status !== "active") {
+        root.innerHTML = `
+          <div class="noticias-gate">
+            <span class="noticias-gate-icon">⏳</span>
+            <p>Tu cuenta está pendiente de aprobación</p>
+          </div>`;
+        return;
+      }
+      root.innerHTML = `<div class="noticias-loading">Cargando...</div>`;
+      onNoticiasVisibles(noticias => renderTimeline(noticias));
+    });
+  </script>
+
+</body>
+</html>
