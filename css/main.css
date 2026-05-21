@@ -195,6 +195,13 @@ img {
   gap: 16px;
   max-width: 520px;
   margin: 0 auto;
+  justify-content: center;
+}
+
+.redes-grid > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - 8px);
 }
 
 /* Desktop: hasta 4 por fila según el espacio */
