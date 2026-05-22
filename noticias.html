@@ -30,7 +30,7 @@
   </div>
 
   <script type="module">
-    import { onSession } from "./js/auth.js";
+    import { onSession, getUserData } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
     import { onNoticiasVisibles, getDias } from "./games/noticias.js";
 
@@ -228,7 +228,7 @@
     }
 
     // ── Auth + carga ──────────────────────────
-    onSession(user => {
+    onSession(async user => {
       const root = document.getElementById("noticias-root");
 
       if (!user) {
@@ -240,7 +240,11 @@
           </div>`;
         return;
       }
-      if (user.status !== "active") {
+
+      // Obtener datos reales del usuario desde Firebase
+      const data = await getUserData(user.uid);
+
+      if (!data || data.status !== "active") {
         root.innerHTML = `
           <div class="noticias-gate">
             <span class="noticias-gate-icon">⏳</span>
