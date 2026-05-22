@@ -68,41 +68,52 @@
     }
 
     /* ── Nav secciones ── */
+    /* ══ BARRA DE NAVEGACIÓN ADMIN ══ */
     .admin-section-nav {
       background: var(--negro-1);
       border-bottom: 1px solid rgba(200,150,0,0.15);
+    }
+
+    /* Fila de grupos — labels arriba */
+    .admin-nav-groups {
+      display: flex;
+      border-bottom: 1px solid rgba(200,150,0,0.08);
+    }
+
+    .admin-nav-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Etiqueta de grupo */
+    .admin-nav-group-label {
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 6px 20px 5px;
+      color: rgba(200,150,0,0.4);
+      user-select: none;
+    }
+    .admin-nav-group.juegos .admin-nav-group-label {
+      color: rgba(220,220,220,0.25);
+      border-left: 1px solid rgba(200,150,0,0.1);
+    }
+
+    /* Fila de tabs de cada grupo */
+    .admin-nav-group-tabs {
+      display: flex;
       overflow-x: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
-    .admin-section-nav::-webkit-scrollbar { display: none; }
+    .admin-nav-group-tabs::-webkit-scrollbar { display: none; }
 
-    .admin-section-nav-inner {
-      display: flex;
-      align-items: stretch;
-      min-width: max-content;
-      padding: 0 20px;
+    .admin-nav-group.juegos .admin-nav-group-tabs {
+      border-left: 1px solid rgba(200,150,0,0.1);
     }
 
-    /* Etiqueta de grupo */
-    .nav-group-chip {
-      display: flex;
-      align-items: center;
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(200,150,0,0.3);
-      white-space: nowrap;
-      padding-right: 12px;
-      flex-shrink: 0;
-      user-select: none;
-    }
-    .nav-group-chip + .nav-group-chip {
-      border-left: 1px solid rgba(200,150,0,0.12);
-      padding-left: 14px;
-      margin-left: 4px;
-    }
-
+    /* Tabs */
     .active-section {
       background: transparent;
       border: none;
@@ -112,7 +123,7 @@
       font-family: var(--font-title);
       font-size: 14px;
       letter-spacing: 1.5px;
-      padding: 13px 14px 11px;
+      padding: 10px 18px 9px;
       white-space: nowrap;
       transition: color 0.15s, border-color 0.15s, background 0.15s;
       flex-shrink: 0;
@@ -121,13 +132,15 @@
       color: var(--crema);
       background: rgba(200,150,0,0.04);
     }
+    /* Admin activo → dorado */
     .active-section.active {
       color: var(--dorado);
       border-bottom-color: var(--dorado);
     }
+    /* Juego activo → blanco */
     .active-section.juego.active {
       color: var(--crema);
-      border-bottom-color: rgba(200,200,200,0.6);
+      border-bottom-color: rgba(220,220,220,0.5);
     }
 
   </style>
@@ -201,18 +214,29 @@
 
     <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
-      <div class="admin-section-nav-inner">
-        <span class="nav-group-chip">Admin</span>
-        <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
-        <button class="active-section" data-section="sesion">📡 Sesión</button>
-        <button class="active-section" data-section="musica">🎵 Música</button>
-        <button class="active-section" data-section="tablon">📋 Tablón</button>
-        <button class="active-section" data-section="noticias">📰 Noticias</button>
-        <span class="nav-group-chip">Juegos</span>
-        <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
-        <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
-        <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
-        <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+      <div class="admin-nav-groups">
+
+        <div class="admin-nav-group admin">
+          <span class="admin-nav-group-label">Admin</span>
+          <div class="admin-nav-group-tabs">
+            <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
+            <button class="active-section" data-section="sesion">📡 Sesión</button>
+            <button class="active-section" data-section="musica">🎵 Música</button>
+            <button class="active-section" data-section="tablon">📋 Tablón</button>
+            <button class="active-section" data-section="noticias">📰 Noticias</button>
+          </div>
+        </div>
+
+        <div class="admin-nav-group juegos">
+          <span class="admin-nav-group-label">Juegos</span>
+          <div class="admin-nav-group-tabs">
+            <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
+            <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
+            <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
+            <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
