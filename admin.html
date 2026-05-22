@@ -68,90 +68,44 @@
     }
 
     /* ── Nav secciones ── */
-    /* ══ BARRA DE NAVEGACIÓN ADMIN ══ */
     .admin-section-nav {
       background: var(--negro-1);
-      border-bottom: 1px solid rgba(200,150,0,0.15);
+      border-bottom: 2px solid rgba(200,150,0,0.18);
     }
-    .admin-nav-wrap {
+    .admin-section-nav-inner {
       max-width: 900px;
       margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    /* Fila de los dos botones principales */
-    .admin-nav-top {
       display: flex;
-      gap: 4px;
-      padding: 8px 0 0;
-    }
-
-    .admin-nav-btn {
-      background: transparent;
-      border: 1px solid rgba(200,150,0,0.15);
-      border-radius: 6px 6px 0 0;
-      border-bottom: none;
-      color: var(--crema-3);
-      cursor: pointer;
-      font-family: var(--font-title);
-      font-size: 13px;
-      letter-spacing: 2px;
-      padding: 7px 20px;
-      white-space: nowrap;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .admin-nav-btn:hover {
-      color: var(--crema);
-      background: rgba(200,150,0,0.06);
-    }
-    .admin-nav-btn.open {
-      color: var(--dorado);
-      background: rgba(200,150,0,0.07);
-      border-color: rgba(200,150,0,0.3);
-    }
-    .admin-nav-btn.juegos.open {
-      color: var(--crema);
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(220,220,220,0.2);
-    }
-
-    /* Fila de tabs (se muestra/oculta) */
-    .admin-nav-tabs {
-      display: none;
+      gap: 0;
+      padding: 0 16px;
       overflow-x: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      border-top: 1px solid rgba(200,150,0,0.12);
+      scrollbar-width: none;       /* Firefox */
+      -ms-overflow-style: none;    /* IE/Edge */
     }
-    .admin-nav-tabs::-webkit-scrollbar { display: none; }
-    .admin-nav-tabs.open { display: flex; }
-
-    /* Tabs individuales */
+    .admin-section-nav-inner::-webkit-scrollbar {
+      display: none;               /* Chrome/Safari */
+    }
     .active-section {
       background: transparent;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
       color: var(--crema-3);
       cursor: pointer;
       font-family: var(--font-title);
-      font-size: 14px;
+      font-size: 15px;
       letter-spacing: 1.5px;
-      padding: 10px 16px 9px;
+      padding: 12px 18px 10px;
       white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-      flex-shrink: 0;
+      transition: color 0.15s, border-color 0.15s;
     }
     .active-section:hover {
       color: var(--crema);
-      background: rgba(200,150,0,0.04);
+      border-bottom-color: rgba(200,150,0,0.4);
     }
     .active-section.active {
       color: var(--dorado);
       border-bottom-color: var(--dorado);
-    }
-    .active-section.juego.active {
-      color: var(--crema);
-      border-bottom-color: rgba(220,220,220,0.45);
+      font-weight: 400;
     }
 
   </style>
@@ -225,31 +179,16 @@
 
     <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
-      <div class="admin-nav-wrap">
-
-        <!-- Botones principales -->
-        <div class="admin-nav-top">
-          <button class="admin-nav-btn open" id="nav-btn-admin" onclick="toggleNavGroup('admin')">⚙️ Admin</button>
-          <button class="admin-nav-btn juegos" id="nav-btn-juegos" onclick="toggleNavGroup('juegos')">🎮 Juegos</button>
-        </div>
-
-        <!-- Tabs Admin -->
-        <div class="admin-nav-tabs open" id="nav-tabs-admin">
-          <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
-          <button class="active-section" data-section="sesion">📡 Sesión</button>
-          <button class="active-section" data-section="musica">🎵 Música</button>
-          <button class="active-section" data-section="tablon">📋 Tablón</button>
-          <button class="active-section" data-section="noticias">📰 Noticias</button>
-        </div>
-
-        <!-- Tabs Juegos -->
-        <div class="admin-nav-tabs" id="nav-tabs-juegos">
-          <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
-          <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
-          <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
-          <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
-        </div>
-
+      <div class="admin-section-nav-inner">
+        <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
+        <button class="active-section" data-section="sesion">📡 Sesión</button>
+        <button class="active-section" data-section="taboo">🃏 Taboo</button>
+        <button class="active-section" data-section="wordle">🔤 Wordle</button>
+        <button class="active-section" data-section="impostor">🕵️ Impostor</button>
+        <button class="active-section" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+        <button class="active-section" data-section="musica">🎵 Música</button>
+        <button class="active-section" data-section="tablon">📋 Tablón</button>
+        <button class="active-section" data-section="noticias">📰 Noticias</button>
       </div>
     </div>
 
@@ -831,11 +770,26 @@
 
           <div>
             <label class="noticia-form-label">Fecha de publicación</label>
-            <input type="date" id="n-fecha" class="noticia-form-input">
+            <input type="date" id="n-fecha" class="noticia-form-input" onchange="onFechaChange()">
+          </div>
+
+          <!-- Miniatura del día (se muestra solo si el día no tiene una ya) -->
+          <div id="n-dia-wrap">
+            <label class="noticia-form-label">
+              Miniatura del día
+              <span id="n-dia-status" style="font-size:10px;opacity:.5;margin-left:6px;font-family:var(--font-body);letter-spacing:0;text-transform:none;"></span>
+            </label>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <label class="noticia-img-slot" id="n-dia-slot" title="Imagen que representa este día" style="width:90px;height:90px;">
+                <input type="file" accept="image/*" style="display:none" onchange="onDiaImgChange(event)">
+                <i style="font-style:normal;font-size:22px;">+</i>
+              </label>
+              <span style="font-size:11px;color:var(--crema-3);opacity:.55;line-height:1.5;">Aparece en el índice<br>de días de la página</span>
+            </div>
           </div>
 
           <div>
-            <label class="noticia-form-label">Título</label>
+            <label class="noticia-form-label">Título de la noticia</label>
             <input type="text" id="n-titulo" class="noticia-form-input" placeholder="Ej: Nueva fecha de evento" maxlength="120">
           </div>
 
@@ -845,7 +799,7 @@
           </div>
 
           <div>
-            <label class="noticia-form-label">Imágenes (hasta 4)</label>
+            <label class="noticia-form-label">Imágenes de la nota (hasta 4)</label>
             <div class="noticia-img-slots" id="n-img-slots"></div>
             <div id="n-upload-status" style="font-size:11px;color:var(--crema-3);margin-top:6px;min-height:16px;"></div>
           </div>
@@ -1110,9 +1064,10 @@
     import { uploadTrack as musicUploadTrack } from "./games/musica.js";
     import {
       uploadNoticiaImg, deleteNoticiaImg,
-      saveNoticia, deleteNoticia, toggleNoticiaVisible, getNoticias
+      saveNoticia, deleteNoticia, toggleNoticiaVisible, getNoticias,
+      saveDia, getDias
     } from "./games/noticias.js";
-    import { db } from "./js/firebase-init.js";
+    import { db, auth } from "./js/firebase-init.js";
     import {
       ref, onValue, update, get, set, remove
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -2236,38 +2191,6 @@
       if (sectionId === "noticias") cargarAdminNoticias();
     }
     window.showSection = showSection;
-
-    // Accordion de grupos del nav
-    window.toggleNavGroup = function(grupo) {
-      const tabsAdmin  = document.getElementById("nav-tabs-admin");
-      const tabsJuegos = document.getElementById("nav-tabs-juegos");
-      const btnAdmin   = document.getElementById("nav-btn-admin");
-      const btnJuegos  = document.getElementById("nav-btn-juegos");
-
-      if (grupo === "admin") {
-        const abriendo = !tabsAdmin.classList.contains("open");
-        tabsAdmin.classList.toggle("open", abriendo);
-        tabsJuegos.classList.remove("open");
-        btnAdmin.classList.toggle("open", abriendo);
-        btnJuegos.classList.remove("open");
-        // Si se abre Admin y no hay tab activo de admin, activar Usuarios
-        if (abriendo) {
-          const hayActivoAdmin = tabsAdmin.querySelector(".active-section.active");
-          if (!hayActivoAdmin) showSection("usuarios");
-        }
-      } else {
-        const abriendo = !tabsJuegos.classList.contains("open");
-        tabsJuegos.classList.toggle("open", abriendo);
-        tabsAdmin.classList.remove("open");
-        btnJuegos.classList.toggle("open", abriendo);
-        btnAdmin.classList.remove("open");
-        // Si se abre Juegos y no hay tab activo de juegos, activar Taboo
-        if (abriendo) {
-          const hayActivoJuegos = tabsJuegos.querySelector(".active-section.active");
-          if (!hayActivoJuegos) showSection("taboo");
-        }
-      }
-    };
     window.renderSesionUsuarios = () => renderSesionUsuarios();
     window.renderUsers = () => renderUsers(currentFilter);
 
@@ -2275,13 +2198,7 @@
     showSection("usuarios");
 
     document.querySelectorAll(".active-section").forEach(link => {
-      link.addEventListener("click", () => {
-        showSection(link.dataset.section);
-        // Marcar el botón de grupo correcto como open
-        const esJuego = link.classList.contains("juego");
-        document.getElementById("nav-btn-admin").classList.toggle("open", !esJuego);
-        document.getElementById("nav-btn-juegos").classList.toggle("open", esJuego);
-      });
+      link.addEventListener("click", () => showSection(link.dataset.section));
     });
 
     // ════════════════════════════════════════════════════════
@@ -2697,8 +2614,368 @@
     //  NOTICIAS — Admin
     // ════════════════════════════════════════════
 
-    let _nEditId = null;
-    let _nImgs   = [null, null, null, null]; // {url, fileId, b64, file} | null
+    let _nEditId   = null;
+    let _nImgs     = [null,null,null,null]; // {url,fileId,b64,file}|null
+    let _nDiaImg   = null;  // {b64,file,url,fileId} | null — miniatura del día
+    let _diasCache = {};    // cache de días ya guardados
+
+    // ── Toggle label visible ──────────────────
+    function actualizarLabelVis() {
+      const chk   = document.getElementById("n-visible");
+      const label = document.getElementById("n-visible-label");
+      if (!chk||!label) return;
+      label.innerHTML = chk.checked
+        ? `<strong>Publicada</strong> — visible para todos`
+        : `<strong>Oculta</strong> — solo vos la ves en el admin`;
+    }
+
+    // ── Miniatura del día ─────────────────────
+    async function onFechaChange() {
+      const fecha  = document.getElementById("n-fecha").value;
+      const status = document.getElementById("n-dia-status");
+      if (!fecha) return;
+      // consultar si ya tiene miniatura
+      const dias = await getDias();
+      _diasCache = dias;
+      const dia  = dias[fecha];
+      if (dia?.miniatura) {
+        status.textContent = "✓ Este día ya tiene miniatura";
+        renderDiaSlot(dia.miniatura);
+      } else {
+        status.textContent = "Sin miniatura aún";
+        renderDiaSlot(null);
+      }
+    }
+
+    function renderDiaSlot(urlOb64) {
+      const slot = document.getElementById("n-dia-slot");
+      if (!slot) return;
+      const input = slot.querySelector("input");
+      slot.innerHTML = "";
+      slot.appendChild(input);
+      if (urlOb64) {
+        const img = document.createElement("img");
+        img.src = urlOb64;
+        img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;";
+        slot.appendChild(img);
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "noticia-slot-del";
+        del.textContent = "✕";
+        del.onclick = e => { e.preventDefault(); e.stopPropagation(); _nDiaImg=null; renderDiaSlot(null); };
+        slot.appendChild(del);
+      } else {
+        const ico = document.createElement("i");
+        ico.style.cssText = "font-style:normal;font-size:22px;";
+        ico.textContent = "+";
+        slot.appendChild(ico);
+      }
+    }
+
+    async function onDiaImgChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const b64 = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = ev => res(ev.target.result);
+        r.readAsDataURL(file);
+      });
+      _nDiaImg = { b64, file, url: null, fileId: null };
+      renderDiaSlot(b64);
+      e.target.value = "";
+    }
+    window.onDiaImgChange  = onDiaImgChange;
+    window.onFechaChange   = onFechaChange;
+
+    // ── Slots imágenes de la nota ─────────────
+    function renderNSlots() {
+      const cont = document.getElementById("n-img-slots");
+      if (!cont) return;
+      cont.innerHTML = "";
+      for (let i=0; i<4; i++) {
+        const img = _nImgs[i];
+        if (i>0 && !_nImgs[i-1]) break;
+        const slot = document.createElement("label");
+        slot.className = "noticia-img-slot";
+        if (img) {
+          const el = document.createElement("img");
+          el.src = img.url || img.b64;
+          el.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;";
+          slot.appendChild(el);
+          const del = document.createElement("button");
+          del.className = "noticia-slot-del";
+          del.type = "button";
+          del.textContent = "✕";
+          del.onclick = e => { e.preventDefault(); e.stopPropagation(); quitarNSlot(i); };
+          slot.appendChild(del);
+        } else {
+          const ico = document.createElement("i");
+          ico.style.cssText = "font-style:normal;font-size:20px;";
+          ico.textContent = "+";
+          slot.appendChild(ico);
+          const input = document.createElement("input");
+          input.type = "file"; input.accept = "image/*"; input.style.display = "none";
+          input.onchange = e => onNSlotFile(e, i);
+          slot.appendChild(input);
+        }
+        cont.appendChild(slot);
+      }
+    }
+
+    async function onNSlotFile(e, idx) {
+      const file = e.target.files[0]; if (!file) return;
+      const b64  = await new Promise(res => {
+        const r = new FileReader(); r.onload = ev => res(ev.target.result); r.readAsDataURL(file);
+      });
+      _nImgs[idx] = { b64, file, url:null, fileId:null };
+      renderNSlots(); e.target.value = "";
+    }
+
+    function quitarNSlot(idx) {
+      for (let i=idx; i<3; i++) _nImgs[i] = _nImgs[i+1];
+      _nImgs[3] = null; renderNSlots();
+    }
+
+    // ── Abrir modal ────────────────────────────
+    window.abrirModalNoticia = async function(id, fechaDefault) {
+      _nEditId = id || null;
+      _nImgs   = [null,null,null,null];
+      _nDiaImg = null;
+
+      const overlay  = document.getElementById("noticia-modal-overlay");
+      const tituloEl = document.getElementById("noticia-modal-titulo");
+      const btnG     = document.getElementById("btn-guardar-noticia");
+      document.getElementById("n-upload-status").textContent = "";
+      document.getElementById("n-dia-status").textContent    = "";
+
+      const chk = document.getElementById("n-visible");
+      chk.onchange = actualizarLabelVis;
+
+      if (id) {
+        tituloEl.textContent = "Editar noticia";
+        btnG.textContent     = "Guardar cambios";
+        const lista = await getNoticias();
+        const n = lista.find(x => x.id === id);
+        if (!n) return;
+        document.getElementById("n-fecha").value  = n.fecha  || "";
+        document.getElementById("n-titulo").value = n.titulo || "";
+        document.getElementById("n-texto").value  = n.texto  || "";
+        chk.checked = n.visible !== false;
+        [n.img1,n.img2,n.img3,n.img4].forEach((url,i) => {
+          const fid = [n.img1Id,n.img2Id,n.img3Id,n.img4Id][i] || "";
+          if (url) _nImgs[i] = { url, fileId:fid, b64:null, file:null };
+        });
+        // cargar miniatura del día
+        await onFechaChange();
+      } else {
+        tituloEl.textContent = "Nueva noticia";
+        btnG.textContent     = "Publicar";
+        const hoy = (fechaDefault && fechaDefault !== "sin-fecha")
+          ? fechaDefault : new Date().toISOString().slice(0,10);
+        document.getElementById("n-fecha").value  = hoy;
+        document.getElementById("n-titulo").value = "";
+        document.getElementById("n-texto").value  = "";
+        chk.checked = true;
+        renderDiaSlot(null);
+        await onFechaChange();
+      }
+
+      actualizarLabelVis();
+      renderNSlots();
+      overlay.style.display = "flex";
+    };
+
+    window.cerrarModalNoticia = function() {
+      document.getElementById("noticia-modal-overlay").style.display = "none";
+    };
+    window.onNoticiaOverlayClick = function(e) {
+      if (e.target === document.getElementById("noticia-modal-overlay")) cerrarModalNoticia();
+    };
+
+    // ── Guardar ────────────────────────────────
+    window.guardarNoticia = async function() {
+      const btn    = document.getElementById("btn-guardar-noticia");
+      const status = document.getElementById("n-upload-status");
+      const titulo = document.getElementById("n-titulo").value.trim();
+      const texto  = document.getElementById("n-texto").value.trim();
+      const fecha  = document.getElementById("n-fecha").value;
+      const visible = document.getElementById("n-visible").checked;
+
+      if (!titulo) { showToast("Agregá un título"); return; }
+      if (!fecha)  { showToast("Elegí una fecha"); return; }
+
+      btn.disabled    = true;
+      btn.textContent = "Guardando...";
+
+      try {
+        const uid = auth.currentUser?.uid || "admin";
+
+        // 1. Subir miniatura del día si hay una nueva
+        if (_nDiaImg?.file) {
+          status.textContent = "Subiendo miniatura del día...";
+          try {
+            const res = await uploadNoticiaImg(uid, _nDiaImg.b64, `dia_${fecha}`, fecha);
+            await saveDia(fecha, res.url, res.fileId || "", "");
+            _nDiaImg = { url: res.url, fileId: res.fileId||"", b64:null, file:null };
+          } catch(e) { showToast("Error miniatura: " + e.message); }
+        } else if (_nDiaImg === null) {
+          // Si no hay miniatura nueva pero el día no tiene una, guardar vacío
+          const dia = _diasCache[fecha];
+          if (!dia?.miniatura) await saveDia(fecha, "", "", "").catch(()=>{});
+        }
+
+        // 2. Subir imágenes de la nota
+        const imgsFinales = [];
+        for (let i=0; i<4; i++) {
+          const slot = _nImgs[i];
+          if (!slot) { imgsFinales.push(null); continue; }
+          if (slot.file) {
+            status.textContent = `Subiendo imagen ${i+1}...`;
+            try {
+              const res = await uploadNoticiaImg(uid, slot.b64, `noticia_${Date.now()}_${i}`, fecha);
+              imgsFinales.push(res);
+            } catch(e) {
+              showToast("Error imagen " + (i+1) + ": " + e.message);
+              imgsFinales.push(null);
+            }
+          } else {
+            imgsFinales.push({ url: slot.url, fileId: slot.fileId || "" });
+          }
+        }
+
+        status.textContent = "Publicando...";
+
+        await saveNoticia({
+          id: _nEditId || null,
+          fecha, titulo, texto, visible,
+          imgs: imgsFinales,
+          creadoEn: _nEditId ? Date.now() : undefined  // saveNoticia ya maneja esto
+        });
+
+        showToast(_nEditId ? "Noticia actualizada ✓" : "Noticia publicada ✓");
+        cerrarModalNoticia();
+        cargarAdminNoticias();
+
+      } catch(e) {
+        showToast("Error: " + e.message);
+      } finally {
+        btn.disabled    = false;
+        btn.textContent = _nEditId ? "Guardar cambios" : "Publicar";
+        status.textContent = "";
+      }
+    };
+
+    // ── Toggle visible ─────────────────────────
+    window.toggleNVis = async function(id, actual) {
+      try {
+        await toggleNoticiaVisible(id, !actual);
+        showToast(!actual ? "Noticia publicada ✓" : "Noticia ocultada");
+        cargarAdminNoticias();
+      } catch(e) { showToast("Error: " + e.message); }
+    };
+
+    // ── Eliminar ───────────────────────────────
+    window.confirmarEliminarNoticia = async function(id) {
+      if (!confirm("¿Eliminar esta noticia?")) return;
+      try {
+        const uid = auth.currentUser?.uid || "admin";
+        await deleteNoticia(uid, id);
+        showToast("Noticia eliminada");
+        cargarAdminNoticias();
+      } catch(e) { showToast("Error: " + e.message); }
+    };
+
+    // ── Carga y render ─────────────────────────
+    async function cargarAdminNoticias() {
+      const cont = document.getElementById("admin-noticias-timeline");
+      if (!cont) return;
+      cont.innerHTML = `<div class="admin-noticias-empty">Cargando...</div>`;
+      try {
+        const [lista, dias] = await Promise.all([getNoticias(), getDias()]);
+        _diasCache = dias;
+        renderAdminTimeline(lista, dias);
+      } catch(e) {
+        cont.innerHTML = `<div class="admin-noticias-empty">Error al cargar</div>`;
+      }
+    }
+
+    function renderAdminTimeline(noticias, dias) {
+      const cont = document.getElementById("admin-noticias-timeline");
+      if (!noticias.length) {
+        cont.innerHTML = `<div class="admin-noticias-empty">Sin noticias aún — creá la primera</div>`;
+        return;
+      }
+
+      const porFecha = {};
+      noticias.forEach(n => {
+        const f = n.fecha || "sin-fecha";
+        if (!porFecha[f]) porFecha[f] = [];
+        porFecha[f].push(n);
+      });
+      const fechas = Object.keys(porFecha).sort((a,b) => b.localeCompare(a));
+
+      cont.innerHTML = fechas.map(fecha => {
+        const ns    = porFecha[fecha];
+        const label = formatNFecha(fecha);
+        const dia   = dias[fecha];
+        const miniDia = dia?.miniatura
+          ? `<img src="${dia.miniatura}" class="admin-noticia-thumb" style="width:52px;height:52px;border-radius:8px;object-fit:cover;" alt="">`
+          : `<div class="admin-noticia-thumb" style="width:52px;height:52px;border-radius:8px;background:rgba(200,150,0,0.08);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📅</div>`;
+
+        const rows = ns.map(n => {
+          const imgs   = [n.img1,n.img2,n.img3,n.img4].filter(Boolean);
+          const thumb  = imgs[0]
+            ? `<img class="admin-noticia-thumb" src="${imgs[0]}" alt="" loading="lazy">`
+            : `<div class="admin-noticia-thumb" style="width:44px;height:44px;border-radius:6px;background:rgba(200,150,0,0.05);display:flex;align-items:center;justify-content:center;font-size:16px;">📰</div>`;
+          const visible = n.visible !== false;
+          const badge   = visible
+            ? `<span class="noticia-badge visible">👁 Visible</span>`
+            : `<span class="noticia-badge oculta">🙈 Oculta</span>`;
+          return `
+            <div class="admin-noticia-row${visible?"":" oculta"}">
+              <div class="admin-noticia-thumbs">${thumb}</div>
+              <div class="admin-noticia-info">
+                <div class="admin-noticia-titulo">${escN(n.titulo||"Sin título")}</div>
+                <div class="admin-noticia-preview">${escN((n.texto||"").slice(0,80))}</div>
+              </div>
+              ${badge}
+              <div class="admin-noticia-acciones">
+                <button class="admin-noticia-btn toggle-vis" title="${visible?"Ocultar":"Publicar"}"
+                  onclick="toggleNVis('${n.id}',${visible})">${visible?"🙈":"👁"}</button>
+                <button class="admin-noticia-btn" title="Editar"
+                  onclick="abrirModalNoticia('${n.id}')">✏️</button>
+                <button class="admin-noticia-btn del" title="Eliminar"
+                  onclick="confirmarEliminarNoticia('${n.id}')">🗑️</button>
+              </div>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="admin-noticias-dia">
+            <div class="admin-noticias-dia-header">
+              ${miniDia}
+              <span class="admin-noticias-dia-label">${label}</span>
+              <div class="admin-noticias-dia-linea"></div>
+              <button class="admin-noticias-dia-btn"
+                onclick="abrirModalNoticia(null,'${fecha}')">+ Agregar acá</button>
+            </div>
+            ${rows}
+          </div>`;
+      }).join("");
+    }
+
+    function formatNFecha(iso) {
+      if (!iso||iso==="sin-fecha") return "Sin fecha";
+      const [y,m,d] = iso.split("-");
+      const meses = ["enero","febrero","marzo","abril","mayo","junio",
+                     "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+      return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+    }
+    function escN(s) {
+      return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+  </script>
 
     // ── Actualizar label del toggle visible ──
     function actualizarLabelVis() {
