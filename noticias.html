@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Noticias — El Burdel</title>
-  <meta name="description" content="Novedades y noticias de El Burdel." />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css?v=2" />
   <link rel="stylesheet" href="css/noticias.css" />
@@ -12,16 +11,13 @@
 <body>
 
   <div class="noticias-page">
-
     <div class="noticias-page-header">
       <h1 class="noticias-page-title">📰 Noticias</h1>
       <p class="noticias-page-sub">Novedades del Burdel</p>
     </div>
-
     <div id="noticias-root">
       <div class="noticias-loading">Cargando...</div>
     </div>
-
   </div>
 
   <!-- Lightbox -->
@@ -36,40 +32,46 @@
   <script type="module">
     import { onSession } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
-    import { onNoticiasVisibles } from "./games/noticias.js";
+    import { onNoticiasVisibles, getDias } from "./games/noticias.js";
 
     initNavbar();
 
-    // ── Lightbox ──────────────────────────────
-    let lbImgs = [], lbIdx = 0;
+    // ── Estado de navegación ─────────────────
+    // vista: "dias" | "noticias-dia" | "noticia"
+    let _vista      = "dias";
+    let _fechaActual = null;
+    let _noticiaActual = null;
+    let _todasNoticias = [];
+    let _dias          = {};
 
-    window.cerrarLightbox = function() {
+    // ── Lightbox ─────────────────────────────
+    let lbImgs = [], lbIdx = 0;
+    window.cerrarLightbox = () => {
       document.getElementById("noticiasLightbox").classList.remove("activo");
       document.body.style.overflow = "";
     };
-    window.lbNav = function(dir, e) {
+    window.lbNav = (dir, e) => {
       e.stopPropagation();
-      lbIdx = Math.max(0, Math.min(lbImgs.length - 1, lbIdx + dir));
+      lbIdx = Math.max(0, Math.min(lbImgs.length-1, lbIdx+dir));
       renderLb();
     };
     function renderLb() {
       document.getElementById("lbImg").src           = lbImgs[lbIdx];
-      document.getElementById("lbCounter").textContent = (lbIdx+1) + " / " + lbImgs.length;
-      document.getElementById("lbPrev").disabled     = lbIdx === 0;
-      document.getElementById("lbNext").disabled     = lbIdx === lbImgs.length - 1;
+      document.getElementById("lbCounter").textContent = (lbIdx+1)+" / "+lbImgs.length;
+      document.getElementById("lbPrev").disabled     = lbIdx===0;
+      document.getElementById("lbNext").disabled     = lbIdx===lbImgs.length-1;
     }
-    window.abrirLightbox = function(imgs, idx) {
-      lbImgs = imgs; lbIdx = idx;
-      renderLb();
+    window.abrirLightbox = (imgs, idx) => {
+      lbImgs=imgs; lbIdx=idx; renderLb();
       document.getElementById("noticiasLightbox").classList.add("activo");
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow="hidden";
     };
     document.addEventListener("keydown", e => {
       const lb = document.getElementById("noticiasLightbox");
       if (!lb.classList.contains("activo")) return;
-      if (e.key === "Escape")       cerrarLightbox();
-      if (e.key === "ArrowLeft"  && lbIdx > 0)              { lbIdx--; renderLb(); }
-      if (e.key === "ArrowRight" && lbIdx < lbImgs.length-1){ lbIdx++; renderLb(); }
+      if (e.key==="Escape")       cerrarLightbox();
+      if (e.key==="ArrowLeft"  && lbIdx>0)              { lbIdx--; renderLb(); }
+      if (e.key==="ArrowRight" && lbIdx<lbImgs.length-1){ lbIdx++; renderLb(); }
     });
 
     // ── Helpers ───────────────────────────────
@@ -84,63 +86,151 @@
       return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
                           .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
+    function noticiasDelDia(fecha) {
+      return _todasNoticias.filter(n => n.fecha === fecha);
+    }
 
-    // ── Render ────────────────────────────────
-    function renderTimeline(noticias) {
+    // ── Breadcrumb ────────────────────────────
+    function renderBreadcrumb() {
       const root = document.getElementById("noticias-root");
-      if (!noticias.length) {
-        root.innerHTML = `<div class="noticias-empty">Sin noticias por ahora</div>`;
-        return;
+      if (_vista === "dias") return "";
+      const partes = [`<button class="n-bread-btn" onclick="irDias()">📰 Noticias</button>`];
+      if (_vista === "noticias-dia" || _vista === "noticia") {
+        partes.push(`<span class="n-bread-sep">›</span>`);
+        partes.push(`<button class="n-bread-btn" onclick="irDia('${_fechaActual}')">${formatFecha(_fechaActual)}</button>`);
       }
+      if (_vista === "noticia") {
+        partes.push(`<span class="n-bread-sep">›</span>`);
+        partes.push(`<span class="n-bread-actual">${esc(_noticiaActual?.titulo||"")}</span>`);
+      }
+      return `<div class="n-breadcrumb">${partes.join("")}</div>`;
+    }
+
+    // ── VISTA 1: Índice de días ───────────────
+    window.irDias = function() {
+      _vista = "dias";
+      _fechaActual = null;
+      _noticiaActual = null;
+      renderVista();
+    };
+
+    function renderVistaDias() {
+      // Agrupar noticias por fecha
       const porFecha = {};
-      noticias.forEach(n => {
+      _todasNoticias.forEach(n => {
         const f = n.fecha || "sin-fecha";
         if (!porFecha[f]) porFecha[f] = [];
         porFecha[f].push(n);
       });
-      const fechas = Object.keys(porFecha).sort((a,b) => b.localeCompare(a));
+      const fechas = Object.keys(porFecha).sort((a,b)=>b.localeCompare(a));
 
-      root.innerHTML = `<div class="noticias-timeline">` +
-        fechas.map(fecha => {
-          const label = formatFecha(fecha === "sin-fecha" ? "" : fecha);
-          const cards = porFecha[fecha].map(n => renderCard(n)).join("");
-          return `
-            <div class="noticias-dia">
-              <div class="noticias-dia-header">
-                <span class="noticias-dia-label">${label}</span>
-                <div class="noticias-dia-linea"></div>
-              </div>
-              <div class="noticias-dia-cards">${cards}</div>
-            </div>`;
-        }).join("") +
-      `</div>`;
+      if (!fechas.length) {
+        return `<div class="noticias-empty">Sin noticias por ahora</div>`;
+      }
+
+      const cards = fechas.map(fecha => {
+        const ns  = porFecha[fecha];
+        const dia = _dias[fecha];
+        const mini = dia?.miniatura
+          ? `<img class="n-dia-card-img" src="${esc(dia.miniatura)}" alt="" loading="lazy">`
+          : `<div class="n-dia-card-img n-dia-card-placeholder">📅</div>`;
+        const cnt = ns.length;
+        return `
+          <button class="n-dia-card" onclick="irDia('${fecha}')">
+            ${mini}
+            <div class="n-dia-card-body">
+              <div class="n-dia-card-fecha">${formatFecha(fecha)}</div>
+              <div class="n-dia-card-cnt">${cnt} noticia${cnt!==1?"s":""}</div>
+            </div>
+            <div class="n-dia-card-arrow">›</div>
+          </button>`;
+      }).join("");
+
+      return `<div class="n-dias-grid">${cards}</div>`;
     }
 
-    function renderCard(n) {
+    // ── VISTA 2: Noticias de un día ───────────
+    window.irDia = function(fecha) {
+      _vista = "noticias-dia";
+      _fechaActual = fecha;
+      _noticiaActual = null;
+      renderVista();
+    };
+
+    function renderVistaNoticias(fecha) {
+      const ns = noticiasDelDia(fecha);
+      if (!ns.length) return `<div class="noticias-empty">Sin noticias en este día</div>`;
+
+      const cards = ns.map(n => {
+        const imgs = [n.img1,n.img2,n.img3,n.img4].filter(Boolean);
+        const mini = imgs[0]
+          ? `<img class="n-card-img" src="${esc(imgs[0])}" alt="" loading="lazy">`
+          : `<div class="n-card-img n-card-placeholder">📰</div>`;
+        const preview = (n.texto||"").slice(0,100) + ((n.texto||"").length>100?"...":"");
+        return `
+          <button class="n-card" onclick="irNoticia('${n.id}')">
+            ${mini}
+            <div class="n-card-body">
+              <div class="n-card-titulo">${esc(n.titulo||"Sin título")}</div>
+              ${preview ? `<div class="n-card-preview">${esc(preview)}</div>` : ""}
+            </div>
+            <div class="n-card-arrow">›</div>
+          </button>`;
+      }).join("");
+
+      return `<div class="n-cards-list">${cards}</div>`;
+    }
+
+    // ── VISTA 3: Nota completa ────────────────
+    window.irNoticia = function(id) {
+      const n = _todasNoticias.find(x => x.id === id);
+      if (!n) return;
+      _vista = "noticia";
+      _noticiaActual = n;
+      _fechaActual = n.fecha;
+      renderVista();
+    };
+
+    function renderVistaNoticia(n) {
       const imgs = [n.img1,n.img2,n.img3,n.img4].filter(Boolean);
       const cnt  = imgs.length;
       const imgsJson = JSON.stringify(imgs).replace(/"/g,"&quot;");
+
       const imgsHtml = cnt ? (() => {
         const items = imgs.map((url,i) =>
           `<img class="noticia-img" src="${esc(url)}" alt="" loading="lazy"
             onclick="abrirLightbox(JSON.parse(this.closest('[data-imgs]').dataset.imgs.replace(/&quot;/g,'\\\"')),${i})">`
         ).join("");
-        return `<div class="noticia-imgs imgs-${cnt}">${items}</div>`;
+        return `<div class="noticia-imgs imgs-${cnt}" data-imgs="${imgsJson}">${items}</div>`;
       })() : "";
 
       return `
-        <article class="noticia-card" data-imgs="${imgsJson}">
+        <article class="noticia-full">
           ${imgsHtml}
-          <div class="noticia-body">
-            ${n.titulo ? `<h2 class="noticia-titulo">${esc(n.titulo)}</h2>` : ""}
-            ${n.texto  ? `<p  class="noticia-texto">${esc(n.texto)}</p>`  : ""}
+          <div class="noticia-full-body">
+            <h2 class="noticia-titulo">${esc(n.titulo||"")}</h2>
+            ${n.texto ? `<p class="noticia-texto">${esc(n.texto)}</p>` : ""}
           </div>
         </article>`;
+    }
+
+    // ── Render principal ──────────────────────
+    function renderVista() {
+      const root = document.getElementById("noticias-root");
+      const bc   = renderBreadcrumb();
+      let contenido = "";
+
+      if (_vista === "dias")           contenido = renderVistaDias();
+      else if (_vista === "noticias-dia") contenido = renderVistaNoticias(_fechaActual);
+      else if (_vista === "noticia")   contenido = renderVistaNoticia(_noticiaActual);
+
+      root.innerHTML = bc + contenido;
     }
 
     // ── Auth + carga ──────────────────────────
     onSession(user => {
       const root = document.getElementById("noticias-root");
+
       if (!user) {
         root.innerHTML = `
           <div class="noticias-gate">
@@ -158,8 +248,16 @@
           </div>`;
         return;
       }
+
       root.innerHTML = `<div class="noticias-loading">Cargando...</div>`;
-      onNoticiasVisibles(noticias => renderTimeline(noticias));
+
+      // Cargar días y suscribir a noticias
+      getDias().then(dias => { _dias = dias; });
+
+      onNoticiasVisibles(noticias => {
+        _todasNoticias = noticias;
+        renderVista();
+      });
     });
   </script>
 
