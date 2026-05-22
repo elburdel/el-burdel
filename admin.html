@@ -73,42 +73,60 @@
       background: var(--negro-1);
       border-bottom: 1px solid rgba(200,150,0,0.15);
     }
-
-    .admin-nav-groups {
+    .admin-nav-wrap {
       max-width: 900px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 16px;
+    }
+
+    /* Fila de los dos botones principales */
+    .admin-nav-top {
       display: flex;
-      align-items: stretch;
+      gap: 4px;
+      padding: 8px 0 0;
     }
 
-    .admin-nav-group {
-      display: flex;
-      flex-direction: column;
+    .admin-nav-btn {
+      background: transparent;
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+      color: var(--crema-3);
+      cursor: pointer;
+      font-family: var(--font-title);
+      font-size: 13px;
+      letter-spacing: 2px;
+      padding: 7px 20px;
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .admin-nav-btn:hover {
+      color: var(--crema);
+      background: rgba(200,150,0,0.06);
+    }
+    .admin-nav-btn.open {
+      color: var(--dorado);
+      background: rgba(200,150,0,0.07);
+      border-color: rgba(200,150,0,0.3);
+    }
+    .admin-nav-btn.juegos.open {
+      color: var(--crema);
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(220,220,220,0.2);
     }
 
-    .admin-nav-group-label {
-      font-size: 9px;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      padding: 7px 0 4px 4px;
-      color: rgba(200,150,0,0.38);
-      user-select: none;
+    /* Fila de tabs (se muestra/oculta) */
+    .admin-nav-tabs {
+      display: none;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      border-top: 1px solid rgba(200,150,0,0.12);
     }
+    .admin-nav-tabs::-webkit-scrollbar { display: none; }
+    .admin-nav-tabs.open { display: flex; }
 
-    .admin-nav-group.juegos {
-      border-left: 1px solid rgba(200,150,0,0.12);
-      margin-left: 8px;
-      padding-left: 8px;
-    }
-    .admin-nav-group.juegos .admin-nav-group-label {
-      color: rgba(220,220,220,0.22);
-    }
-
-    .admin-nav-group-tabs {
-      display: flex;
-    }
-
+    /* Tabs individuales */
     .active-section {
       background: transparent;
       border: none;
@@ -207,27 +225,29 @@
 
     <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
-      <div class="admin-nav-groups">
+      <div class="admin-nav-wrap">
 
-        <div class="admin-nav-group admin">
-          <span class="admin-nav-group-label">Admin</span>
-          <div class="admin-nav-group-tabs">
-            <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
-            <button class="active-section" data-section="sesion">📡 Sesión</button>
-            <button class="active-section" data-section="musica">🎵 Música</button>
-            <button class="active-section" data-section="tablon">📋 Tablón</button>
-            <button class="active-section" data-section="noticias">📰 Noticias</button>
-          </div>
+        <!-- Botones principales -->
+        <div class="admin-nav-top">
+          <button class="admin-nav-btn open" id="nav-btn-admin" onclick="toggleNavGroup('admin')">⚙️ Admin</button>
+          <button class="admin-nav-btn juegos" id="nav-btn-juegos" onclick="toggleNavGroup('juegos')">🎮 Juegos</button>
         </div>
 
-        <div class="admin-nav-group juegos">
-          <span class="admin-nav-group-label">Juegos</span>
-          <div class="admin-nav-group-tabs">
-            <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
-            <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
-            <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
-            <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
-          </div>
+        <!-- Tabs Admin -->
+        <div class="admin-nav-tabs open" id="nav-tabs-admin">
+          <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
+          <button class="active-section" data-section="sesion">📡 Sesión</button>
+          <button class="active-section" data-section="musica">🎵 Música</button>
+          <button class="active-section" data-section="tablon">📋 Tablón</button>
+          <button class="active-section" data-section="noticias">📰 Noticias</button>
+        </div>
+
+        <!-- Tabs Juegos -->
+        <div class="admin-nav-tabs" id="nav-tabs-juegos">
+          <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
+          <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
+          <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
+          <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
         </div>
 
       </div>
@@ -2216,6 +2236,38 @@
       if (sectionId === "noticias") cargarAdminNoticias();
     }
     window.showSection = showSection;
+
+    // Accordion de grupos del nav
+    window.toggleNavGroup = function(grupo) {
+      const tabsAdmin  = document.getElementById("nav-tabs-admin");
+      const tabsJuegos = document.getElementById("nav-tabs-juegos");
+      const btnAdmin   = document.getElementById("nav-btn-admin");
+      const btnJuegos  = document.getElementById("nav-btn-juegos");
+
+      if (grupo === "admin") {
+        const abriendo = !tabsAdmin.classList.contains("open");
+        tabsAdmin.classList.toggle("open", abriendo);
+        tabsJuegos.classList.remove("open");
+        btnAdmin.classList.toggle("open", abriendo);
+        btnJuegos.classList.remove("open");
+        // Si se abre Admin y no hay tab activo de admin, activar Usuarios
+        if (abriendo) {
+          const hayActivoAdmin = tabsAdmin.querySelector(".active-section.active");
+          if (!hayActivoAdmin) showSection("usuarios");
+        }
+      } else {
+        const abriendo = !tabsJuegos.classList.contains("open");
+        tabsJuegos.classList.toggle("open", abriendo);
+        tabsAdmin.classList.remove("open");
+        btnJuegos.classList.toggle("open", abriendo);
+        btnAdmin.classList.remove("open");
+        // Si se abre Juegos y no hay tab activo de juegos, activar Taboo
+        if (abriendo) {
+          const hayActivoJuegos = tabsJuegos.querySelector(".active-section.active");
+          if (!hayActivoJuegos) showSection("taboo");
+        }
+      }
+    };
     window.renderSesionUsuarios = () => renderSesionUsuarios();
     window.renderUsers = () => renderUsers(currentFilter);
 
@@ -2223,7 +2275,13 @@
     showSection("usuarios");
 
     document.querySelectorAll(".active-section").forEach(link => {
-      link.addEventListener("click", () => showSection(link.dataset.section));
+      link.addEventListener("click", () => {
+        showSection(link.dataset.section);
+        // Marcar el botón de grupo correcto como open
+        const esJuego = link.classList.contains("juego");
+        document.getElementById("nav-btn-admin").classList.toggle("open", !esJuego);
+        document.getElementById("nav-btn-juegos").classList.toggle("open", esJuego);
+      });
     });
 
     // ════════════════════════════════════════════════════════
