@@ -70,73 +70,64 @@
     /* ── Nav secciones ── */
     .admin-section-nav {
       background: var(--negro-1);
-      border-bottom: 2px solid rgba(200,150,0,0.18);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .admin-section-nav-inner {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      padding: 0 16px;
+      border-bottom: 1px solid rgba(200,150,0,0.15);
       overflow-x: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
-    .admin-section-nav-inner::-webkit-scrollbar { display: none; }
+    .admin-section-nav::-webkit-scrollbar { display: none; }
 
-    /* Separador entre grupos */
-    .nav-group-sep {
-      width: 1px;
-      height: 22px;
-      background: rgba(200,150,0,0.2);
-      flex-shrink: 0;
-      margin: 0 8px;
+    .admin-section-nav-inner {
+      display: flex;
+      align-items: stretch;
+      min-width: max-content;
+      padding: 0 20px;
     }
 
     /* Etiqueta de grupo */
-    .nav-group-label {
+    .nav-group-chip {
+      display: flex;
+      align-items: center;
       font-size: 9px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      color: var(--crema-3);
-      opacity: 0.4;
+      color: rgba(200,150,0,0.3);
       white-space: nowrap;
-      padding: 0 10px 0 4px;
+      padding-right: 12px;
       flex-shrink: 0;
-      align-self: center;
-      padding-bottom: 3px;
+      user-select: none;
+    }
+    .nav-group-chip + .nav-group-chip {
+      border-left: 1px solid rgba(200,150,0,0.12);
+      padding-left: 14px;
+      margin-left: 4px;
     }
 
     .active-section {
       background: transparent;
       border: none;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       color: var(--crema-3);
       cursor: pointer;
       font-family: var(--font-title);
-      font-size: 15px;
+      font-size: 14px;
       letter-spacing: 1.5px;
-      padding: 12px 16px 10px;
+      padding: 13px 14px 11px;
       white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
       flex-shrink: 0;
     }
     .active-section:hover {
       color: var(--crema);
-      border-bottom-color: rgba(200,150,0,0.4);
+      background: rgba(200,150,0,0.04);
     }
     .active-section.active {
       color: var(--dorado);
       border-bottom-color: var(--dorado);
     }
-    /* Juegos: acento azulado/blanco para diferenciar */
-    .active-section.juego { color: var(--crema-3); }
-    .active-section.juego:hover { color: var(--crema); }
     .active-section.juego.active {
       color: var(--crema);
-      border-bottom-color: var(--crema);
+      border-bottom-color: rgba(200,200,200,0.6);
     }
 
   </style>
@@ -211,25 +202,17 @@
     <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
       <div class="admin-section-nav-inner">
-
-        <!-- Grupo: Admin -->
-        <span class="nav-group-label">Admin</span>
+        <span class="nav-group-chip">Admin</span>
         <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
         <button class="active-section" data-section="sesion">📡 Sesión</button>
         <button class="active-section" data-section="musica">🎵 Música</button>
         <button class="active-section" data-section="tablon">📋 Tablón</button>
         <button class="active-section" data-section="noticias">📰 Noticias</button>
-
-        <!-- Separador -->
-        <div class="nav-group-sep"></div>
-
-        <!-- Grupo: Juegos -->
-        <span class="nav-group-label">Juegos</span>
+        <span class="nav-group-chip">Juegos</span>
         <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
         <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
         <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
         <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
-
       </div>
     </div>
 
