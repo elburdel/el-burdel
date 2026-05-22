@@ -71,20 +71,44 @@
     .admin-section-nav {
       background: var(--negro-1);
       border-bottom: 2px solid rgba(200,150,0,0.18);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
     .admin-section-nav-inner {
-      max-width: 900px;
-      margin: 0 auto;
       display: flex;
+      align-items: center;
       gap: 0;
       padding: 0 16px;
       overflow-x: auto;
-      scrollbar-width: none;       /* Firefox */
-      -ms-overflow-style: none;    /* IE/Edge */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    .admin-section-nav-inner::-webkit-scrollbar {
-      display: none;               /* Chrome/Safari */
+    .admin-section-nav-inner::-webkit-scrollbar { display: none; }
+
+    /* Separador entre grupos */
+    .nav-group-sep {
+      width: 1px;
+      height: 22px;
+      background: rgba(200,150,0,0.2);
+      flex-shrink: 0;
+      margin: 0 8px;
     }
+
+    /* Etiqueta de grupo */
+    .nav-group-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      opacity: 0.4;
+      white-space: nowrap;
+      padding: 0 10px 0 4px;
+      flex-shrink: 0;
+      align-self: center;
+      padding-bottom: 3px;
+    }
+
     .active-section {
       background: transparent;
       border: none;
@@ -94,9 +118,10 @@
       font-family: var(--font-title);
       font-size: 15px;
       letter-spacing: 1.5px;
-      padding: 12px 18px 10px;
+      padding: 12px 16px 10px;
       white-space: nowrap;
       transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
     }
     .active-section:hover {
       color: var(--crema);
@@ -105,7 +130,13 @@
     .active-section.active {
       color: var(--dorado);
       border-bottom-color: var(--dorado);
-      font-weight: 400;
+    }
+    /* Juegos: acento azulado/blanco para diferenciar */
+    .active-section.juego { color: var(--crema-3); }
+    .active-section.juego:hover { color: var(--crema); }
+    .active-section.juego.active {
+      color: var(--crema);
+      border-bottom-color: var(--crema);
     }
 
   </style>
@@ -180,15 +211,25 @@
     <!-- NAV SECCIONES -->
     <div class="admin-section-nav">
       <div class="admin-section-nav-inner">
+
+        <!-- Grupo: Admin -->
+        <span class="nav-group-label">Admin</span>
         <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
         <button class="active-section" data-section="sesion">📡 Sesión</button>
-        <button class="active-section" data-section="taboo">🃏 Taboo</button>
-        <button class="active-section" data-section="wordle">🔤 Wordle</button>
-        <button class="active-section" data-section="impostor">🕵️ Impostor</button>
-        <button class="active-section" data-section="quiensoy">🪪 ¿Quién Soy?</button>
         <button class="active-section" data-section="musica">🎵 Música</button>
         <button class="active-section" data-section="tablon">📋 Tablón</button>
         <button class="active-section" data-section="noticias">📰 Noticias</button>
+
+        <!-- Separador -->
+        <div class="nav-group-sep"></div>
+
+        <!-- Grupo: Juegos -->
+        <span class="nav-group-label">Juegos</span>
+        <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
+        <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
+        <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
+        <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+
       </div>
     </div>
 
@@ -1051,7 +1092,7 @@
       uploadNoticiaImg, deleteNoticiaImg,
       saveNoticia, deleteNoticia, toggleNoticiaVisible, getNoticias
     } from "./games/noticias.js";
-    import { db, auth } from "./js/firebase-init.js";
+    import { db } from "./js/firebase-init.js";
     import {
       ref, onValue, update, get, set, remove
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
