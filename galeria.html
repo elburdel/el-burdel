@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galería — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=2" />
+  <style>
+    body { background: var(--negro); color: var(--crema); font-family: var(--font-body); }
+
+    .galeria-page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .galeria-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .galeria-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 8vw, 64px);
+      color: var(--dorado);
+      letter-spacing: 4px;
+      margin: 0 0 6px;
+    }
+    .galeria-header p {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+    }
+
+    /* ── Lista de álbumes ── */
+    #albums-root {}
+
+    .albums-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (min-width: 600px) {
+      .albums-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .album-card {
+      cursor: pointer;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--negro-2, #1a1510);
+      border: 1px solid rgba(200,150,0,0.1);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .album-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(200,150,0,0.35);
+    }
+    .album-thumb {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--negro-3, #111);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+    }
+    .album-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .album-info {
+      padding: 10px 12px;
+    }
+    .album-nombre {
+      font-family: var(--font-display);
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      color: var(--crema);
+      text-transform: uppercase;
+    }
+    .album-desc {
+      font-size: 11px;
+      color: var(--crema-3);
+      margin-top: 3px;
+    }
+
+    /* ── Vista de álbum (fotos) ── */
+    #fotos-view { display: none; }
+
+    .fotos-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dorado);
+      cursor: pointer;
+      margin-bottom: 24px;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .fotos-back:hover { color: var(--dorado-claro); }
+
+    .fotos-album-titulo {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 6vw, 48px);
+      letter-spacing: 3px;
+      color: var(--crema);
+      margin: 0 0 6px;
+      text-transform: uppercase;
+    }
+    .fotos-album-desc {
+      font-size: 13px;
+      color: var(--crema-3);
+      margin-bottom: 24px;
+    }
+
+    .fotos-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    @media (min-width: 500px) {
+      .fotos-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 768px) {
+      .fotos-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .foto-item {
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 6px;
+      cursor: pointer;
+      background: var(--negro-2, #1a1510);
+    }
+    .foto-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.25s;
+    }
+    .foto-item:hover img { transform: scale(1.04); }
+
+    /* ── Lightbox ── */
+    .galeria-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .galeria-lightbox.open { display: flex; }
+
+    .lb-img-wrap {
+      max-width: 92vw;
+      max-height: 88vh;
+      position: relative;
+    }
+    .lb-img-wrap img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 4px;
+      object-fit: contain;
+      display: block;
+    }
+    .lb-titulo {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      margin-top: 10px;
+    }
+    .lb-cerrar {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--crema);
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1000;
+      opacity: 0.7;
+    }
+    .lb-cerrar:hover { opacity: 1; }
+    .lb-nav {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(200,150,0,0.2);
+      color: var(--crema);
+      font-size: 20px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lb-nav:hover { background: rgba(200,150,0,0.15); }
+    .lb-prev { left: 12px; }
+    .lb-next { right: 12px; }
+
+    /* ── States ── */
+    .galeria-loading, .galeria-empty {
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(122,96,64,0.5);
+    }
+    .galeria-loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(200,150,0,0.3);
+      border-top-color: var(--dorado);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="galeria-page">
+    <div class="galeria-header">
+      <h1>Galería</h1>
+      <p>Noches anteriores</p>
+    </div>
+
+    <!-- Vista: lista de álbumes -->
+    <div id="albums-root">
+      <div class="galeria-loading">Cargando</div>
+    </div>
+
+    <!-- Vista: fotos de un álbum -->
+    <div id="fotos-view">
+      <button class="fotos-back" onclick="volverAAlbumes()">← Volver</button>
+      <h2 class="fotos-album-titulo" id="fotos-titulo"></h2>
+      <p class="fotos-album-desc" id="fotos-desc"></p>
+      <div class="fotos-grid" id="fotos-grid">
+        <div class="galeria-loading">Cargando</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="galeria-lightbox" id="galeria-lightbox">
+    <button class="lb-cerrar" onclick="cerrarLightbox()">✕</button>
+    <button class="lb-nav lb-prev" onclick="lbNavegar(-1)">‹</button>
+    <div class="lb-img-wrap">
+      <img id="lb-img" src="" alt="" />
+      <div class="lb-titulo" id="lb-titulo"></div>
+    </div>
+    <button class="lb-nav lb-next" onclick="lbNavegar(1)">›</button>
+  </div>
+
+  <script type="module">
+    import { getAlbums, getFotosDeAlbum } from "./games/galeria.js";
+    import { onSession, getUserData } from "./js/auth.js";
+    import { initNavbar } from "./js/navbar.js";
+
+    initNavbar();
+
+    let _fotosActuales = [];
+    let _lbIndex = 0;
+
+    // ── Verificar acceso ─────────────────────────────────────
+    onSession(async (user) => {
+      if (!user) {
+        window.location.href = "/el-burdel/login.html";
+        return;
+      }
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") {
+        window.location.href = "/el-burdel/login.html";
+        return;
+      }
+      cargarAlbumes();
+    });
+
+    // ── Cargar álbumes ───────────────────────────────────────
+    async function cargarAlbumes() {
+      const root = document.getElementById("albums-root");
+      try {
+        const albums = await getAlbums();
+        const visibles = albums.filter(a => a.visible !== false);
+        if (!visibles.length) {
+          root.innerHTML = `<div class="galeria-empty">Sin álbumes todavía</div>`;
+          return;
+        }
+        root.innerHTML = `<div class="albums-grid">${visibles.map(a => `
+          <div class="album-card" onclick="verAlbum('${a.id}')">
+            <div class="album-thumb">
+              ${a.miniatura
+                ? `<img src="${a.miniatura}" alt="${escN(a.nombre)}" loading="lazy">`
+                : `📸`}
+            </div>
+            <div class="album-info">
+              <div class="album-nombre">${escN(a.nombre)}</div>
+              ${a.descripcion ? `<div class="album-desc">${escN(a.descripcion)}</div>` : ""}
+            </div>
+          </div>`).join("")}
+        </div>`;
+
+        // Si hay hash en la URL, abrir ese álbum directamente
+        const hash = location.hash.slice(1);
+        if (hash) {
+          const album = visibles.find(a => a.id === hash);
+          if (album) verAlbumData(album);
+        }
+      } catch(e) {
+        root.innerHTML = `<div class="galeria-empty">Error al cargar: ${e.message}</div>`;
+      }
+    }
+
+    // ── Ver fotos de un álbum ────────────────────────────────
+    window.verAlbum = async function(id) {
+      const albums = await getAlbums();
+      const album = albums.find(a => a.id === id);
+      if (album) verAlbumData(album);
+    };
+
+    async function verAlbumData(album) {
+      document.getElementById("albums-root").style.display = "none";
+      const view = document.getElementById("fotos-view");
+      view.style.display = "block";
+      document.getElementById("fotos-titulo").textContent = album.nombre || "";
+      document.getElementById("fotos-desc").textContent = album.descripcion || "";
+      document.getElementById("fotos-grid").innerHTML = `<div class="galeria-loading" style="grid-column:1/-1;">Cargando</div>`;
+      history.replaceState(null, "", "#" + album.id);
+
+      try {
+        const fotos = await getFotosDeAlbum(album.id);
+        _fotosActuales = fotos;
+        if (!fotos.length) {
+          document.getElementById("fotos-grid").innerHTML = `<div class="galeria-empty" style="grid-column:1/-1;">Sin fotos en este álbum</div>`;
+          return;
+        }
+        document.getElementById("fotos-grid").innerHTML = fotos.map((f, i) => `
+          <div class="foto-item" onclick="abrirLightbox(${i})">
+            <img src="${f.url}" alt="${escN(f.titulo || '')}" loading="lazy">
+          </div>`).join("");
+      } catch(e) {
+        document.getElementById("fotos-grid").innerHTML = `<div class="galeria-empty" style="grid-column:1/-1;">Error: ${e.message}</div>`;
+      }
+    }
+
+    window.volverAAlbumes = function() {
+      document.getElementById("fotos-view").style.display = "none";
+      document.getElementById("albums-root").style.display = "block";
+      history.replaceState(null, "", location.pathname);
+    };
+
+    // ── Lightbox ─────────────────────────────────────────────
+    window.abrirLightbox = function(i) {
+      _lbIndex = i;
+      actualizarLightbox();
+      document.getElementById("galeria-lightbox").classList.add("open");
+    };
+
+    window.cerrarLightbox = function() {
+      document.getElementById("galeria-lightbox").classList.remove("open");
+    };
+
+    window.lbNavegar = function(dir) {
+      _lbIndex = (_lbIndex + dir + _fotosActuales.length) % _fotosActuales.length;
+      actualizarLightbox();
+    };
+
+    function actualizarLightbox() {
+      const f = _fotosActuales[_lbIndex];
+      if (!f) return;
+      document.getElementById("lb-img").src = f.url;
+      document.getElementById("lb-titulo").textContent = f.titulo || "";
+    }
+
+    // Cerrar con ESC o click en fondo
+    document.getElementById("galeria-lightbox").addEventListener("click", function(e) {
+      if (e.target === this) cerrarLightbox();
+    });
+    document.addEventListener("keydown", e => {
+      const lb = document.getElementById("galeria-lightbox");
+      if (!lb.classList.contains("open")) return;
+      if (e.key === "Escape") cerrarLightbox();
+      if (e.key === "ArrowLeft")  lbNavegar(-1);
+      if (e.key === "ArrowRight") lbNavegar(1);
+    });
+
+    function escN(s) {
+      return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+  </script>
+
+</body>
+</html>
