@@ -109,8 +109,9 @@
     <div class="section-inner">
       <span class="section-label">Noches anteriores</span>
       <h2 class="section-title">Galería</h2>
-      <div class="media-grid" id="galeria-grid">
-        <div class="media-placeholder">Próximamente</div>
+      <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;min-height:100px;"></div>
+      <div style="text-align:center;margin-top:24px;">
+        <a href="galeria.html" id="galeria-ver-btn" class="hero-btn" style="padding:12px 28px;font-size:11px;display:none;">📸 Ver galería completa</a>
       </div>
     </div>
   </section>
@@ -221,8 +222,30 @@
     import { initNavbar } from "./js/navbar.js";
     import { db } from "./js/firebase-init.js";
     import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { onAlbums } from "./games/galeria.js";
 
     initNavbar();
+
+    // ── Galería: últimos álbumes visibles ──
+    onAlbums(albums => {
+      const grid = document.getElementById("galeria-grid");
+      const btn  = document.getElementById("galeria-ver-btn");
+      if (!grid) return;
+      const visibles = albums.filter(a => a.visible !== false).slice(0, 4);
+      if (!visibles.length) {
+        grid.innerHTML = `<div class="media-placeholder" style="grid-column:1/-1;">Próximamente</div>`;
+        return;
+      }
+      grid.innerHTML = visibles.map(a => `
+        <a href="galeria.html#${a.id}" style="display:block;border-radius:8px;overflow:hidden;aspect-ratio:1;background:var(--negro-2);text-decoration:none;position:relative;">
+          ${a.miniatura
+            ? `<img src="${a.miniatura}" alt="${a.nombre}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">📸</div>`
+          }
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:11px;letter-spacing:1px;color:var(--crema);text-transform:uppercase;">${a.nombre}</div>
+        </a>`).join("");
+      if (btn) btn.style.display = "inline-block";
+    });
 
     // ── Tablón en tiempo real ──
     onValue(ref(db, "session/broadcast"), (snap) => {
