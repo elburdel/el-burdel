@@ -38,16 +38,17 @@ export async function deleteGaleriaImg(uid, fileId) {
 // ── Álbumes — CRUD ──────────────────────────────────────────
 export async function saveAlbum({ id, nombre, descripcion, miniatura, miniaturaId, visible }) {
   const key = id || push(ref(db, "galeria/albums")).key;
-  await set(ref(db, `galeria/albums/${key}`), {
-    id:           key,
-    nombre:       nombre        || "",
-    descripcion:  descripcion   || "",
-    miniatura:    miniatura     || "",
-    miniaturaId:  miniaturaId   || "",
-    visible:      visible !== false,
-    creadoEn:     id ? undefined : Date.now(),
-    editadoEn:    Date.now()
-  });
+  const payload = {
+    id:          key,
+    nombre:      nombre       || "",
+    descripcion: descripcion  || "",
+    miniatura:   miniatura    || "",
+    miniaturaId: miniaturaId  || "",
+    visible:     visible !== false,
+    editadoEn:   Date.now()
+  };
+  if (!id) payload.creadoEn = Date.now();
+  await set(ref(db, `galeria/albums/${key}`), payload);
   return key;
 }
 
@@ -82,7 +83,7 @@ export async function saveFoto({ id, albumId, url, fileId, titulo, orden }) {
     fileId:   fileId   || "",
     titulo:   titulo   || "",
     orden:    orden    ?? Date.now(),
-    creadoEn: id ? undefined : Date.now()
+    ...(id ? {} : { creadoEn: Date.now() })
   });
   return key;
 }
