@@ -3439,12 +3439,16 @@
             <span style="flex:1;font-size:12px;color:var(--crema-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.file.name}</span>
             <input type="text" placeholder="Título (opcional)" maxlength="80"
               value="${q.titulo}"
-              oninput="_galQueue[${_galQueue.indexOf(q)}].titulo=this.value"
+              oninput="galeriaTituloChange(${_galQueue.indexOf(q)}, this.value)"
               style="width:140px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.15);border-radius:4px;padding:5px 8px;color:var(--crema);font-size:12px;outline:none;" />
             ${q.status === "pending" ? `<button class="noticia-slot-del" style="position:static;" onclick="galeriaQuitarDeQueue(${_galQueue.indexOf(q)})">✕</button>` : ""}
           </div>
         `).join("")}`;
     }
+
+    window.galeriaTituloChange = function(i, val) {
+      if (_galQueue[i]) _galQueue[i].titulo = val;
+    };
 
     window.galeriaQuitarDeQueue = function(i) {
       _galQueue.splice(i, 1);
