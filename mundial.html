@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Burdel — Mundial 2026</title>
+  <meta name="description" content="Fixture, predicciones y resultados del Mundial 2026 en El Burdel." />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/mundial.css" />
+</head>
+<body>
+
+  <!-- NAV TOP (inyectado por navbar.js) -->
+  <nav class="nav-top" id="nav-top"></nav>
+
+  <!-- HERO -->
+  <div class="mundial-wrap">
+    <section class="mundial-hero">
+      <div class="mundial-hero-badge">
+        <span class="dot"></span>
+        En vivo desde El Burdel
+      </div>
+      <h1 class="mundial-hero-title">MUNDIAL <span>2026</span></h1>
+      <p class="mundial-hero-sub">EE. UU. · Canadá · México — 12 Grupos · 48 Equipos</p>
+    </section>
+
+    <!-- TABS -->
+    <div class="mundial-tabs">
+      <button class="mundial-tab active" data-tab="grupos">Grupos</button>
+      <button class="mundial-tab" data-tab="terceros">Mejores 3°</button>
+      <button class="mundial-tab" data-tab="bracket">Llaves</button>
+    </div>
+
+    <!-- SECCIÓN: GRUPOS -->
+    <section class="mundial-section active" id="sec-grupos">
+
+      <!-- Selector de grupo -->
+      <div class="grupos-nav" id="grupos-nav"></div>
+
+      <!-- Grid tabla + partidos -->
+      <div class="grupo-grid">
+        <div id="tabla-cont"></div>
+        <div id="partidos-cont"></div>
+      </div>
+
+    </section>
+
+    <!-- SECCIÓN: MEJORES TERCEROS -->
+    <section class="mundial-section" id="sec-terceros">
+      <div id="terceros-cont">
+        <p style="color:var(--crema-3);font-size:13px;padding:20px 0">
+          Cargando terceros...
+        </p>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: BRACKET / LLAVES -->
+    <section class="mundial-section" id="sec-bracket">
+      <div id="bracket-cont">
+        <p style="color:var(--crema-3);font-size:13px;padding:20px 0">
+          Las llaves se arman automáticamente al finalizar la fase de grupos.
+        </p>
+      </div>
+    </section>
+
+  </div><!-- /mundial-wrap -->
+
+  <!-- FAB ADMIN (visible sólo para admin) -->
+  <button class="admin-fab hidden" id="admin-fab" onclick="abrirAdminPanel()" title="Panel Admin">
+    ⚙️
+  </button>
+
+  <!-- PANEL ADMIN (slide desde abajo) -->
+  <div class="admin-mundial-panel" id="admin-panel">
+    <div class="admin-panel-header">
+      <span class="admin-panel-title">⚙ ADMIN MUNDIAL</span>
+      <button class="admin-panel-close" onclick="cerrarAdminPanel()">✕</button>
+    </div>
+    <div class="admin-panel-body">
+
+      <!-- Selector de partido -->
+      <div>
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--dorado);margin-bottom:10px">
+          Seleccionar partido
+        </div>
+        <select id="admin-partido-sel" class="admin-partido-selector" style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--crema);font-family:var(--font-body);font-size:14px;padding:10px 14px;outline:none;">
+          <option value="">— Elegí un partido —</option>
+        </select>
+      </div>
+
+      <!-- Form dinámico de resultado -->
+      <div id="admin-form-cont"></div>
+
+      <!-- Reset general -->
+      <div style="border-top:1px solid rgba(200,50,50,0.15);padding-top:16px">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#e57373;margin-bottom:10px">
+          Zona peligrosa
+        </div>
+        <button class="btn-reset-partido" onclick="resetarTorneo()" style="font-size:13px;padding:10px">
+          🗑 Resetear torneo completo
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="mundial-toast" id="mundial-toast"></div>
+
+  <!-- SCRIPTS -->
+  <script type="module" src="js/navbar.js" onerror="console.warn('navbar no cargó')"></script>
+  <script type="module">
+    import { initNavbar } from './js/navbar.js';
+    initNavbar();
+  </script>
+  <script type="module" src="js/mundial.js"></script>
+
+  <!-- Cerrar panel al tocar afuera -->
+  <script>
+    document.addEventListener('click', function(e) {
+      const panel = document.getElementById('admin-panel');
+      const fab   = document.getElementById('admin-fab');
+      if (panel && panel.classList.contains('open')) {
+        if (!panel.contains(e.target) && e.target !== fab) {
+          panel.classList.remove('open');
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
