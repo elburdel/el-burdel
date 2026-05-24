@@ -218,6 +218,7 @@
           <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
           <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
           <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+          <button class="active-section juego" data-section="mundial">⚽ Mundial</button>
         </div>
       </div>
     </div>
@@ -1037,6 +1038,48 @@
         <!-- Lista de álbumes -->
         <div id="galeria-albums-list">
           <div class="admin-noticias-empty">Cargando...</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECCIÓN: MUNDIAL -->
+    <section class="admin-section" id="section-mundial">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">⚽ Mundial 2026</h2>
+          <a href="mundial.html" target="_blank" class="admin-btn primary" style="text-decoration:none;font-size:13px;padding:8px 14px;">
+            Abrir página completa ↗
+          </a>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Cómo funciona</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.8;">
+            <div>1️⃣ &nbsp;Entrá a <strong>mundial.html</strong> (botón arriba o desde el dashboard)</div>
+            <div>2️⃣ &nbsp;El botón <strong>⚙️</strong> (abajo a la derecha) abre el panel de admin</div>
+            <div>3️⃣ &nbsp;Elegís un partido → <strong>Abrir votación</strong> → el grupo vota el marcador</div>
+            <div>4️⃣ &nbsp;<strong>Cerrar votación</strong> → calcula el pronóstico grupal (más votado)</div>
+            <div>5️⃣ &nbsp;Cuando se juega el partido real → cargás el resultado oficial</div>
+            <div style="margin-top:8px;padding:10px 12px;background:rgba(200,150,0,0.06);border-radius:8px;border:1px solid rgba(200,150,0,0.15);font-size:12px;color:var(--crema-3);">
+              Los grupos, la tabla de posiciones y las llaves se actualizan solos para todos en tiempo real.
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="mundial.html" target="_blank"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
+               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
+              ⚽ Abrir Mundial
+            </a>
+          </div>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
+            El panel admin (⚙️) solo es visible para vos. Los usuarios ven el fixture, las tablas y pueden votar cuando hay una votación abierta.
+          </div>
         </div>
 
       </div>
@@ -2316,7 +2359,7 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "mundial"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
