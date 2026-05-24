@@ -1101,7 +1101,6 @@ window.cerrarVotacion = async function(partidoId) {
     renderAdminForm(partidoId, selC.options[selC.selectedIndex]);
   }
 };
-};
 
 window.guardarResultadoReal = async function(partidoId) {
   const localGoles = parseInt(document.getElementById("real-local")?.value || 0);
