@@ -1014,3 +1014,26 @@
   .voto-equipo-mini { font-size: 10px; min-width: 45px; }
   .voto-score-input { width: 42px; height: 36px; font-size: 19px; }
 }
+
+/* ── Panel admin: sidebar en PC (≥900px) ── */
+@media (min-width: 900px) {
+  .admin-mundial-panel {
+    top: 0; bottom: 0;
+    left: auto; right: 0;
+    width: 400px;
+    max-height: 100vh;
+    border-top: none;
+    border-left: 1px solid rgba(200,150,0,0.25);
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .admin-mundial-panel.open { transform: translateX(0); }
+}
+
+/* Cruce asignado en terceros */
+.tercero-cruce {
+  font-size: 10px;
+  color: var(--dorado);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
