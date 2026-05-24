@@ -1037,3 +1037,13 @@
   margin-top: 3px;
   letter-spacing: 0.5px;
 }
+
+/* ── Horario y sede del partido ── */
+.partido-sched {
+  font-size: 10px;
+  color: var(--crema-3);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  opacity: 0.75;
+  line-height: 1.3;
+}
