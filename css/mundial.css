@@ -986,3 +986,31 @@
   .score-num       { font-size: 22px; }
   .bracket-grid    { min-width: 700px; gap: 12px; }
 }
+
+/* ── Responsive móvil mejorado ── */
+@media (max-width: 500px) {
+  /* Tabla: ocultar columnas G E P GF GC, dejar PJ DG Pts */
+  .tabla-table .col-g,
+  .tabla-table .col-e,
+  .tabla-table .col-p,
+  .tabla-table .col-gf,
+  .tabla-table .col-gc { display: none; }
+
+  .tabla-table { font-size: 12px; }
+  .tabla-table td, .tabla-table th { padding: 8px 5px; }
+  .tabla-table td:first-child,
+  .tabla-table th:first-child { padding-left: 10px; }
+  .eq-bandera  { font-size: 16px; }
+  .eq-nombre   { font-size: 11px; max-width: 75px; }
+  .pts-cell    { font-size: 15px; }
+
+  /* Partidos más compactos */
+  .partido-card    { padding: 10px 10px; }
+  .partido-nombre  { font-size: 11px; max-width: 68px; }
+  .score-num       { font-size: 20px; min-width: 16px; }
+
+  /* Voto en móvil */
+  .voto-input-row   { gap: 4px; }
+  .voto-equipo-mini { font-size: 10px; min-width: 45px; }
+  .voto-score-input { width: 42px; height: 36px; font-size: 19px; }
+}
