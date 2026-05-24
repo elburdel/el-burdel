@@ -21,31 +21,66 @@ import {
 // DATOS ESTÁTICOS DEL FIXTURE
 // ─────────────────────────────────────────
 
-const BANDERAS = {
-  "México": "🇲🇽", "Sudáfrica": "🇿🇦", "República de Corea": "🇰🇷", "Chequia": "🇨🇿",
-  "Canadá": "🇨🇦", "Bosnia y Herzegovina": "🇧🇦", "Catar": "🇶🇦", "Suiza": "🇨🇭",
-  "Brasil": "🇧🇷", "Marruecos": "🇲🇦", "Haití": "🇭🇹", "Escocia": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F",
-  "EE. UU.": "🇺🇸", "Paraguay": "🇵🇾", "Australia": "🇦🇺", "Turquía": "🇹🇷",
-  "Alemania": "🇩🇪", "Curazao": "🇨🇼", "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨",
-  "Países Bajos": "🇳🇱", "Japón": "🇯🇵", "Suecia": "🇸🇪", "Túnez": "🇹🇳",
-  "Bélgica": "🇧🇪", "Egipto": "🇪🇬", "RI de Irán": "🇮🇷", "Nueva Zelanda": "🇳🇿",
-  "España": "🇪🇸", "Islas de Cabo Verde": "🇨🇻", "Arabia Saudí": "🇸🇦", "Uruguay": "🇺🇾",
-  "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
-  "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Austria": "🇦🇹", "Jordania": "🇯🇴",
-  "Portugal": "🇵🇹", "RD Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
-  "Inglaterra": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦",
+// Todas las banderas usan imágenes vía flagcdn.com para garantizar
+// renderizado uniforme en PC y móvil (los emojis de subdivisión como
+// Escocia/Inglaterra no renderizan en Windows/PC).
+const BANDERAS_IMG = {
+  "México":               "mx",
+  "Sudáfrica":            "za",
+  "República de Corea":   "kr",
+  "Chequia":              "cz",
+  "Canadá":               "ca",
+  "Bosnia y Herzegovina": "ba",
+  "Catar":                "qa",
+  "Suiza":                "ch",
+  "Brasil":               "br",
+  "Marruecos":            "ma",
+  "Haití":                "ht",
+  "Escocia":              "gb-sct",
+  "EE. UU.":              "us",
+  "Paraguay":             "py",
+  "Australia":            "au",
+  "Turquía":              "tr",
+  "Alemania":             "de",
+  "Curazao":              "cw",
+  "Costa de Marfil":      "ci",
+  "Ecuador":              "ec",
+  "Países Bajos":         "nl",
+  "Japón":                "jp",
+  "Suecia":               "se",
+  "Túnez":                "tn",
+  "Bélgica":              "be",
+  "Egipto":               "eg",
+  "RI de Irán":           "ir",
+  "Nueva Zelanda":        "nz",
+  "España":               "es",
+  "Islas de Cabo Verde":  "cv",
+  "Arabia Saudí":         "sa",
+  "Uruguay":              "uy",
+  "Francia":              "fr",
+  "Senegal":              "sn",
+  "Irak":                 "iq",
+  "Noruega":              "no",
+  "Argentina":            "ar",
+  "Argelia":              "dz",
+  "Austria":              "at",
+  "Jordania":             "jo",
+  "Portugal":             "pt",
+  "RD Congo":             "cd",
+  "Uzbekistán":           "uz",
+  "Colombia":             "co",
+  "Inglaterra":           "gb-eng",
+  "Croacia":              "hr",
+  "Ghana":                "gh",
+  "Panamá":               "pa",
 };
 
-// Helper: usa imagen para banderas que no renderizan en PC (Escocia, Inglaterra)
-const BANDERAS_IMG = {
-  "Escocia":    "https://flagcdn.com/24x18/gb-sct.png",
-  "Inglaterra": "https://flagcdn.com/24x18/gb-eng.png",
-};
 function bandera(eq) {
-  if (BANDERAS_IMG[eq]) {
-    return `<img src="${BANDERAS_IMG[eq]}" alt="${eq}" style="width:24px;height:18px;object-fit:cover;border-radius:2px;vertical-align:middle;" />`;
+  const code = BANDERAS_IMG[eq];
+  if (code) {
+    return `<img src="https://flagcdn.com/24x18/${code}.png" alt="${eq}" style="width:24px;height:18px;object-fit:cover;border-radius:2px;vertical-align:middle;" />`;
   }
-  return BANDERAS[eq] || "🏳";
+  return "🏳";
 }
 
 const GRUPOS_DATA = {
@@ -187,7 +222,15 @@ function iniciarListener() {
   onValue(ref(db, "mundial/partidos"), (snap) => {
     partidosData = snap.val() || {};
     renderVista();
-    if (isAdmin) actualizarSelectAdmin();
+    if (isAdmin) {
+      // Si el panel está abierto, restaurar selección actual para no
+      // interrumpir al admin mientras edita un partido
+      const panelAbierto = document.getElementById("admin-panel")?.classList.contains("open");
+      const sel = document.getElementById("admin-partido-sel");
+      const valorActual = panelAbierto ? sel?.value : null;
+      actualizarSelectAdmin();
+      if (valorActual && sel) sel.value = valorActual;
+    }
   });
 }
 
