@@ -36,6 +36,18 @@ const BANDERAS = {
   "Inglaterra": "\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦",
 };
 
+// Helper: usa imagen para banderas que no renderizan en PC (Escocia, Inglaterra)
+const BANDERAS_IMG = {
+  "Escocia":    "https://flagcdn.com/24x18/gb-sct.png",
+  "Inglaterra": "https://flagcdn.com/24x18/gb-eng.png",
+};
+function bandera(eq) {
+  if (BANDERAS_IMG[eq]) {
+    return `<img src="${BANDERAS_IMG[eq]}" alt="${eq}" style="width:24px;height:18px;object-fit:cover;border-radius:2px;vertical-align:middle;" />`;
+  }
+  return BANDERAS[eq] || "🏳";
+}
+
 const GRUPOS_DATA = {
   A: ["México", "Sudáfrica", "República de Corea", "Chequia"],
   B: ["Canadá", "Bosnia y Herzegovina", "Catar", "Suiza"],
@@ -299,16 +311,16 @@ function renderTabla(grupo, equipos, statsOrdenados) {
       <td>
         <div class="equipo-cell">
           <span class="eq-pos">${s.pos}</span>
-          <span class="eq-bandera">${BANDERAS[s.eq] || "🏳"}</span>
+          <span class="eq-bandera">${bandera(s.eq)}</span>
           <span class="eq-nombre">${s.eq}</span>
         </div>
       </td>
       <td>${s.pj}</td>
-      <td>${s.g}</td>
-      <td>${s.e}</td>
-      <td>${s.p}</td>
-      <td>${s.gf}</td>
-      <td>${s.gc}</td>
+      <td class="col-g">${s.g}</td>
+      <td class="col-e">${s.e}</td>
+      <td class="col-p">${s.p}</td>
+      <td class="col-gf">${s.gf}</td>
+      <td class="col-gc">${s.gc}</td>
       <td>${s.dg > 0 ? "+" : ""}${s.dg}</td>
       <td class="pts-cell">${s.pts}</td>
     </tr>`;
@@ -322,8 +334,8 @@ function renderTabla(grupo, equipos, statsOrdenados) {
       <thead>
         <tr>
           <th style="text-align:left;padding-left:14px">Equipo</th>
-          <th>PJ</th><th>G</th><th>E</th><th>P</th>
-          <th>GF</th><th>GC</th><th>DG</th><th>Pts</th>
+          <th>PJ</th><th class="col-g">G</th><th class="col-e">E</th><th class="col-p">P</th>
+          <th class="col-gf">GF</th><th class="col-gc">GC</th><th>DG</th><th>Pts</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -407,11 +419,11 @@ function renderPartidoCard(p) {
       <div class="voto-section" id="voto-${p.id}">
         <div class="voto-label">📊 Tu pronóstico — escribí el marcador</div>
         <div class="voto-input-row">
-          <span class="voto-equipo-mini">${BANDERAS[p.local]||""} ${p.local}</span>
+          <span class="voto-equipo-mini">${bandera(p.local)} ${p.local}</span>
           <input type="number" min="0" max="20" value="0" class="voto-score-input" id="voto-local-${p.id}" />
           <span style="color:var(--crema-3);font-size:18px">—</span>
           <input type="number" min="0" max="20" value="0" class="voto-score-input" id="voto-visit-${p.id}" />
-          <span class="voto-equipo-mini">${BANDERAS[p.visitante]||""} ${p.visitante}</span>
+          <span class="voto-equipo-mini">${bandera(p.visitante)} ${p.visitante}</span>
         </div>
         <button class="btn-votar" data-id="${p.id}" style="margin-top:8px">Confirmar voto</button>
       </div>`;
@@ -441,14 +453,14 @@ function renderPartidoCard(p) {
     ${badgeHtml}
     <div class="partido-equipos">
       <div class="partido-equipo local">
-        <span class="partido-bandera">${BANDERAS[p.local] || "🏳"}</span>
+        <span class="partido-bandera">${bandera(p.local)}</span>
         <span class="partido-nombre">${p.local}</span>
       </div>
       <div class="partido-score-box">
         ${tieneReal ? scoreReal : scorePrediccion}
       </div>
       <div class="partido-equipo visitante">
-        <span class="partido-bandera">${BANDERAS[p.visitante] || "🏳"}</span>
+        <span class="partido-bandera">${bandera(p.visitante)}</span>
         <span class="partido-nombre">${p.visitante}</span>
       </div>
     </div>
@@ -548,7 +560,7 @@ function renderTerceros() {
     return `<div class="tercero-card ${clasifica?"clasifica":"elimina"}">
       <div class="tercero-rank">${i+1}</div>
       <div class="tercero-info">
-        <div class="tercero-equipo">${BANDERAS[t.eq]||"🏳"} ${t.eq}</div>
+        <div class="tercero-equipo">${bandera(t.eq)} ${t.eq}</div>
         <div class="tercero-stats">Grupo ${t.grupo} · ${t.pts} pts · DG ${t.dg>0?"+":""}${t.dg}</div>
       </div>
       <span class="tercero-badge ${clasifica?"pasa":"fuera"}">${clasifica?"CLASIFICA":"FUERA"}</span>
@@ -586,13 +598,13 @@ function renderBracket() {
             return `<div class="bracket-partido ${res?"tiene-resultado":""}">
               ${tieneEquipos ? `
                 <div class="bracket-slot ${res&&res.localGoles>res.visitanteGoles?"ganador":res?"perdedor":""}">
-                  <span class="bracket-bandera">${BANDERAS[datos.local]||"🏳"}</span>
+                  <span class="bracket-bandera">${bandera(datos.local)}</span>
                   <span class="bracket-nombre">${datos.local}</span>
                   ${res?`<span class="bracket-goles">${res.localGoles}</span>`:""}
                 </div>
                 <div class="bracket-sep"></div>
                 <div class="bracket-slot ${res&&res.visitanteGoles>res.localGoles?"ganador":res?"perdedor":""}">
-                  <span class="bracket-bandera">${BANDERAS[datos.visitante]||"🏳"}</span>
+                  <span class="bracket-bandera">${bandera(datos.visitante)}</span>
                   <span class="bracket-nombre">${datos.visitante}</span>
                   ${res?`<span class="bracket-goles">${res.visitanteGoles}</span>`:""}
                 </div>
@@ -618,9 +630,9 @@ function renderPartido3erPuesto() {
     <div style="max-width:240px;margin:0 auto">
       <div class="bracket-partido ${res?"tiene-resultado":""}">
         ${datos.local ? `
-          <div class="bracket-slot">${BANDERAS[datos.local]||"🏳"} ${datos.local} ${res?res.localGoles:""}</div>
+          <div class="bracket-slot">${bandera(datos.local)} ${datos.local} ${res?res.localGoles:""}</div>
           <div class="bracket-sep"></div>
-          <div class="bracket-slot">${BANDERAS[datos.visitante]||"🏳"} ${datos.visitante} ${res?res.visitanteGoles:""}</div>
+          <div class="bracket-slot">${bandera(datos.visitante)} ${datos.visitante} ${res?res.visitanteGoles:""}</div>
         ` : `<div class="bracket-slot-tbd">${p.label}</div>`}
       </div>
     </div>
@@ -695,12 +707,12 @@ function renderAdminForm(partidoId, option) {
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <select id="admin-local-sel" style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--crema);padding:8px;font-family:var(--font-body);font-size:13px;outline:none">
             <option value="">Local...</option>
-            ${todosEquipos.map(eq => `<option value="${eq}">${BANDERAS[eq]||""} ${eq}</option>`).join("")}
+            ${todosEquipos.map(eq => `<option value="${eq}">${bandera(eq)} ${eq}</option>`).join("")}
           </select>
           <span style="color:var(--crema-3)">vs</span>
           <select id="admin-visitante-sel" style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--crema);padding:8px;font-family:var(--font-body);font-size:13px;outline:none">
             <option value="">Visitante...</option>
-            ${todosEquipos.map(eq => `<option value="${eq}">${BANDERAS[eq]||""} ${eq}</option>`).join("")}
+            ${todosEquipos.map(eq => `<option value="${eq}">${bandera(eq)} ${eq}</option>`).join("")}
           </select>
         </div>
         <button onclick="asignarEquiposPlayoff('${partidoId}')" style="margin-top:8px;width:100%;padding:9px;background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--dorado-claro);font-family:var(--font-display);font-size:15px;cursor:pointer;letter-spacing:1px">
@@ -712,10 +724,10 @@ function renderAdminForm(partidoId, option) {
   // Mostrar equipos actuales
   const equiposActualesHtml = (local && visitante) ? `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:rgba(200,150,0,0.05);border-radius:10px;border:1px solid rgba(200,150,0,0.15)">
-      <span style="font-size:20px">${BANDERAS[local]||"🏳"}</span>
+      <span style="font-size:20px">${bandera(local)}</span>
       <span style="font-size:14px;font-weight:600;color:var(--crema)">${local}</span>
       <span style="color:var(--crema-3);margin:0 4px">vs</span>
-      <span style="font-size:20px">${BANDERAS[visitante]||"🏳"}</span>
+      <span style="font-size:20px">${bandera(visitante)}</span>
       <span style="font-size:14px;font-weight:600;color:var(--crema)">${visitante}</span>
     </div>` : "";
 
@@ -758,11 +770,11 @@ function renderAdminForm(partidoId, option) {
       <div style="border-top:1px solid rgba(0,200,83,0.1);padding-top:14px">
         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px">Resultado real (Mundial)</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <span style="font-size:13px;flex:1;color:var(--crema)">${BANDERAS[local]||""} ${local}</span>
+          <span style="font-size:13px;flex:1;color:var(--crema)">${bandera(local)} ${local}</span>
           <input type="number" min="0" max="20" value="${datos.real?.localGoles ?? 0}" id="real-local" style="width:54px;height:44px;background:var(--negro-3);border:1px solid rgba(0,200,83,0.3);border-radius:8px;color:var(--crema);font-family:var(--font-display);font-size:24px;text-align:center;outline:none;-moz-appearance:textfield" />
           <span style="color:var(--crema-3)">—</span>
           <input type="number" min="0" max="20" value="${datos.real?.visitanteGoles ?? 0}" id="real-visit" style="width:54px;height:44px;background:var(--negro-3);border:1px solid rgba(0,200,83,0.3);border-radius:8px;color:var(--crema);font-family:var(--font-display);font-size:24px;text-align:center;outline:none;-moz-appearance:textfield" />
-          <span style="font-size:13px;flex:1;text-align:right;color:var(--crema)">${visitante} ${BANDERAS[visitante]||""}</span>
+          <span style="font-size:13px;flex:1;text-align:right;color:var(--crema)">${visitante} ${bandera(visitante)}</span>
         </div>
         <button onclick="guardarResultadoReal('${partidoId}')" class="btn-confirmar">
           ✅ GUARDAR RESULTADO REAL
