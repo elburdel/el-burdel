@@ -574,47 +574,143 @@ async function abrirModalVoto(partidoId) {
 // RENDER MEJORES TERCEROS
 // ─────────────────────────────────────────
 
-function renderTerceros() {
-  const cont = document.getElementById("terceros-cont");
-  if (!cont) return;
+// Pools de rivales permitidos para cada líder de grupo (Anexo C FIFA)
+const POOLS_TERCEROS = {
+  A: ["C","E","F","H","I"],
+  B: ["E","F","G","I","J"],
+  D: ["B","E","F","I","J"],
+  E: ["A","B","C","D","F"],
+  G: ["A","E","H","I","J"],
+  I: ["C","D","F","G","H"],
+  K: ["D","E","I","J","L"],
+  L: ["E","H","I","J","K"],
+};
 
+// Calcula los terceros clasificados y sus cruces usando la matriz FIFA
+function calcularTerceros() {
   const terceros = [];
   Object.keys(GRUPOS_DATA).forEach(grupo => {
     const stats = calcularStats(grupo);
-    const tercero = stats[2]; // posición 3
+    const tercero = stats[2];
     if (tercero && tercero.pj > 0) {
       terceros.push({ grupo, ...tercero });
     }
   });
+
+  // Ordenar por criterios FIFA: pts → dg → gf → fair play (sin data → sorteo)
+  terceros.sort((a, b) => {
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    if (b.dg  !== a.dg)  return b.dg  - a.dg;
+    return b.gf - a.gf;
+  });
+
+  return terceros;
+}
+
+// Asigna los cruces de los 8 mejores terceros contra los líderes
+// usando las reglas hard-coded y los pools del Anexo C FIFA
+function asignarCrucesTerceros(clasificados) {
+  // clasificados: array de { grupo, eq, ... } de los 8 mejores terceros
+  const grupos = clasificados.map(t => t.grupo);
+  const asignacion = {}; // grupoLider → grupoTercero
+
+  // Reglas hard-coded de alta probabilidad
+  if (grupos.includes("K") && grupos.includes("L")) {
+    asignacion["L"] = "K";
+    asignacion["K"] = "L";
+  } else if (grupos.includes("K")) {
+    asignacion["L"] = "K";
+  } else if (grupos.includes("L")) {
+    asignacion["K"] = "L";
+  }
+
+  if (grupos.includes("B") && !asignacion["D"]) asignacion["D"] = "B";
+  if (grupos.includes("A") && !asignacion["G"]) asignacion["G"] = "A";
+
+  // Para los líderes sin asignar, aplicar pools
+  const lideresLibres = ["A","B","D","E","G","I","K","L"].filter(g => !asignacion[g]);
+  const tercerosLibres = grupos.filter(g => !Object.values(asignacion).includes(g));
+
+  // Asignación greedy: para cada líder libre, buscar un tercero compatible
+  for (const lider of lideresLibres) {
+    const pool = POOLS_TERCEROS[lider] || [];
+    const candidatos = tercerosLibres.filter(g => pool.includes(g) && !Object.values(asignacion).includes(g));
+    if (candidatos.length > 0) {
+      asignacion[lider] = candidatos[0];
+      tercerosLibres.splice(tercerosLibres.indexOf(candidatos[0]), 1);
+    }
+  }
+
+  // Cualquier tercero restante sin asignar (por edge cases): asignar al primer líder libre
+  const sinAsignar = tercerosLibres.filter(g => !Object.values(asignacion).includes(g));
+  const lideresSinCubrir = lideresLibres.filter(g => !asignacion[g]);
+  sinAsignar.forEach((g, i) => {
+    if (lideresSinCubrir[i]) asignacion[lideresSinCubrir[i]] = g;
+  });
+
+  return asignacion;
+}
+
+function renderTerceros() {
+  const cont = document.getElementById("terceros-cont");
+  if (!cont) return;
+
+  const terceros = calcularTerceros();
 
   if (terceros.length === 0) {
     cont.innerHTML = `<p style="color:var(--crema-3);font-size:13px;padding:20px 0">Los mejores terceros aparecerán cuando avance la fase de grupos.</p>`;
     return;
   }
 
-  terceros.sort((a,b) => {
-    if (b.pts !== a.pts) return b.pts - a.pts;
-    if (b.dg !== a.dg) return b.dg - a.dg;
-    return b.gf - a.gf;
+  const clasificados = terceros.slice(0, 8);
+  const eliminados   = terceros.slice(8);
+  const cruces = terceros.length >= 8 ? asignarCrucesTerceros(clasificados) : {};
+
+  // Map grupoTercero → grupoLider para mostrar el cruce en la card
+  const tercerosACruce = {};
+  Object.entries(cruces).forEach(([lider, tercero]) => {
+    tercerosACruce[tercero] = lider;
   });
 
-  const html = terceros.map((t, i) => {
-    const clasifica = i < 8;
-    return `<div class="tercero-card ${clasifica?"clasifica":"elimina"}">
+  const htmlClasif = clasificados.map((t, i) => {
+    const liderAsig = tercerosACruce[t.grupo];
+    const cruceHtml = liderAsig
+      ? `<div class="tercero-cruce">→ 16avos vs 1º Grupo ${liderAsig}</div>`
+      : `<div class="tercero-cruce">→ cruce por determinar</div>`;
+    return `<div class="tercero-card clasifica">
       <div class="tercero-rank">${i+1}</div>
       <div class="tercero-info">
         <div class="tercero-equipo">${bandera(t.eq)} ${t.eq}</div>
-        <div class="tercero-stats">Grupo ${t.grupo} · ${t.pts} pts · DG ${t.dg>0?"+":""}${t.dg}</div>
+        <div class="tercero-stats">Grupo ${t.grupo} · ${t.pts} pts · DG ${t.dg>0?"+":""}${t.dg} · ${t.gf} GF</div>
+        ${cruceHtml}
       </div>
-      <span class="tercero-badge ${clasifica?"pasa":"fuera"}">${clasifica?"CLASIFICA":"FUERA"}</span>
+      <span class="tercero-badge pasa">CLASIFICA</span>
     </div>`;
   }).join("");
 
+  const htmlElim = eliminados.map((t, i) => `
+    <div class="tercero-card elimina">
+      <div class="tercero-rank">${8+i+1}</div>
+      <div class="tercero-info">
+        <div class="tercero-equipo">${bandera(t.eq)} ${t.eq}</div>
+        <div class="tercero-stats">Grupo ${t.grupo} · ${t.pts} pts · DG ${t.dg>0?"+":""}${t.dg} · ${t.gf} GF</div>
+      </div>
+      <span class="tercero-badge fuera">FUERA</span>
+    </div>`).join("");
+
+  const notaCruces = terceros.length >= 8
+    ? `<div style="font-size:11px;color:var(--crema-3);margin-bottom:16px;line-height:1.5">
+        Los cruces se calculan según el Anexo C de FIFA (pools de rivales permitidos).
+        Se actualizan automáticamente con los resultados reales o predicciones.
+       </div>`
+    : "";
+
   cont.innerHTML = `
-    <div style="font-size:12px;color:var(--crema-3);letter-spacing:1px;margin-bottom:16px">
+    <div style="font-size:12px;color:var(--crema-3);letter-spacing:1px;margin-bottom:8px">
       Los 8 mejores terceros clasifican a 16avos de final
     </div>
-    <div class="terceros-grid">${html}</div>`;
+    ${notaCruces}
+    <div class="terceros-grid">${htmlClasif}${htmlElim}</div>`;
 }
 
 // ─────────────────────────────────────────
@@ -937,3 +1033,91 @@ function mostrarToast(msg, esError = false) {
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2800);
 }
+
+// ─────────────────────────────────────────
+// AUTO-ASIGNAR CRUCES DE TERCEROS AL BRACKET
+// ─────────────────────────────────────────
+
+// Mapa: partido de 16avos → grupo del líder que recibe un 3°
+const LIDER_POR_PARTIDO = {
+  P74: "E",
+  P77: "I",
+  P79: "A",
+  P80: "L",
+  P81: "D",
+  P82: "G",
+  P85: "B",
+  P87: "K",
+};
+
+// Para obtener el primer clasificado de un grupo desde Firebase
+function get1erGrupo(grupo) {
+  const stats = calcularStats(grupo);
+  return stats[0]?.eq || null;
+}
+
+function get2doGrupo(grupo) {
+  const stats = calcularStats(grupo);
+  return stats[1]?.eq || null;
+}
+
+// Llama esto desde el panel admin para auto-asignar todos los cruces de 3°
+window.autoAsignarTerceros = async function() {
+  const terceros = calcularTerceros();
+  if (terceros.length < 8) {
+    mostrarToast("Aún no hay 8 terceros clasificados", true);
+    return;
+  }
+  const clasificados = terceros.slice(0, 8);
+  const cruces = asignarCrucesTerceros(clasificados); // grupoLider → grupoTercero
+
+  // Map grupoTercero → equipo
+  const tercerosMap = {};
+  clasificados.forEach(t => tercerosMap[t.grupo] = t.eq);
+
+  const updates = {};
+
+  // Asignar los 8 partidos de 16avos con 3°
+  for (const [partidoId, grupoLider] of Object.entries(LIDER_POR_PARTIDO)) {
+    const grupoTercero = cruces[grupoLider];
+    const lider = get1erGrupo(grupoLider);
+    const tercero = grupoTercero ? tercerosMap[grupoTercero] : null;
+    if (lider && tercero) {
+      updates[`mundial/partidos/${partidoId}/local`] = lider;
+      updates[`mundial/partidos/${partidoId}/visitante`] = tercero;
+      updates[`mundial/partidos/${partidoId}/grupo`] = `${grupoLider}v${grupoTercero}`;
+    }
+  }
+
+  // También asignar los partidos de 2° que ya están fijos
+  const SEGUNDOS_FIJOS = {
+    P73: ["A", "B"],
+    P75: ["F", "C"],
+    P76: ["E", "F"],
+    P78: ["E", "I"],
+    P83: ["K", "L"],
+    P84: ["H", "J"],
+    P86: ["J", "H"],
+    P88: ["D", "G"],
+  };
+  for (const [partidoId, [g1, g2]] of Object.entries(SEGUNDOS_FIJOS)) {
+    const existente = partidosData[partidoId] || {};
+    if (!existente.local) {
+      const eq1 = get1erGrupo(g1) || get2doGrupo(g1);
+      const eq2 = get2doGrupo(g2);
+      if (eq1 && eq2) {
+        updates[`mundial/partidos/${partidoId}/local`] = eq1;
+        updates[`mundial/partidos/${partidoId}/visitante`] = eq2;
+        updates[`mundial/partidos/${partidoId}/grupo`] = `${g1}v${g2}`;
+      }
+    }
+  }
+
+  if (Object.keys(updates).length === 0) {
+    mostrarToast("No hay datos suficientes para asignar cruces", true);
+    return;
+  }
+
+  await update(ref(db, "/"), updates);
+  mostrarToast(`✅ Cruces asignados (${Object.keys(updates).length / 3} partidos)`);
+};
