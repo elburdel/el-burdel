@@ -98,6 +98,83 @@ const GRUPOS_DATA = {
   L: ["Inglaterra", "Croacia", "Ghana", "Panamá"],
 };
 
+// Horarios y sedes por partido (clave: "Local_vs_Visitante" = makePartidoId)
+// Horario en hora argentina (ARG)
+const FIXTURE_HORARIOS = {
+  "México_vs_Sudáfrica":                  { fecha: "Jue 11/6", hora: "16:00", sede: "Ciudad de México" },
+  "República_de_Corea_vs_Chequia":        { fecha: "Jue 11/6", hora: "23:00", sede: "Guadalajara" },
+  "Canadá_vs_Bosnia_y_Herzegovina":       { fecha: "Vie 12/6", hora: "16:00", sede: "Toronto" },
+  "EE._UU._vs_Paraguay":                  { fecha: "Vie 12/6", hora: "22:00", sede: "Los Ángeles" },
+  "Catar_vs_Suiza":                       { fecha: "Sáb 13/6", hora: "16:00", sede: "San Francisco" },
+  "Brasil_vs_Marruecos":                  { fecha: "Sáb 13/6", hora: "19:00", sede: "Nueva Jersey" },
+  "Haití_vs_Escocia":                     { fecha: "Sáb 13/6", hora: "22:00", sede: "Boston" },
+  "Australia_vs_Turquía":                 { fecha: "Dom 14/6", hora: "01:00", sede: "Vancouver" },
+  "Alemania_vs_Curazao":                  { fecha: "Dom 14/6", hora: "14:00", sede: "Houston" },
+  "Países_Bajos_vs_Japón":               { fecha: "Dom 14/6", hora: "17:00", sede: "Dallas" },
+  "Costa_de_Marfil_vs_Ecuador":           { fecha: "Dom 14/6", hora: "20:00", sede: "Philadelphia" },
+  "Suecia_vs_Túnez":                      { fecha: "Dom 14/6", hora: "23:00", sede: "Monterrey" },
+  "España_vs_Islas_de_Cabo_Verde":        { fecha: "Lun 15/6", hora: "13:00", sede: "Atlanta" },
+  "Bélgica_vs_Egipto":                    { fecha: "Lun 15/6", hora: "16:00", sede: "Seattle" },
+  "Arabia_Saudí_vs_Uruguay":              { fecha: "Lun 15/6", hora: "19:00", sede: "Miami" },
+  "RI_de_Irán_vs_Nueva_Zelanda":          { fecha: "Lun 15/6", hora: "22:00", sede: "Los Ángeles" },
+  "Francia_vs_Senegal":                   { fecha: "Mar 16/6", hora: "16:00", sede: "Nueva Jersey" },
+  "Irak_vs_Noruega":                      { fecha: "Mar 16/6", hora: "19:00", sede: "Boston" },
+  "Argentina_vs_Argelia":                 { fecha: "Mar 16/6", hora: "22:00", sede: "Kansas City" },
+  "Austria_vs_Jordania":                  { fecha: "Mar 16/6", hora: "01:00", sede: "San Francisco" },
+  "Portugal_vs_RD_Congo":                 { fecha: "Mié 17/6", hora: "14:00", sede: "Houston" },
+  "Inglaterra_vs_Croacia":                { fecha: "Mié 17/6", hora: "17:00", sede: "Dallas" },
+  "Ghana_vs_Panamá":                      { fecha: "Mié 17/6", hora: "20:00", sede: "Toronto" },
+  "Uzbekistán_vs_Colombia":               { fecha: "Mié 17/6", hora: "23:00", sede: "Ciudad de México" },
+  "Chequia_vs_Sudáfrica":                 { fecha: "Jue 18/6", hora: "13:00", sede: "Atlanta" },
+  "Suiza_vs_Bosnia_y_Herzegovina":        { fecha: "Jue 18/6", hora: "16:00", sede: "Los Ángeles" },
+  "Canadá_vs_Catar":                      { fecha: "Jue 18/6", hora: "19:00", sede: "Vancouver" },
+  "México_vs_República_de_Corea":         { fecha: "Jue 18/6", hora: "22:00", sede: "Guadalajara" },
+  "EE._UU._vs_Australia":                 { fecha: "Vie 19/6", hora: "16:00", sede: "Seattle" },
+  "Escocia_vs_Marruecos":                 { fecha: "Vie 19/6", hora: "19:00", sede: "Boston" },
+  "Brasil_vs_Haití":                      { fecha: "Vie 19/6", hora: "21:30", sede: "Philadelphia" },
+  "Turquía_vs_Paraguay":                  { fecha: "Vie 19/6", hora: "00:00", sede: "San Francisco" },
+  "Países_Bajos_vs_Suecia":               { fecha: "Sáb 20/6", hora: "14:00", sede: "Houston" },
+  "Alemania_vs_Costa_de_Marfil":          { fecha: "Sáb 20/6", hora: "17:00", sede: "Toronto" },
+  "Ecuador_vs_Curazao":                   { fecha: "Sáb 20/6", hora: "21:00", sede: "Kansas City" },
+  "Túnez_vs_Japón":                       { fecha: "Sáb 20/6", hora: "01:00", sede: "Monterrey" },
+  "España_vs_Arabia_Saudí":               { fecha: "Dom 21/6", hora: "13:00", sede: "Atlanta" },
+  "Bélgica_vs_RI_de_Irán":               { fecha: "Dom 21/6", hora: "16:00", sede: "Los Ángeles" },
+  "Uruguay_vs_Islas_de_Cabo_Verde":       { fecha: "Dom 21/6", hora: "19:00", sede: "Miami" },
+  "Nueva_Zelanda_vs_Egipto":              { fecha: "Dom 21/6", hora: "22:00", sede: "Vancouver" },
+  "Argentina_vs_Austria":                 { fecha: "Lun 22/6", hora: "14:00", sede: "Dallas" },
+  "Francia_vs_Irak":                      { fecha: "Lun 22/6", hora: "18:00", sede: "Philadelphia" },
+  "Noruega_vs_Senegal":                   { fecha: "Lun 22/6", hora: "21:00", sede: "Nueva Jersey" },
+  "Jordania_vs_Argelia":                  { fecha: "Lun 22/6", hora: "00:00", sede: "San Francisco" },
+  "Portugal_vs_Uzbekistán":               { fecha: "Mar 23/6", hora: "14:00", sede: "Houston" },
+  "Inglaterra_vs_Ghana":                  { fecha: "Mar 23/6", hora: "17:00", sede: "Boston" },
+  "Panamá_vs_Croacia":                    { fecha: "Mar 23/6", hora: "20:00", sede: "Toronto" },
+  "Colombia_vs_RD_Congo":                 { fecha: "Mar 23/6", hora: "23:00", sede: "Guadalajara" },
+  "Suiza_vs_Canadá":                      { fecha: "Mié 24/6", hora: "16:00", sede: "Vancouver" },
+  "Bosnia_y_Herzegovina_vs_Catar":        { fecha: "Mié 24/6", hora: "16:00", sede: "Seattle" },
+  "Marruecos_vs_Haití":                   { fecha: "Mié 24/6", hora: "19:00", sede: "Atlanta" },
+  "Brasil_vs_Escocia":                    { fecha: "Mié 24/6", hora: "19:00", sede: "Miami" },
+  "Sudáfrica_vs_República_de_Corea":      { fecha: "Mié 24/6", hora: "22:00", sede: "Monterrey" },
+  "Chequia_vs_México":                    { fecha: "Mié 24/6", hora: "22:00", sede: "Ciudad de México" },
+  "Curazao_vs_Costa_de_Marfil":           { fecha: "Jue 25/6", hora: "17:00", sede: "Philadelphia" },
+  "Ecuador_vs_Alemania":                  { fecha: "Jue 25/6", hora: "17:00", sede: "Nueva Jersey" },
+  "Japón_vs_Suecia":                      { fecha: "Jue 25/6", hora: "20:00", sede: "Dallas" },
+  "Túnez_vs_Países_Bajos":               { fecha: "Jue 25/6", hora: "20:00", sede: "Kansas City" },
+  "Paraguay_vs_Australia":                { fecha: "Jue 25/6", hora: "23:00", sede: "San Francisco" },
+  "Turquía_vs_EE._UU.":                   { fecha: "Jue 25/6", hora: "23:00", sede: "Los Ángeles" },
+  "Noruega_vs_Francia":                   { fecha: "Vie 26/6", hora: "16:00", sede: "Boston" },
+  "Senegal_vs_Irak":                      { fecha: "Vie 26/6", hora: "16:00", sede: "Toronto" },
+  "Islas_de_Cabo_Verde_vs_Arabia_Saudí":  { fecha: "Vie 26/6", hora: "21:00", sede: "Houston" },
+  "Uruguay_vs_España":                    { fecha: "Vie 26/6", hora: "21:00", sede: "Guadalajara" },
+  "Egipto_vs_RI_de_Irán":                 { fecha: "Vie 26/6", hora: "00:00", sede: "Seattle" },
+  "Nueva_Zelanda_vs_Bélgica":             { fecha: "Vie 26/6", hora: "00:00", sede: "Vancouver" },
+  "Croacia_vs_Ghana":                     { fecha: "Sáb 27/6", hora: "18:00", sede: "Philadelphia" },
+  "Panamá_vs_Inglaterra":                 { fecha: "Sáb 27/6", hora: "18:00", sede: "Nueva Jersey" },
+  "Colombia_vs_Portugal":                 { fecha: "Sáb 27/6", hora: "20:30", sede: "Miami" },
+  "RD_Congo_vs_Uzbekistán":               { fecha: "Sáb 27/6", hora: "20:30", sede: "Atlanta" },
+  "Argelia_vs_Austria":                   { fecha: "Sáb 27/6", hora: "23:00", sede: "Kansas City" },
+  "Jordania_vs_Argentina":                { fecha: "Sáb 27/6", hora: "23:00", sede: "Dallas" },
+};
+
 // Fixture completo: [local, visitante, grupo, jornada]
 const FIXTURE_BASE = [
   // Jornada 1
@@ -492,8 +569,16 @@ function renderPartidoCard(p) {
       </div>`;
   }
 
+  // Horario y sede
+  const schedKey = `${p.local.replace(/\s/g,"_")}_vs_${p.visitante.replace(/\s/g,"_")}`;
+  const sched = FIXTURE_HORARIOS[schedKey];
+  const schedHtml = sched
+    ? `<div class="partido-sched">📅 ${sched.fecha} · ${sched.hora} hs · 📍 ${sched.sede}</div>`
+    : "";
+
   return `<div class="partido-card">
     ${badgeHtml}
+    ${schedHtml}
     <div class="partido-equipos">
       <div class="partido-equipo local">
         <span class="partido-bandera">${bandera(p.local)}</span>
@@ -795,6 +880,9 @@ function actualizarSelectAdmin() {
   const sel = document.getElementById("admin-partido-sel");
   if (!sel) return;
 
+  // Guardar selección actual ANTES de reconstruir el select
+  const valorPrevio = sel.value;
+
   const grupos = Object.keys(GRUPOS_DATA);
 
   // Partidos de grupos
@@ -821,7 +909,16 @@ function actualizarSelectAdmin() {
     <optgroup label="──── PLAYOFFS ────">${optPlayoffs}</optgroup>`;
 
   sel.onchange = () => renderAdminForm(sel.value, sel.options[sel.selectedIndex]);
-  document.getElementById("admin-form-cont").innerHTML = "";
+
+  // Restaurar selección previa si existía — NO tocar el form si el panel está abierto
+  const panelAbierto = document.getElementById("admin-panel")?.classList.contains("open");
+  if (valorPrevio) {
+    sel.value = valorPrevio;
+    // Solo re-renderizar form si hubo un cambio de estado desde Firebase (no desde acciones del admin)
+    // No hacemos nada: el form ya fue actualizado localmente por abrirVotacion/cerrarVotacion
+  } else if (!panelAbierto) {
+    document.getElementById("admin-form-cont").innerHTML = "";
+  }
 }
 
 function renderAdminForm(partidoId, option) {
@@ -960,6 +1057,13 @@ window.abrirVotacion = async function(partidoId) {
 
   await update(ref(db, `mundial/partidos/${partidoId}`), updates);
   mostrarToast("Votación abierta 🗳");
+  // Actualizar datos locales y re-renderizar form sin cerrar el panel
+  if (!partidosData[partidoId]) partidosData[partidoId] = {};
+  Object.assign(partidosData[partidoId], updates);
+  const sel = document.getElementById("admin-partido-sel");
+  if (sel && sel.value === partidoId) {
+    renderAdminForm(partidoId, sel.options[sel.selectedIndex]);
+  }
 };
 
 window.cerrarVotacion = async function(partidoId) {
@@ -989,6 +1093,14 @@ window.cerrarVotacion = async function(partidoId) {
   });
 
   mostrarToast(`Pronóstico cerrado: ${localGoles}–${visitanteGoles} 🔮`);
+  // Actualizar datos locales y re-renderizar form sin cerrar el panel
+  if (!partidosData[partidoId]) partidosData[partidoId] = {};
+  Object.assign(partidosData[partidoId], { votacionAbierta: false, prediccion: { localGoles, visitanteGoles }, votos: votosObj });
+  const selC = document.getElementById("admin-partido-sel");
+  if (selC && selC.value === partidoId) {
+    renderAdminForm(partidoId, selC.options[selC.selectedIndex]);
+  }
+};
 };
 
 window.guardarResultadoReal = async function(partidoId) {
