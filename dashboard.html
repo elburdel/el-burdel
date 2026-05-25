@@ -115,12 +115,29 @@
   <!-- MAIN -->
   <main class="dashboard-main">
 
+    <!-- RESUMEN DEL USUARIO -->
+    <section class="dash-welcome" aria-label="Resumen de la noche">
+      <span class="dash-eyebrow">Tu noche</span>
+      <h1 class="dash-welcome-title">Hola, <span id="dash-user-nick">jugador</span></h1>
+      <p class="dash-welcome-copy" id="dash-user-state">Ya estás dentro. Cuando el admin active un juego, lo vas a ver marcado acá.</p>
+      <div class="dash-status-strip">
+        <div class="dash-status-chip">
+          <span class="dash-chip-label">Estado</span>
+          <strong>Activo</strong>
+        </div>
+        <div class="dash-status-chip">
+          <span class="dash-chip-label">Equipo</span>
+          <strong id="dash-user-team">Sin asignar</strong>
+        </div>
+      </div>
+    </section>
 
     <!-- JUEGOS DISPONIBLES -->
     <div class="dash-lobby" id="dash-lobby">
       <div class="dash-lobby-inner">
         <span class="section-label">Esta noche</span>
         <h2 class="dash-lobby-title">Juegos</h2>
+        <p class="dash-lobby-sub">Los juegos activos se iluminan solos. Si no hay ninguno activo, podés practicar Wordle o esperar al admin.</p>
         <div class="dash-games-grid" id="dash-games-grid">
           <a class="dash-game-card" id="game-card-taboo" href="taboo.html" style="text-decoration:none;">
             <span class="dash-game-icon">🃏</span>
@@ -156,6 +173,7 @@
       <div class="dash-lobby-inner">
         <span class="section-label">Explorá</span>
         <h2 class="dash-lobby-title">El Burdel</h2>
+        <p class="dash-lobby-sub">Contenido para ver entre partidas: novedades, fotos, música, ranking y fixture.</p>
         <div class="dash-games-grid">
           <a class="dash-game-card" href="noticias.html" style="text-decoration:none;">
             <span class="dash-game-icon">📰</span>
@@ -195,8 +213,8 @@
           <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
           <span class="bombita"></span><span class="bombita"></span>
         </div>
-        <h2 class="dash-idle-title">Esperando al admin...</h2>
-        <p class="dash-idle-sub">El juego todavía no empezó. Quedate acá y vas a ver todo en tiempo real.</p>
+        <h2 class="dash-idle-title">Todo listo para jugar</h2>
+        <p class="dash-idle-sub">Cuando el admin active una partida, la tarjeta correspondiente va a quedar marcada y te avisamos desde acá.</p>
       </div>
 
     </div>
@@ -258,6 +276,7 @@
       currentUserData = data;
 
       initNavbar();
+      renderUserSummary(data);
       initDashboard();
     });
 
@@ -267,6 +286,22 @@
       listenTablon();
       listenActiveGame();
       initPresence();
+    }
+
+    function renderUserSummary(data) {
+      const nick = document.getElementById("dash-user-nick");
+      const team = document.getElementById("dash-user-team");
+      const state = document.getElementById("dash-user-state");
+      if (nick) nick.textContent = data.nick || "jugador";
+      if (team) {
+        const labels = { rojo: "Rojo", azul: "Azul" };
+        team.textContent = labels[data.team] || "Sin asignar";
+      }
+      if (state) {
+        state.textContent = data.team
+          ? "Ya estás dentro y con equipo asignado. Cuando el admin active un juego, lo vas a ver marcado acá."
+          : "Ya estás dentro. Si el juego necesita equipos, el admin te va a asignar uno antes de empezar.";
+      }
     }
 
     // ── Juego activo ──
@@ -312,7 +347,7 @@
           const card = document.getElementById(`game-card-${g}`);
           if (!el) return;
           if (g === game) {
-            el.textContent = "🟢 Activo ahora";
+            el.textContent = "Activo ahora";
             el.className = "dash-game-status active";
             if (card) card.classList.add("active");
           } else if (g === "taboo" || g === "wordle" || g === "impostor" || g === "quiensoy") {
