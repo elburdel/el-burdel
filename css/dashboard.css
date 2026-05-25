@@ -6,6 +6,71 @@
   padding: 0 0 40px;
 }
 
+/* ─── RESUMEN DEL USUARIO ─── */
+.dash-welcome {
+  margin: 22px 20px 8px;
+  padding: 24px 20px;
+  background:
+    linear-gradient(135deg, rgba(139,26,26,0.22), rgba(200,150,0,0.06)),
+    var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 8px;
+}
+
+.dash-eyebrow {
+  display: block;
+  color: var(--crema-3);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.dash-welcome-title {
+  font-family: var(--font-display);
+  color: var(--dorado);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.dash-welcome-copy {
+  color: var(--crema-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dash-status-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dash-status-chip {
+  border: 1px solid rgba(200,150,0,0.16);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: rgba(8,8,8,0.35);
+}
+
+.dash-chip-label {
+  display: block;
+  color: var(--crema-3);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.dash-status-chip strong {
+  color: var(--crema);
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* ─── SCOREBOARD GLOBAL ─── */
 .dash-scoreboard {
   display: flex;
@@ -180,7 +245,14 @@
   font-weight: 700;
   font-style: italic;
   color: var(--dorado);
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+}
+
+.dash-lobby-sub {
+  color: var(--crema-2);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 16px;
 }
 
 .dash-games-grid {
@@ -234,6 +306,13 @@
 
 .dash-game-status.active {
   color: #4caf50;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .dash-status-strip {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ─── NAV RIGHT ─── */
