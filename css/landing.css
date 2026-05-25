@@ -225,15 +225,6 @@
   line-height: 1.4;
 }
 
-.section-intro {
-  max-width: 520px;
-  margin: -18px auto 28px;
-  color: var(--crema-2);
-  font-size: 14px;
-  line-height: 1.7;
-  text-align: center;
-}
-
 /* Centrar el último elemento impar sin agrandarlo */
 .games-grid > .game-card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
@@ -293,8 +284,7 @@
 }
 
 @media (max-width: 520px) {
-  .hero-copy,
-  .section-intro {
+  .hero-copy {
     font-size: 13px;
   }
 }
