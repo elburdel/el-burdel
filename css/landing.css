@@ -150,6 +150,14 @@
   margin-top: 4px;
 }
 
+.hero-copy {
+  max-width: 460px;
+  color: var(--crema-2);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: -4px auto 2px;
+}
+
 .hero-btn {
   display: inline-block;
   margin-top: 8px;
@@ -217,6 +225,15 @@
   line-height: 1.4;
 }
 
+.section-intro {
+  max-width: 520px;
+  margin: -18px auto 28px;
+  color: var(--crema-2);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
 /* Centrar el último elemento impar sin agrandarlo */
 .games-grid > .game-card:last-child:nth-child(odd) {
   grid-column: 1 / -1;
@@ -272,6 +289,13 @@
   .games-grid > .game-card:last-child:nth-child(odd) {
     grid-column: 2 / 4;   /* ocupa las columnas centrales */
     width: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-copy,
+  .section-intro {
+    font-size: 13px;
   }
 }
 
