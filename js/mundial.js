@@ -1002,6 +1002,25 @@ function renderAdminForm(partidoId, option) {
         </div>
       </div>
 
+      <!-- BLOQUE 1b: Editar pronóstico (visible si hay prediccion y no hay votación abierta) -->
+      ${tienePrediccion && !votacionAbierta ? `
+      <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;margin-bottom:14px">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px">Editar pronóstico del grupo</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:13px;flex:1;color:var(--crema)">${bandera(local)} ${local}</span>
+          <input type="number" min="0" max="20" value="${datos.prediccion.localGoles}" id="pred-local"
+            style="width:54px;height:40px;background:var(--negro-3);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--dorado);font-family:var(--font-display);font-size:22px;text-align:center;outline:none;-moz-appearance:textfield" />
+          <span style="color:var(--crema-3)">—</span>
+          <input type="number" min="0" max="20" value="${datos.prediccion.visitanteGoles}" id="pred-visit"
+            style="width:54px;height:40px;background:var(--negro-3);border:1px solid rgba(200,150,0,0.3);border-radius:8px;color:var(--dorado);font-family:var(--font-display);font-size:22px;text-align:center;outline:none;-moz-appearance:textfield" />
+          <span style="font-size:13px;flex:1;text-align:right;color:var(--crema)">${visitante} ${bandera(visitante)}</span>
+        </div>
+        <button onclick="editarPronostico('${partidoId}')"
+          style="width:100%;padding:9px;background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.35);border-radius:8px;color:var(--dorado-claro);font-family:var(--font-display);font-size:14px;cursor:pointer;letter-spacing:1px">
+          ✏️ GUARDAR PRONÓSTICO EDITADO
+        </button>
+      </div>` : ""}
+
       <!-- BLOQUE 2: Cargar resultado real -->
       <div style="border-top:1px solid rgba(0,200,83,0.1);padding-top:14px">
         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:10px">Resultado real (Mundial)</div>
@@ -1126,9 +1145,37 @@ window.resetarPartido = async function(partidoId) {
 
 window.resetarTorneo = async function() {
   if (!confirm("¿RESETEAR TODO EL TORNEO? Esto borra todos los resultados y votos.")) return;
-  await remove(ref(db, "mundial/partidos"));
-  await remove(ref(db, "mundial/votos"));
-  mostrarToast("Torneo reseteado 🗑");
+  try {
+    // Borrar partidos
+    await remove(ref(db, "mundial/partidos"));
+
+    // Borrar votos partido por partido para respetar las reglas de Firebase
+    const votosSnap = await get(ref(db, "mundial/votos"));
+    if (votosSnap.exists()) {
+      const partidosConVotos = Object.keys(votosSnap.val());
+      for (const partidoId of partidosConVotos) {
+        await remove(ref(db, `mundial/votos/${partidoId}`));
+      }
+    }
+    mostrarToast("Torneo reseteado 🗑");
+  } catch(e) {
+    mostrarToast("Error al resetear: " + e.message, true);
+  }
+};
+
+window.editarPronostico = async function(partidoId) {
+  const localGoles = parseInt(document.getElementById("pred-local")?.value ?? 0);
+  const visitanteGoles = parseInt(document.getElementById("pred-visit")?.value ?? 0);
+  await update(ref(db, `mundial/partidos/${partidoId}`), {
+    prediccion: { localGoles, visitanteGoles }
+  });
+  mostrarToast(`Pronóstico actualizado: ${localGoles}–${visitanteGoles} ✏️`);
+  if (!partidosData[partidoId]) partidosData[partidoId] = {};
+  Object.assign(partidosData[partidoId], { prediccion: { localGoles, visitanteGoles } });
+  const sel = document.getElementById("admin-partido-sel");
+  if (sel && sel.value === partidoId) {
+    renderAdminForm(partidoId, sel.options[sel.selectedIndex]);
+  }
 };
 
 // ─────────────────────────────────────────
