@@ -278,6 +278,30 @@
       initNavbar();
       renderUserSummary(data);
       initDashboard();
+
+      // ── Listener en tiempo real del equipo asignado ──
+      onValue(ref(db, `users/${user.uid}/team`), (snap) => {
+        const team = snap.val() || null;
+        currentUserData.team = team;
+        const teamEl = document.getElementById("dash-user-team");
+        const stateEl = document.getElementById("dash-user-state");
+        const labels = { rojo: "Rojo", azul: "Azul" };
+        if (teamEl) teamEl.textContent = labels[team] || "Sin asignar";
+        if (stateEl) {
+          stateEl.textContent = team
+            ? "Ya estás dentro y con equipo asignado. Cuando el admin active un juego, lo vas a ver marcado acá."
+            : "Ya estás dentro. Si el juego necesita equipos, el admin te va a asignar uno antes de empezar.";
+        }
+        // Actualizar presence con el equipo nuevo
+        if (currentUser) {
+          const presenceRef = ref(db, `presence/${currentUser.uid}`);
+          set(presenceRef, {
+            nick: currentUserData.nick,
+            team: team,
+            connectedAt: Date.now()
+          }).catch(() => {});
+        }
+      });
     });
 
     window.handleLogout = () => logoutUser();
@@ -308,26 +332,6 @@
     function listenActiveGame() {
       let prevGame = null;
 
-      // ── Sonido de notificación (Web Audio API — sin archivos externos) ──
-      function playNotif() {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          // Dos tonos cortos ascendentes
-          [0, 0.15].forEach((delay, i) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = i === 0 ? 520 : 660;
-            osc.type = "sine";
-            gain.gain.setValueAtTime(0.35, ctx.currentTime + delay);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
-            osc.start(ctx.currentTime + delay);
-            osc.stop(ctx.currentTime + delay + 0.25);
-          });
-        } catch(e) {}
-      }
-
       onValue(ref(db, "session/activeGame"), (snap) => {
         const game = snap.val() || "none";
         const games = ["taboo", "wordle", "impostor", "quiensoy", "millonario"];
@@ -335,7 +339,6 @@
         // Notificar solo si el usuario está mirando la página activamente
         if (prevGame !== null && game !== "none" && game !== prevGame) {
           if (!document.hidden) {
-            playNotif();
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
           }
           showGameNotif(game);
