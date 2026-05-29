@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — El Millón · El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/millon.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .mil-admin-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px 80px; }
+    .mil-admin-header { padding: 24px 0 18px; border-bottom: 1px solid rgba(212,168,0,0.12); margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between; }
+    .mil-admin-header-title { font-family: var(--font-display); font-size: 26px; letter-spacing: 3px; color: var(--millon-oro-2, #f5c842); }
+    .mil-admin-section { margin-bottom: 28px; }
+    .mil-admin-section-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--crema-3); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid rgba(212,168,0,0.08); }
+    .mil-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .mil-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--crema-3); display: block; margin-bottom: 5px; }
+    .mil-input { width: 100%; box-sizing: border-box; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.2); border-radius: 5px; padding: 9px 12px; color: var(--crema); font-size: 13px; font-family: var(--font-body); outline: none; }
+    .mil-select { width: 100%; box-sizing: border-box; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.2); border-radius: 5px; padding: 9px 10px; color: var(--crema); font-size: 13px; font-family: var(--font-body); outline: none; }
+    .mil-secret-reveal { background: rgba(212,168,0,0.07); border: 1px solid rgba(212,168,0,0.2); border-radius: 10px; padding: 14px; margin-bottom: 10px; font-size: 13px; color: var(--crema-2); line-height: 1.8; }
+    .mil-player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--negro-3); border-radius: 8px; margin-bottom: 6px; font-size: 13px; color: var(--crema-2); }
+    .mil-player-row.dead { opacity: 0.4; }
+    .mil-player-row .mil-tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; letter-spacing: 1px; }
+    .mil-tag.millionaire { background: rgba(212,168,0,0.15); color: var(--millon-oro-2, #f5c842); border: 1px solid rgba(212,168,0,0.3); }
+    .mil-tag.immune      { background: rgba(50,120,50,0.2); color: #6c6; border: 1px solid rgba(50,120,50,0.3); }
+    .mil-tag.dead-tag    { background: rgba(100,100,100,0.2); color: #888; border: 1px solid rgba(100,100,100,0.2); }
+    .mil-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--negro-2); border: 1px solid rgba(212,168,0,0.3); border-radius: 10px; padding: 12px 20px; font-size: 13px; color: var(--crema); z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .mil-toast.show { opacity: 1; }
+    .log-entry { font-size: 11px; color: var(--crema-3); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.6; }
+  </style>
+</head>
+<body style="background:var(--negro);min-height:100vh;">
+
+  <div id="navbar-container"></div>
+
+  <div class="mil-admin-wrap">
+
+    <div class="mil-admin-header">
+      <span class="mil-admin-header-title">💰 ADMIN — EL MILLÓN</span>
+      <a href="admin.html" style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);text-decoration:none;border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:20px;">← Admin</a>
+    </div>
+
+    <!-- ── ESTADO ACTUAL ── -->
+    <div class="mil-admin-section">
+      <div class="mil-admin-section-title">Estado actual</div>
+      <div class="admin-card" style="margin-bottom:10px;">
+        <div class="mil-admin-status-grid">
+          <div class="mil-admin-stat">
+            <div class="mil-admin-stat-label">Fase</div>
+            <div class="mil-admin-stat-value" id="stat-phase" style="font-size:16px;letter-spacing:1px;">—</div>
+          </div>
+          <div class="mil-admin-stat">
+            <div class="mil-admin-stat-label">Ronda</div>
+            <div class="mil-admin-stat-value" id="stat-round">—</div>
+          </div>
+          <div class="mil-admin-stat">
+            <div class="mil-admin-stat-label">Vivos</div>
+            <div class="mil-admin-stat-value" id="stat-alive">—</div>
+          </div>
+          <div class="mil-admin-stat">
+            <div class="mil-admin-stat-label">Votos</div>
+            <div class="mil-admin-stat-value" id="stat-votes">—</div>
+          </div>
+        </div>
+        <div class="mil-secret-reveal" id="secret-reveal" style="margin-top:10px;display:none;">
+          <!-- revela millonario y misión -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── JUGADORES ── -->
+    <div class="mil-admin-section">
+      <div class="mil-admin-section-title">Jugadores</div>
+      <div id="players-admin-list">
+        <div style="font-size:12px;color:var(--crema-3);">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- ── INICIAR PARTIDA ── -->
+    <div class="mil-admin-section" id="start-section">
+      <div class="mil-admin-section-title">Iniciar partida</div>
+      <div class="admin-card">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div>
+            <label class="mil-label">Tiempo de charla (seg)</label>
+            <input type="number" id="cfg-talkTime" class="mil-input" value="300" min="60" max="900" />
+          </div>
+          <div>
+            <label class="mil-label">Mín. jugadores</label>
+            <input type="number" id="cfg-minPlayers" class="mil-input" value="6" min="4" max="20" />
+          </div>
+          <div>
+            <label class="mil-label">Jugadores para el final</label>
+            <input type="number" id="cfg-finalPlayers" class="mil-input" value="3" min="2" max="5" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding-top:18px;">
+            <input type="checkbox" id="cfg-revealVotes" style="width:16px;height:16px;accent-color:var(--dorado);" />
+            <label for="cfg-revealVotes" class="mil-label" style="margin:0;">Revelar votos</label>
+          </div>
+        </div>
+        <button class="admin-btn primary" onclick="handleStartGame()" style="width:100%;">
+          💰 Iniciar partida
+        </button>
+      </div>
+    </div>
+
+    <!-- ── CONTROLES DE RONDA ── -->
+    <div class="mil-admin-section" id="round-controls" style="display:none;">
+      <div class="mil-admin-section-title">Control de ronda</div>
+      <div class="admin-card" style="margin-bottom:10px;">
+
+        <!-- Tópico -->
+        <div style="margin-bottom:14px;">
+          <label class="mil-label">Tópico de conversación</label>
+          <div class="mil-row">
+            <input type="text" id="topic-input" class="mil-input" style="flex:1;" placeholder="Ej: Relaciones tóxicas..." maxlength="80" />
+            <button class="admin-btn secondary small" onclick="handleSetTopic()">Actualizar</button>
+          </div>
+        </div>
+
+        <!-- Fases -->
+        <div class="mil-label">Cambiar fase manualmente</div>
+        <div class="mil-row" style="flex-wrap:wrap;gap:6px;">
+          <button class="admin-btn secondary small" onclick="setPhase('talking')">💬 Hablar</button>
+          <button class="admin-btn secondary small" onclick="setPhase('voting')">🗳️ Votar</button>
+          <button class="admin-btn secondary small" onclick="setPhase('results')">📊 Resultados</button>
+          <button class="admin-btn secondary small" onclick="setPhase('final')">🏁 Final</button>
+        </div>
+
+        <!-- Extender timer -->
+        <div style="margin-top:14px;">
+          <div class="mil-label">Extender tiempo</div>
+          <div class="mil-row">
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(60)">+1 min</button>
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(120)">+2 min</button>
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(300)">+5 min</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Procesar votos -->
+      <div class="admin-card" style="margin-bottom:10px;" id="process-votes-card">
+        <div class="admin-card-label">Procesar votación</div>
+        <div style="font-size:12px;color:var(--crema-3);margin-bottom:12px;line-height:1.6;">
+          Calculá quién fue más votado, guardá en historial y mostrá resultados.
+        </div>
+        <button class="admin-btn primary" onclick="handleProcessVotes()" style="width:100%;">
+          📊 Procesar votos y mostrar resultado
+        </button>
+        <div id="votes-result-preview" style="display:none;margin-top:12px;"></div>
+      </div>
+
+      <!-- Siguiente ronda -->
+      <div class="admin-card" style="margin-bottom:10px;" id="next-round-card" style="display:none;">
+        <div class="admin-card-label">Siguiente ronda</div>
+        <div style="font-size:12px;color:var(--crema-3);margin-bottom:12px;line-height:1.6;">
+          Elimina al jugador más votado, rota el millón si corresponde y arranca la siguiente ronda.
+        </div>
+        <div style="margin-bottom:12px;">
+          <label class="mil-label">Jugador eliminado</label>
+          <select id="eliminated-select" class="mil-select">
+            <option value="">— Elegir eliminado —</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="admin-btn primary" style="flex:1;" onclick="handleNextRound(true)">
+            💰 Tenía el millón → Siguiente ronda
+          </button>
+          <button class="admin-btn secondary" style="flex:1;" onclick="handleNextRound(false)">
+            ✋ Era inocente → Siguiente ronda
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HERRAMIENTAS AVANZADAS ── -->
+    <div class="mil-admin-section" id="advanced-tools" style="display:none;">
+      <div class="mil-admin-section-title">Herramientas avanzadas</div>
+      <div class="admin-card">
+
+        <!-- Rotar millón manualmente -->
+        <div style="margin-bottom:16px;">
+          <div class="mil-label">Rotar el millón</div>
+          <div class="mil-row">
+            <select id="rotate-target-select" class="mil-select" style="flex:1;">
+              <option value="">🎲 Random</option>
+            </select>
+            <button class="admin-btn secondary small" onclick="handleRotateMillion()">Rotar</button>
+          </div>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:4px;">El cambio es silencioso — los jugadores no saben.</div>
+        </div>
+
+        <!-- Eliminar jugador manualmente -->
+        <div style="margin-bottom:16px;">
+          <div class="mil-label">Eliminar jugador manualmente</div>
+          <div class="mil-row">
+            <select id="elim-manual-select" class="mil-select" style="flex:1;">
+              <option value="">— Elegir jugador —</option>
+            </select>
+            <button class="admin-btn secondary small" onclick="handleManualEliminate()">Eliminar</button>
+          </div>
+        </div>
+
+        <!-- Asignar misión manualmente -->
+        <div style="margin-bottom:16px;">
+          <div class="mil-label">Asignar misión personalizada</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <select id="mission-player-select" class="mil-select">
+              <option value="">— Elegir jugador —</option>
+            </select>
+            <input type="text" id="mission-custom-text" class="mil-input" placeholder="Texto de la misión..." maxlength="120" />
+            <div class="mil-row">
+              <select id="mission-difficulty-select" class="mil-select" style="flex:1;">
+                <option value="easy">Fácil (+1 voto)</option>
+                <option value="medium">Media (+1 voto)</option>
+                <option value="hard">Difícil (inmunidad)</option>
+              </select>
+              <button class="admin-btn secondary small" onclick="handleAssignMission()">Asignar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── LOG / HISTORIAL ── -->
+    <div class="mil-admin-section" id="history-section" style="display:none;">
+      <div class="mil-admin-section-title">Historial de rondas</div>
+      <div class="admin-card" id="history-log">
+        <div style="font-size:12px;color:var(--crema-3);">Sin historial aún.</div>
+      </div>
+    </div>
+
+    <!-- ── PELIGRO ── -->
+    <div class="mil-admin-section" style="margin-top:24px;">
+      <div class="mil-admin-section-title" style="color:#e05050;border-color:rgba(224,80,80,0.15);">Zona de peligro</div>
+      <div class="admin-card" style="border-color:rgba(224,80,80,0.2);">
+        <div class="mil-row">
+          <button class="admin-btn secondary" onclick="handleEndGame()" style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">
+            🏁 Terminar partida
+          </button>
+          <button class="admin-btn secondary" onclick="handleResetGame()" style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">
+            🗑️ Resetear todo
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="mil-toast" id="mil-toast"></div>
+
+  <script type="module">
+    import { initNavbar } from "./js/navbar.js";
+    import { onSession, getUserData } from "./js/auth.js";
+    import {
+      adminStartGame, adminSetPhase, adminSetTopic,
+      adminProcessVotes, adminNextRound,
+      adminRotateMillion, adminEliminatePlayer,
+      adminAssignMission, adminEndGame, adminResetGame,
+      adminExtendTimer,
+      listenState, listenPlayers, listenVotes,
+      getSettings, playersRef, missionsRef, historyRef,
+      MISSIONS, REWARD_LABELS, pickMission
+    } from "./games/millon.js";
+    import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { db } from "./js/firebase-init.js";
+
+    const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+
+    let currentState   = null;
+    let currentPlayers = {};
+    let currentVotes   = {};
+    let lastProcessed  = null; // resultado del último proceso de votos
+
+    // ── Auth ──
+    onSession(async (user) => {
+      if (!user || user.uid !== ADMIN_UID) {
+        window.location.href = "admin.html";
+        return;
+      }
+      initNavbar();
+      startListeners();
+    });
+
+    // ── Listeners ──
+    function startListeners() {
+      listenState(onStateChange);
+      listenPlayers(onPlayersChange);
+      listenVotes(onVotesChange);
+      onValue(ref(db, "millon/history"), (snap) => {
+        renderHistory(snap.exists() ? snap.val() : {});
+      });
+    }
+
+    function onStateChange(state) {
+      currentState = state;
+      renderStatusBar(state);
+      renderSecretReveal(state);
+      toggleSections(state);
+    }
+
+    function onPlayersChange(players) {
+      currentPlayers = players || {};
+      renderPlayersAdmin();
+      populateSelects();
+      renderStatusBar(currentState);
+    }
+
+    function onVotesChange(votes) {
+      currentVotes = votes || {};
+      renderStatusBar(currentState);
+    }
+
+    // ── Render status bar ──
+    function renderStatusBar(state) {
+      const phase = state?.phase || "—";
+      const phaseLabels = { lobby:"Lobby", talking:"Hablando 💬", voting:"Votando 🗳️", results:"Resultados", final:"Final 🏁", ended:"Terminado", "—":"Sin partida" };
+      setText("stat-phase", phaseLabels[phase] || phase);
+      setText("stat-round", state?.round ?? "—");
+      const alive = Object.values(currentPlayers).filter(p => p.alive !== false).length;
+      setText("stat-alive", alive || "—");
+      setText("stat-votes", Object.keys(currentVotes).length || "—");
+    }
+
+    function renderSecretReveal(state) {
+      const el = document.getElementById("secret-reveal");
+      if (!el || !state?.millionaireUid) { if (el) el.style.display = "none"; return; }
+      const milNick = currentPlayers[state.millionaireUid]?.nick || state.millionaireUid;
+      el.style.display = "block";
+      el.innerHTML = `<strong style="color:var(--millon-oro-2,#f5c842);">💰 Millonario:</strong> ${milNick}<br>
+        <strong style="color:var(--crema-3);">Fase:</strong> ${state.phase || "—"} &nbsp;·&nbsp; Ronda ${state.round || 1}`;
+    }
+
+    function toggleSections(state) {
+      const active = state?.active;
+      const phase  = state?.phase;
+      document.getElementById("start-section").style.display    = (!active || phase === "ended") ? "block" : "none";
+      document.getElementById("round-controls").style.display   = (active && phase !== "ended") ? "block" : "none";
+      document.getElementById("advanced-tools").style.display   = (active && phase !== "ended") ? "block" : "none";
+      document.getElementById("history-section").style.display  = "block";
+    }
+
+    // ── Render players admin ──
+    function renderPlayersAdmin() {
+      const el = document.getElementById("players-admin-list");
+      if (!el) return;
+      const entries = Object.entries(currentPlayers);
+      if (!entries.length) { el.innerHTML = '<div style="font-size:12px;color:var(--crema-3);">Sin jugadores.</div>'; return; }
+
+      el.innerHTML = entries.map(([uid, p]) => {
+        const isMill = currentState?.millionaireUid === uid;
+        const tags = [];
+        if (isMill)   tags.push('<span class="mil-tag millionaire">💰 Millonario</span>');
+        if (p.immune) tags.push('<span class="mil-tag immune">🛡️ Inmune</span>');
+        if (p.alive === false) tags.push('<span class="mil-tag dead-tag">☠️ Eliminado</span>');
+
+        return `<div class="mil-player-row ${p.alive === false ? 'dead' : ''}">
+          <div>
+            <span style="font-weight:500;">${p.nick || uid}</span>
+            ${p.connected ? '' : ' <span style="color:#e05050;font-size:10px;">● offline</span>'}
+            <div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap;">${tags.join('')}</div>
+          </div>
+          <div style="font-size:11px;color:var(--crema-3);">
+            ${currentVotes[uid] ? '✅ votó' : (currentState?.phase === 'voting' ? '⌛ sin voto' : '')}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // ── Selects ──
+    function populateSelects() {
+      const alive = Object.entries(currentPlayers).filter(([, p]) => p.alive !== false);
+      const allActive = Object.entries(currentPlayers).filter(([, p]) => p.alive !== false);
+
+      fillSelect("rotate-target-select", alive, "🎲 Random", "");
+      fillSelect("elim-manual-select", allActive, "— Elegir jugador —", "");
+      fillSelect("mission-player-select", allActive, "— Elegir jugador —", "");
+      fillSelect("eliminated-select", allActive, "— Elegir eliminado —", "");
+    }
+
+    function fillSelect(id, entries, defaultLabel, defaultVal) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const currentVal = el.value;
+      el.innerHTML = `<option value="${defaultVal}">${defaultLabel}</option>`;
+      entries.forEach(([uid, p]) => {
+        const opt = document.createElement("option");
+        opt.value = uid;
+        opt.textContent = p.nick || uid;
+        if (uid === currentVal) opt.selected = true;
+        el.appendChild(opt);
+      });
+    }
+
+    // ── Historial ──
+    function renderHistory(history) {
+      const el = document.getElementById("history-log");
+      if (!el) return;
+      const entries = Object.values(history || {});
+      if (!entries.length) { el.innerHTML = '<div style="font-size:12px;color:var(--crema-3);">Sin historial aún.</div>'; return; }
+      el.innerHTML = [...entries].reverse().map(h => {
+        const millNick = currentPlayers[h.millionaire]?.nick || h.millionaire || "?";
+        const elimNick = currentPlayers[h.eliminated]?.nick || h.eliminated || "Nadie";
+        return `<div class="log-entry">
+          <strong>Ronda ${h.round}</strong> — Eliminado: <strong>${elimNick}</strong>
+          ${h.millionaire ? `· Millonario: <strong style="color:var(--millon-oro-2,#f5c842);">${millNick}</strong>` : ""}
+          ${h.mission ? `<br><span style="opacity:0.7;">Misión: ${h.mission}</span>` : ""}
+          ${h.success !== undefined ? `· <span style="${h.success ? 'color:#6c6' : 'color:#e05050'}">${h.success ? 'Millonario sobrevivió' : 'Millonario descubierto'}</span>` : ""}
+        </div>`;
+      }).join("");
+    }
+
+    // ── Handlers ──
+    window.handleStartGame = async function() {
+      const settings = {
+        talkTime:     parseInt(document.getElementById("cfg-talkTime")?.value) || 300,
+        minPlayers:   parseInt(document.getElementById("cfg-minPlayers")?.value) || 6,
+        finalPlayers: parseInt(document.getElementById("cfg-finalPlayers")?.value) || 3,
+        revealVotes:  document.getElementById("cfg-revealVotes")?.checked || false,
+        allowTransfer: true,
+      };
+      const result = await adminStartGame(settings);
+      if (result.ok) {
+        toast("💰 Partida iniciada");
+      } else {
+        toast("❌ " + result.reason);
+      }
+    };
+
+    window.setPhase = async function(phase) {
+      await adminSetPhase(phase);
+      toast(`Fase → ${phase}`);
+    };
+
+    window.handleSetTopic = async function() {
+      const topic = document.getElementById("topic-input")?.value?.trim() || "";
+      await adminSetTopic(topic);
+      toast(topic ? `Tópico: "${topic}"` : "Tópico borrado");
+    };
+
+    window.handleExtendTimer = async function(secs) {
+      await adminExtendTimer(secs);
+      toast(`+${secs / 60} min agregados`);
+    };
+
+    window.handleProcessVotes = async function() {
+      const result = await adminProcessVotes();
+      lastProcessed = result;
+
+      const elimNick = result.eliminatedUid && currentPlayers[result.eliminatedUid]
+        ? currentPlayers[result.eliminatedUid].nick : "Nadie";
+      const millNick = result.millionaireUid && currentPlayers[result.millionaireUid]
+        ? currentPlayers[result.millionaireUid].nick : "?";
+
+      // Mostrar tally
+      const tallyHtml = Object.entries(result.tally || {})
+        .sort(([,a],[,b]) => b - a)
+        .map(([uid, count]) => {
+          const nick = currentPlayers[uid]?.nick || uid;
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;">
+            <span>${nick}</span><span style="color:var(--millon-oro-2,#f5c842);">${count} voto${count !== 1 ? 's' : ''}</span>
+          </div>`;
+        }).join("");
+
+      const preview = document.getElementById("votes-result-preview");
+      if (preview) {
+        preview.style.display = "block";
+        preview.innerHTML = `
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:8px;">Resultado</div>
+          ${tallyHtml}
+          <div style="margin-top:10px;padding:10px;background:rgba(212,168,0,0.06);border-radius:8px;font-size:12px;line-height:1.8;">
+            Más votado: <strong>${elimNick}</strong><br>
+            ${result.hadMillion ? '💰 Tenía el millón' : '✋ Era inocente'}<br>
+            Millonario actual: <strong style="color:var(--millon-oro-2,#f5c842);">${millNick}</strong>
+          </div>
+        `;
+      }
+
+      // Escribir resultados en state para que los jugadores los vean
+      const { update } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const { stateRef } = await import("./games/millon.js");
+      await update(stateRef(), {
+        phase: "results",
+        eliminatedUid: result.eliminatedUid || null,
+        hadMillion: result.hadMillion,
+        resultVotesText: `${Object.keys(result.tally || {}).length} votos contados`,
+        revealMillionaire: false,
+      });
+
+      // Llenar select de eliminado
+      const sel = document.getElementById("eliminated-select");
+      if (sel && result.eliminatedUid) sel.value = result.eliminatedUid;
+
+      document.getElementById("next-round-card")?.style && (document.getElementById("next-round-card").style.display = "block");
+      toast("📊 Votos procesados");
+    };
+
+    window.handleNextRound = async function(hadMillion) {
+      const elimUid = document.getElementById("eliminated-select")?.value || null;
+      const result = await adminNextRound(elimUid, hadMillion);
+      if (result.ended) {
+        toast("🏁 ¡Final del juego! Quedan 3 jugadores.");
+      } else {
+        const rotated = result.rotated;
+        const newNick = result.newMillionaire && currentPlayers[result.newMillionaire]
+          ? currentPlayers[result.newMillionaire].nick : "?";
+        toast(rotated ? `🔄 El millón rotó a ${newNick}` : "▶ Nueva ronda");
+      }
+    };
+
+    window.handleRotateMillion = async function() {
+      const target = document.getElementById("rotate-target-select")?.value || null;
+      const result = await adminRotateMillion(target || null);
+      const nick = currentPlayers[result.newMillionaire]?.nick || result.newMillionaire;
+      toast(`💰 Millón → ${nick} (silencioso)`);
+    };
+
+    window.handleManualEliminate = async function() {
+      const uid = document.getElementById("elim-manual-select")?.value;
+      if (!uid) return toast("Elegí un jugador");
+      await adminEliminatePlayer(uid);
+      toast(`☠️ ${currentPlayers[uid]?.nick || uid} eliminado`);
+    };
+
+    window.handleAssignMission = async function() {
+      const uid  = document.getElementById("mission-player-select")?.value;
+      const text = document.getElementById("mission-custom-text")?.value?.trim();
+      const diff = document.getElementById("mission-difficulty-select")?.value || "easy";
+      if (!uid)  return toast("Elegí un jugador");
+      if (!text) return toast("Escribí el texto de la misión");
+      const rewardMap = { easy: "extra_vote", medium: "extra_vote", hard: "immune" };
+      await adminAssignMission(uid, { text, difficulty: diff, reward: rewardMap[diff] });
+      toast(`📋 Misión asignada a ${currentPlayers[uid]?.nick || uid}`);
+      document.getElementById("mission-custom-text").value = "";
+    };
+
+    window.handleEndGame = async function() {
+      if (!confirm("¿Terminar la partida?")) return;
+      await adminEndGame();
+      toast("🏁 Partida terminada");
+    };
+
+    window.handleResetGame = async function() {
+      if (!confirm("¿Resetear TODO? Se borran jugadores, votos, misiones, historial.")) return;
+      await adminResetGame();
+      toast("🗑️ Todo reseteado");
+    };
+
+    // ── Helpers ──
+    function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+    function toast(msg) {
+      const el = document.getElementById("mil-toast");
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2500);
+    }
+  </script>
+</body>
+</html>
