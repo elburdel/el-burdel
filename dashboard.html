@@ -159,11 +159,11 @@
             <div class="dash-game-name">¿Quién Soy?</div>
             <div class="dash-game-status" id="status-quiensoy">Jugar</div>
           </a>
-          <div class="dash-game-card" id="game-card-millonario">
+          <a class="dash-game-card" id="game-card-millonario" href="millonario.html" style="text-decoration:none;">
             <span class="dash-game-icon">💰</span>
             <div class="dash-game-name">El Millonario</div>
             <div class="dash-game-status" id="status-millonario">Próximamente</div>
-          </div>
+          </a>
         </div>
       </div>
     </div>
@@ -353,12 +353,8 @@
             el.textContent = "Activo ahora";
             el.className = "dash-game-status active";
             if (card) card.classList.add("active");
-          } else if (g === "taboo" || g === "wordle" || g === "impostor" || g === "quiensoy") {
+          } else if (g === "taboo" || g === "wordle" || g === "impostor" || g === "quiensoy" || g === "millonario") {
             el.textContent = "Jugar";
-            el.className = "dash-game-status";
-            if (card) card.classList.remove("active");
-          } else {
-            el.textContent = "Próximamente";
             el.className = "dash-game-status";
             if (card) card.classList.remove("active");
           }
@@ -369,10 +365,11 @@
     // ── Banner de notificación de juego activo ──
     function showGameNotif(game) {
       const labels = {
-        taboo:    { icon: "🃏", name: "Taboo",        href: "taboo.html" },
-        wordle:   { icon: "🔤", name: "Wordle",       href: "wordle.html" },
-        impostor: { icon: "🕵️", name: "El Impostor",  href: "impostor.html" },
-        quiensoy: { icon: "🪪", name: "¿Quién Soy?",  href: "quiensoy.html" },
+        taboo:      { icon: "🃏", name: "Taboo",          href: "taboo.html" },
+        wordle:     { icon: "🔤", name: "Wordle",         href: "wordle.html" },
+        impostor:   { icon: "🕵️", name: "El Impostor",    href: "impostor.html" },
+        quiensoy:   { icon: "🪪", name: "¿Quién Soy?",    href: "quiensoy.html" },
+        millonario: { icon: "💰", name: "El Millonario",  href: "millonario.html" },
       };
       const info = labels[game];
       if (!info) return;
