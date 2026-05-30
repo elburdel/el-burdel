@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El Millonario — El Burdel</title>
+  <meta name="description" content="¿Quién tiene el millón?" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="El Millonario — El Burdel" />
+  <meta property="og:description" content="¿Quién tiene el millón?" />
+  <meta property="og:url" content="https://elburdel.github.io/el-burdel/millonario.html" />
+  <meta property="og:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body { min-height:100vh; display:flex; flex-direction:column; }
+
+    .mil-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 80px;
+    }
+
+    /* Header */
+    .mil-header {
+      width: 100%; max-width: 480px;
+      padding: 28px 0 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(200,150,0,0.1);
+      margin-bottom: 32px;
+    }
+    .mil-title {
+      font-family: var(--font-title);
+      font-size: 32px; letter-spacing: 3px; color: #f5c842;
+    }
+    .mil-nick-pill {
+      font-size: 12px; color: var(--crema-3);
+      background: rgba(200,150,0,0.07);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 20px; padding: 5px 12px;
+    }
+
+    /* Estados */
+    .mil-state {
+      width: 100%; max-width: 440px;
+      display: none; flex-direction: column;
+      align-items: center; gap: 20px; text-align: center;
+    }
+    .mil-state.active { display: flex; }
+
+    /* Waiting */
+    .mil-waiting-icon { font-size: 60px; animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.06);opacity:.7} }
+    .mil-waiting-title {
+      font-family: var(--font-title); font-size: 24px;
+      letter-spacing: 2px; color: var(--crema-2);
+    }
+    .mil-waiting-sub { font-size: 14px; color: var(--crema-3); line-height: 1.7; }
+
+    /* Timer */
+    .mil-timer {
+      font-family: var(--font-title); font-size: 80px;
+      letter-spacing: 4px; line-height: 1; color: #f5c842;
+      text-shadow: 0 0 40px rgba(245,200,66,0.35);
+      transition: color .3s;
+    }
+    .mil-timer.urgent { color: #e05050; text-shadow: 0 0 40px rgba(224,80,80,0.4); animation: blink 1s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .mil-timer-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--crema-3); margin-top:4px; }
+
+    /* Tópico */
+    .mil-topic-box {
+      width: 100%; padding: 14px 18px;
+      background: rgba(200,150,0,0.05);
+      border: 1px solid rgba(200,150,0,0.18);
+      border-radius: 10px; text-align: center;
+    }
+    .mil-topic-label { font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--crema-3); margin-bottom:5px; }
+    .mil-topic-text { font-family:var(--font-title); font-size:20px; letter-spacing:1px; color:var(--crema); }
+
+    /* Card de rol — toque para ver */
+    .mil-reveal-btn {
+      width: 100%;
+      background: rgba(200,150,0,0.07);
+      border: 2px solid rgba(200,150,0,0.28);
+      border-radius: 16px; padding: 36px 24px;
+      cursor: pointer; transition: background .2s, border-color .2s, transform .15s;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .mil-reveal-btn:hover { background: rgba(200,150,0,0.13); border-color: rgba(200,150,0,0.5); }
+    .mil-reveal-btn:active { transform: scale(.98); }
+    .mil-reveal-icon { font-size: 38px; }
+    .mil-reveal-label { font-family:var(--font-title); font-size:20px; letter-spacing:2px; color:#f5c842; }
+    .mil-reveal-sub { font-size:12px; color:var(--crema-3); letter-spacing:1px; }
+
+    /* Rol card revelada */
+    .mil-role-card {
+      width: 100%; border-radius: 16px;
+      padding: 32px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .mil-role-card.inocente {
+      background: rgba(200,150,0,0.06);
+      border: 2px solid rgba(200,150,0,0.22);
+    }
+    .mil-role-card.millonario {
+      background: rgba(26,74,42,0.35);
+      border: 2px solid rgba(200,150,0,0.45);
+      box-shadow: 0 0 40px rgba(200,150,0,0.08);
+    }
+    .mil-role-label { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--crema-3); }
+    .mil-role-title { font-family:var(--font-title); font-size:42px; letter-spacing:3px; line-height:1; }
+    .mil-role-card.inocente .mil-role-title { color: var(--crema-2); }
+    .mil-role-card.millonario .mil-role-title { color: #f5c842; }
+    .mil-role-hint { font-size:13px; color:var(--crema-3); line-height:1.7; }
+
+    .mil-mission-box {
+      width: 100%; padding: 16px 18px;
+      background: rgba(200,150,0,0.08);
+      border: 1px solid rgba(200,150,0,0.28);
+      border-radius: 10px; text-align: center;
+    }
+    .mil-mission-label { font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:#f5c842; margin-bottom:8px; }
+    .mil-mission-text { font-size:15px; color:var(--crema); line-height:1.6; }
+    .mil-mission-diff {
+      display:inline-block; margin-top:8px; font-size:10px;
+      letter-spacing:1.5px; text-transform:uppercase;
+      padding:3px 10px; border-radius:20px;
+    }
+    .mil-mission-diff.easy   { background:rgba(50,150,50,.18);  color:#6c6; border:1px solid rgba(50,150,50,.3); }
+    .mil-mission-diff.medium { background:rgba(200,150,0,.15);  color:#f5c842; border:1px solid rgba(200,150,0,.3); }
+    .mil-mission-diff.hard   { background:rgba(180,40,40,.18);  color:#e88; border:1px solid rgba(180,40,40,.3); }
+
+    .mil-hide-btn {
+      font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--crema-3);
+      background:none; border:1px solid rgba(255,255,255,.08); border-radius:4px;
+      padding:7px 16px; cursor:pointer; transition: color .2s, border-color .2s;
+    }
+    .mil-hide-btn:hover { color:var(--crema-2); border-color:rgba(255,255,255,.2); }
+
+    /* Jugadores vivos */
+    .mil-players-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap:8px;
+      width: 100%;
+    }
+    .mil-player-chip {
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      padding:10px 6px; border-radius:10px;
+      background:var(--negro-2); border:1px solid rgba(200,150,0,0.08);
+      font-size:12px; color:var(--crema-2); text-align:center;
+    }
+    .mil-player-chip.self { border-color:rgba(200,150,0,0.35); color:var(--crema); }
+    .mil-player-chip.dead { opacity:.3; filter:grayscale(1); }
+    .mil-player-chip-avatar { font-size:18px; }
+
+    /* Votación */
+    .mil-vote-btn {
+      width:100%; padding:16px;
+      background:linear-gradient(135deg,rgba(26,74,42,.6),rgba(30,30,30,.9));
+      border:1px solid rgba(200,150,0,0.35); border-radius:14px;
+      color:#f5c842; font-family:var(--font-title); font-size:22px; letter-spacing:3px;
+      cursor:pointer; transition:all .2s;
+    }
+    .mil-vote-btn:hover { box-shadow:0 0 20px rgba(200,150,0,0.15); }
+    .mil-vote-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* Modal votación */
+    .mil-modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:100;
+      display:flex; align-items:flex-end;
+    }
+    .mil-modal {
+      width:100%; max-height:80vh; overflow-y:auto;
+      background:var(--negro-2); border-top:1px solid rgba(200,150,0,0.25);
+      border-radius:20px 20px 0 0; padding:24px 20px 44px;
+    }
+    .mil-modal-title { font-family:var(--font-title); font-size:22px; letter-spacing:3px; color:#f5c842; text-align:center; margin-bottom:18px; }
+    .mil-vote-option {
+      width:100%; padding:14px 16px; margin-bottom:8px;
+      background:var(--negro-3); border:1px solid rgba(200,150,0,0.12);
+      border-radius:10px; color:var(--crema); font-size:15px;
+      font-family:var(--font-body); cursor:pointer; text-align:left;
+      transition:all .15s;
+    }
+    .mil-vote-option:hover  { border-color:rgba(200,150,0,0.35); background:rgba(200,150,0,0.06); }
+    .mil-vote-option.sel    { border-color:#f5c842; background:rgba(200,150,0,0.1); color:#f5c842; }
+    .mil-confirm-btn {
+      width:100%; margin-top:8px; padding:14px;
+      background:rgba(200,150,0,0.1); border:1px solid rgba(200,150,0,0.35);
+      border-radius:10px; color:#f5c842; font-family:var(--font-title);
+      font-size:18px; letter-spacing:2px; cursor:pointer; transition:all .2s;
+    }
+    .mil-confirm-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .mil-cancel-btn {
+      width:100%; margin-top:6px; padding:10px;
+      background:none; border:none; color:var(--crema-3); font-size:13px; cursor:pointer;
+    }
+
+    /* Resultados */
+    .mil-result-card {
+      width:100%; background:var(--negro-2);
+      border:1px solid rgba(200,150,0,0.15); border-radius:16px;
+      padding:32px 24px; display:flex; flex-direction:column; align-items:center; gap:14px;
+    }
+    .mil-result-icon { font-size:52px; }
+    .mil-result-title { font-family:var(--font-title); font-size:28px; letter-spacing:2px; text-align:center; }
+    .mil-result-title.win  { color:#f5c842; }
+    .mil-result-title.lose { color:#e05050; }
+    .mil-result-detail { font-size:14px; color:var(--crema-3); line-height:1.7; text-align:center; }
+
+    /* Loading */
+    #mil-loading { font-size:13px; color:var(--crema-3); letter-spacing:1.5px; text-transform:uppercase; padding:64px 0; text-align:center; }
+
+    /* Ya votaste */
+    .mil-voted-notice {
+      width:100%; padding:14px; text-align:center;
+      background:rgba(50,150,50,0.1); border:1px solid rgba(50,150,50,0.25);
+      border-radius:10px; font-size:13px; color:#6c6;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="mil-main">
+
+    <div class="mil-header">
+      <span class="mil-title">El Millonario</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="mil-nick-pill" id="mil-nick-label">—</span>
+        <button onclick="document.getElementById('mil-help-modal').classList.remove('hidden')"
+          style="background:none;border:1px solid rgba(200,150,0,0.25);border-radius:50%;width:28px;height:28px;color:#f5c842;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">?</button>
+      </div>
+    </div>
+
+    <div id="mil-loading">Cargando...</div>
+
+    <!-- ── ESPERANDO ── -->
+    <div class="mil-state" id="state-waiting">
+      <div class="mil-waiting-icon">💰</div>
+      <div class="mil-waiting-title">Esperando al admin</div>
+      <div class="mil-waiting-sub">
+        El admin va a iniciar la ronda en breve.<br>
+        Cuando arranque, vas a ver tu rol.
+      </div>
+    </div>
+
+    <!-- ── JUGANDO: toque para ver rol ── -->
+    <div class="mil-state" id="state-ready">
+      <!-- Timer -->
+      <div>
+        <div class="mil-timer" id="mil-timer-display">—:——</div>
+        <div class="mil-timer-label">Tiempo de charla</div>
+      </div>
+      <!-- Tópico -->
+      <div class="mil-topic-box" id="mil-topic-box" style="display:none;">
+        <div class="mil-topic-label">Tópico</div>
+        <div class="mil-topic-text" id="mil-topic-text">—</div>
+      </div>
+      <!-- Botón para ver rol -->
+      <div class="mil-waiting-sub">¡La ronda comenzó! Mostrá tu pantalla solo a vos.</div>
+      <button class="mil-reveal-btn" onclick="revealRole()">
+        <span class="mil-reveal-icon">👁️</span>
+        <span class="mil-reveal-label">Tocar para ver tu rol</span>
+        <span class="mil-reveal-sub">Solo mostralo a vos</span>
+      </button>
+      <!-- Jugadores -->
+      <div style="width:100%;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:4px;margin-top:4px;">Jugadores</div>
+      <div class="mil-players-grid" id="mil-players-ready"></div>
+    </div>
+
+    <!-- ── ROL REVELADO ── -->
+    <div class="mil-state" id="state-revealed">
+      <!-- Timer -->
+      <div>
+        <div class="mil-timer" id="mil-timer-display-2">—:——</div>
+        <div class="mil-timer-label">Tiempo de charla</div>
+      </div>
+      <!-- Tópico -->
+      <div class="mil-topic-box" id="mil-topic-box-2" style="display:none;">
+        <div class="mil-topic-label">Tópico</div>
+        <div class="mil-topic-text" id="mil-topic-text-2">—</div>
+      </div>
+      <!-- Rol -->
+      <div id="mil-role-display"></div>
+      <!-- Misión (solo millonario) -->
+      <div id="mil-mission-display" style="display:none;width:100%;"></div>
+      <button class="mil-hide-btn" onclick="hideRole()">🙈 Ocultar mi rol</button>
+      <!-- Jugadores -->
+      <div style="width:100%;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:4px;margin-top:4px;">Jugadores</div>
+      <div class="mil-players-grid" id="mil-players-revealed"></div>
+    </div>
+
+    <!-- ── VOTACIÓN ── -->
+    <div class="mil-state" id="state-voting">
+      <div class="mil-waiting-icon" style="animation:none;font-size:48px;">🗳️</div>
+      <div class="mil-waiting-title">¡A votar!</div>
+      <div class="mil-waiting-sub">El tiempo terminó. Votá a quien creas que tiene el millón.</div>
+      <div class="mil-voted-notice" id="mil-voted-notice" style="display:none;">✅ Ya votaste esta ronda</div>
+      <button class="mil-vote-btn" id="mil-vote-open-btn" onclick="openVoteModal()">💰 Votar</button>
+      <div style="width:100%;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:4px;">Jugadores</div>
+      <div class="mil-players-grid" id="mil-players-voting"></div>
+    </div>
+
+    <!-- ── RESULTADOS ── -->
+    <div class="mil-state" id="state-results">
+      <div class="mil-result-card" id="mil-result-card">
+        <!-- se rellena dinámicamente -->
+      </div>
+    </div>
+
+    <!-- ── RONDA FINAL ── -->
+    <div class="mil-state" id="state-final">
+      <div class="mil-waiting-icon" style="animation:none;">💰</div>
+      <div class="mil-waiting-title">Ronda Final</div>
+      <div class="mil-waiting-sub" style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.2);border-radius:10px;padding:14px 16px;">
+        Quedan 3 jugadores.<br>
+        Si el millonario sobrevive esta votación,<br>
+        <strong style="color:var(--crema);">gana automáticamente.</strong>
+      </div>
+      <div class="mil-voted-notice" id="mil-voted-notice-final" style="display:none;">✅ Ya votaste esta ronda</div>
+      <button class="mil-vote-btn" id="mil-vote-final-btn" onclick="openVoteModal()">💰 Voto Final</button>
+    </div>
+
+    <!-- ── TERMINADO ── -->
+    <div class="mil-state" id="state-ended">
+      <div class="mil-waiting-icon" style="animation:none;">🏁</div>
+      <div class="mil-waiting-title">Partida terminada</div>
+      <div class="mil-waiting-sub">El admin va a resetear el juego.</div>
+    </div>
+
+  </main>
+
+  <!-- Modal de votación -->
+  <div class="mil-modal-overlay" id="mil-vote-modal" style="display:none;" onclick="if(event.target===this)closeVoteModal()">
+    <div class="mil-modal">
+      <div class="mil-modal-title">💰 ¿Quién tiene el millón?</div>
+      <div id="mil-vote-options"></div>
+      <button class="mil-confirm-btn" id="mil-confirm-btn" onclick="confirmVote()" disabled>Confirmar voto</button>
+      <button class="mil-cancel-btn" onclick="closeVoteModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal instrucciones -->
+  <div id="mil-help-modal" class="hidden" style="
+    position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.88);
+    display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;
+  " onclick="if(event.target===this)this.classList.add('hidden')">
+    <div style="
+      background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:16px;
+      max-width:380px;width:100%;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;
+    ">
+      <button onclick="document.getElementById('mil-help-modal').classList.add('hidden')"
+        style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--crema-3);font-size:20px;cursor:pointer;">✕</button>
+
+      <div style="font-family:var(--font-title);font-size:28px;letter-spacing:2px;color:var(--crema);margin-bottom:4px;">CÓMO JUGAR</div>
+      <div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:20px;">El Millonario · El Burdel</div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;color:var(--crema-2);line-height:1.7;">
+
+        <div style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#f5c842;margin-bottom:6px;">💰 EL MILLONARIO</div>
+          Tenés el millón. Nadie lo sabe.<br>
+          Tenés una <strong style="color:var(--crema);">misión secreta</strong> para cumplir durante la charla.<br>
+          Si llegás al final sin que te descubran, <strong>ganás</strong>.
+        </div>
+
+        <div style="background:rgba(80,80,150,0.08);border:1px solid rgba(80,80,150,0.2);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#aaf;margin-bottom:6px;">🎭 MISIÓN DE TERCERO</div>
+          Te asignaron una misión que tenés que cumplir durante la charla sin que te descubran.<br>
+          Si la completás, ganás un beneficio.
+        </div>
+
+        <div style="background:rgba(80,150,80,0.06);border:1px solid rgba(80,150,80,0.15);border-radius:10px;padding:14px 16px;">
+          <div style="font-family:var(--font-title);font-size:16px;letter-spacing:1px;color:#7bc47b;margin-bottom:6px;">👥 INOCENTE</div>
+          No tenés misión. Conversá y tratá de detectar quién tiene el millón o quién está cumpliendo alguna misión.
+        </div>
+
+        <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;">
+          <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">📋 LA RONDA</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div>1️⃣ Tocá el botón para ver tu rol en privado.</div>
+            <div>2️⃣ El admin da un tópico y arranca el timer.</div>
+            <div>3️⃣ Charlan libremente. Cumplí tu misión sin que se note.</div>
+            <div>4️⃣ Cuando termina el tiempo, votan a quién creen que tiene el millón.</div>
+            <div>5️⃣ El más votado queda eliminado. El juego sigue hasta quedar 3.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="dashboard.html" class="nav-bottom-link">Dashboard</a>
+        <a href="ranking.html" class="nav-bottom-link">Ranking</a>
+        <a href="mundial.html" class="nav-bottom-link">Mundial</a>
+      </div>
+      <div class="nav-bottom-divider"></div>
+      <div class="nav-bottom-links">
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, getUserData } from "./js/auth.js";
+    import { initNavbar } from "./js/navbar.js";
+    import {
+      joinGame, setDisconnected, castVote,
+      listenState, listenPlayers, listenMyMission, listenVotes
+    } from "./games/millon.js";
+
+    initNavbar();
+
+    let currentUid   = null;
+    let currentNick  = null;
+    let currentState = null;
+    let players      = {};
+    let myMission    = null;
+    let myVote       = null;
+    let timerInterval = null;
+    let roleRevealed  = false;
+    let selectedVoteTarget = null;
+
+    // ── Auth ──
+    onSession(async (user) => {
+      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      const data = await getUserData(user.uid);
+      if (!data || data.status !== "active") { window.location.href = "/el-burdel/login.html"; return; }
+      if (data.role === "admin") { window.location.href = "/el-burdel/admin.html"; return; }
+
+      currentUid  = user.uid;
+      currentNick = data.nick;
+      document.getElementById("mil-nick-label").textContent = data.nick;
+
+      // Auto-registro en millon/players
+      await joinGame(currentUid, currentNick);
+
+      document.getElementById("mil-loading").style.display = "none";
+      startListeners();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (currentUid) setDisconnected(currentUid);
+    });
+
+    // ── Listeners ──
+    function startListeners() {
+      listenState(onStateChange);
+      listenPlayers(p => { players = p || {}; renderPlayerGrids(); });
+      listenMyMission(currentUid, m => { myMission = m; renderMissionDisplay(); });
+      listenVotes(v => { myVote = v?.[currentUid]?.voted || null; renderVoteState(); });
+    }
+
+    // ── State change ──
+    function onStateChange(state) {
+      const prevPhase = currentState?.phase;
+      currentState = state;
+
+      // Si arranca nueva ronda, resetear roleRevealed
+      if (state?.phase === "talking" && prevPhase !== "talking") roleRevealed = false;
+
+      renderByPhase(state);
+    }
+
+    function renderByPhase(state) {
+      hideAll();
+      stopTimer();
+
+      if (!state || !state.active) {
+        if (state?.phase === "ended") show("state-ended");
+        else show("state-waiting");
+        return;
+      }
+
+      const phase = state.phase;
+
+      if (phase === "talking") {
+        if (roleRevealed) {
+          show("state-revealed");
+          renderMissionDisplay();
+        } else {
+          show("state-ready");
+        }
+        updateTopicBoxes(state.topic);
+        startTimer(state.timerEndsAt);
+        renderPlayerGrids();
+      }
+      else if (phase === "voting") {
+        show("state-voting");
+        renderVoteState();
+        renderPlayerGrids();
+      }
+      else if (phase === "results") {
+        show("state-results");
+        renderResult(state);
+      }
+      else if (phase === "final") {
+        show("state-final");
+        renderVoteState();
+      }
+      else if (phase === "ended") {
+        show("state-ended");
+      }
+      else {
+        show("state-waiting");
+      }
+    }
+
+    // ── Rol ──
+    window.revealRole = function() {
+      roleRevealed = true;
+      const isMillionaire = currentState?.millionaireUid === currentUid;
+      const roleEl = document.getElementById("mil-role-display");
+
+      if (isMillionaire) {
+        roleEl.innerHTML = `
+          <div class="mil-role-card millonario">
+            <span class="mil-role-label">Tu rol esta ronda</span>
+            <div class="mil-role-title">MILLONARIO</div>
+            <div class="mil-role-hint">Tenés el millón. Cumplí tu misión<br>sin que nadie te descubra.</div>
+          </div>`;
+      } else {
+        const myPlayer = players[currentUid];
+        const mtype = myPlayer?.missionType || "none";
+        if (mtype === "tercero") {
+          roleEl.innerHTML = `
+            <div class="mil-role-card millonario" style="border-color:rgba(100,100,200,0.4);background:rgba(40,40,100,0.2);">
+              <span class="mil-role-label">Tu rol esta ronda</span>
+              <div class="mil-role-title" style="color:#aaf;font-size:32px;">MISIÓN</div>
+              <div class="mil-role-hint">Tenés una misión que cumplir.<br>Descubrila abajo.</div>
+            </div>`;
+        } else {
+          roleEl.innerHTML = `
+            <div class="mil-role-card inocente">
+              <span class="mil-role-label">Tu rol esta ronda</span>
+              <div class="mil-role-title">INOCENTE</div>
+              <div class="mil-role-hint">No tenés el millón.<br>Descubrí quién lo tiene.</div>
+            </div>`;
+        }
+      }
+
+      renderMissionDisplay();
+      hideAll();
+      show("state-revealed");
+      updateTopicBoxes(currentState?.topic);
+      if (currentState?.timerEndsAt) startTimer(currentState.timerEndsAt);
+      renderPlayerGrids();
+    };
+
+    window.hideRole = function() {
+      roleRevealed = false;
+      hideAll();
+      show("state-ready");
+      updateTopicBoxes(currentState?.topic);
+      if (currentState?.timerEndsAt) startTimer(currentState.timerEndsAt);
+    };
+
+    function renderMissionDisplay() {
+      const el = document.getElementById("mil-mission-display");
+      if (!el) return;
+      const isMillionaire = currentState?.millionaireUid === currentUid;
+      const mtype = players[currentUid]?.missionType || "none";
+      const showMission = (isMillionaire || mtype === "tercero") && myMission;
+
+      if (!showMission) { el.style.display = "none"; return; }
+      el.style.display = "block";
+
+      const diffLabel = { easy:"Fácil", medium:"Media", hard:"Difícil" };
+      el.innerHTML = `
+        <div class="mil-mission-box">
+          <div class="mil-mission-label">Tu misión</div>
+          <div class="mil-mission-text">${myMission.text}</div>
+          ${myMission.difficulty ? `<span class="mil-mission-diff ${myMission.difficulty}">${diffLabel[myMission.difficulty]||''}</span>` : ""}
+          ${myMission.reward === "extra_vote" ? '<div style="font-size:11px;color:var(--crema-3);margin-top:6px;">Si la completás → <strong style="color:#f5c842;">+1 voto extra</strong></div>' : ""}
+          ${myMission.reward === "immune" ? '<div style="font-size:11px;color:var(--crema-3);margin-top:6px;">Si la completás → <strong style="color:#6c6;">Inmunidad</strong></div>' : ""}
+        </div>`;
+    }
+
+    // ── Tópico ──
+    function updateTopicBoxes(topic) {
+      ["","2"].forEach(suffix => {
+        const box  = document.getElementById(`mil-topic-box${suffix}`);
+        const text = document.getElementById(`mil-topic-text${suffix}`);
+        if (!box || !text) return;
+        if (topic) { text.textContent = topic; box.style.display = "block"; }
+        else box.style.display = "none";
+      });
+    }
+
+    // ── Timer ──
+    function startTimer(endsAt) {
+      stopTimer();
+      function tick() {
+        const rem = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+        const str = `${Math.floor(rem/60)}:${(rem%60).toString().padStart(2,"0")}`;
+        ["","2"].forEach(s => {
+          const el = document.getElementById(`mil-timer-display${s}`);
+          if (el) { el.textContent = str; el.classList.toggle("urgent", rem <= 30 && rem > 0); }
+        });
+      }
+      tick();
+      timerInterval = setInterval(tick, 500);
+    }
+    function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+    // ── Grids de jugadores ──
+    function renderPlayerGrids() {
+      const alive = Object.entries(players).filter(([,p]) => p.alive !== false);
+      renderGrid("mil-players-ready",    alive);
+      renderGrid("mil-players-revealed", alive);
+      renderGrid("mil-players-voting",   alive);
+    }
+
+    function renderGrid(id, entries) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = entries.map(([uid, p]) => `
+        <div class="mil-player-chip ${uid===currentUid?'self':''}">
+          <div class="mil-player-chip-avatar">${uid===currentUid?'👤':'🎭'}</div>
+          <div>${p.nick||'?'}</div>
+        </div>`).join("");
+    }
+
+    // ── Votación ──
+    function renderVoteState() {
+      const voted = !!myVote;
+      const notice1 = document.getElementById("mil-voted-notice");
+      const notice2 = document.getElementById("mil-voted-notice-final");
+      const btn1    = document.getElementById("mil-vote-open-btn");
+      const btn2    = document.getElementById("mil-vote-final-btn");
+      if (notice1) notice1.style.display = voted ? "block" : "none";
+      if (notice2) notice2.style.display = voted ? "block" : "none";
+      if (btn1) btn1.disabled = voted;
+      if (btn2) btn2.disabled = voted;
+    }
+
+    window.openVoteModal = function() {
+      if (myVote) return;
+      const alive = Object.entries(players).filter(([uid,p]) => p.alive!==false && uid!==currentUid);
+      const list = document.getElementById("mil-vote-options");
+      list.innerHTML = alive.map(([uid,p]) =>
+        `<button class="mil-vote-option" onclick="selectVote('${uid}',this)">🎭 ${p.nick||'?'}</button>`
+      ).join("");
+      selectedVoteTarget = null;
+      const btn = document.getElementById("mil-confirm-btn");
+      btn.disabled = true;
+      document.getElementById("mil-vote-modal").style.display = "flex";
+    };
+
+    window.selectVote = function(uid, btnEl) {
+      selectedVoteTarget = uid;
+      document.querySelectorAll(".mil-vote-option").forEach(b => b.classList.remove("sel"));
+      btnEl.classList.add("sel");
+      document.getElementById("mil-confirm-btn").disabled = false;
+    };
+
+    window.confirmVote = async function() {
+      if (!selectedVoteTarget) return;
+      const result = await castVote(currentUid, selectedVoteTarget);
+      if (result.ok) {
+        myVote = selectedVoteTarget;
+        renderVoteState();
+        closeVoteModal();
+      } else {
+        alert(result.reason || "No se pudo registrar el voto.");
+      }
+    };
+
+    window.closeVoteModal = function() {
+      document.getElementById("mil-vote-modal").style.display = "none";
+    };
+
+    // ── Resultados ──
+    function renderResult(state) {
+      const elimUid  = state.eliminatedUid;
+      const hadMill  = state.hadMillion;
+      const elimNick = elimUid && players[elimUid] ? players[elimUid].nick : "—";
+      const millNick = state.millionaireUid && players[state.millionaireUid] ? players[state.millionaireUid].nick : "?";
+      const isElim   = elimUid === currentUid;
+      const isMill   = state.millionaireUid === currentUid;
+
+      let icon, title, titleClass, detail;
+      if (isElim) {
+        icon = hadMill ? "💰" : "😬";
+        title = hadMill ? "¡Te descubrieron!" : "Te eliminaron";
+        titleClass = "lose";
+        detail = hadMill
+          ? "Tenías el millón y te votaron. El millón continúa."
+          : "No tenías el millón, pero igual te votaron.";
+      } else if (isMill && !hadMill) {
+        icon = "😮‍💨"; title = "Te salvaste"; titleClass = "win";
+        detail = `Eliminaron a <strong>${elimNick}</strong>, que era inocente.<br>Seguís en el juego.`;
+      } else if (isMill && hadMill) {
+        icon = "💀"; title = "El millón rotó"; titleClass = "lose";
+        detail = `Tenías el millón, pero eliminaron a <strong>${elimNick}</strong>. El millón cambia de manos.`;
+      } else {
+        icon = hadMill ? "🔍" : "😬";
+        title = hadMill ? "¡Descubrieron al millonario!" : "Eliminaron a un inocente";
+        titleClass = hadMill ? "win" : "lose";
+        detail = hadMill
+          ? `<strong>${elimNick}</strong> tenía el millón.`
+          : `<strong>${elimNick}</strong> era inocente. El millonario sigue oculto.`;
+      }
+
+      if (state.revealMillionaire && !isMill) {
+        detail += `<br><span style="font-size:12px;color:var(--crema-3);margin-top:4px;display:block;">Millonario: <strong>${millNick}</strong></span>`;
+      }
+
+      document.getElementById("mil-result-card").innerHTML = `
+        <div class="mil-result-icon">${icon}</div>
+        <div class="mil-result-title ${titleClass}">${title}</div>
+        <div class="mil-result-detail">${detail}</div>
+      `;
+    }
+
+    // ── Helpers ──
+    const ALL_STATES = ["state-waiting","state-ready","state-revealed","state-voting","state-results","state-final","state-ended"];
+    function hideAll() { ALL_STATES.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove("active"); }); }
+    function show(id)  { const e=document.getElementById(id); if(e) e.classList.add("active"); }
+  </script>
+</body>
+</html>
