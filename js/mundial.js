@@ -477,7 +477,15 @@ function getPartidosDeGrupo(grupo) {
 }
 
 function makePartidoId(local, visitante) {
-  return `${local.replace(/\s/g,"_")}_vs_${visitante.replace(/\s/g,"_")}`;
+  // Firebase prohíbe ".", "#", "$", "[", "]" en los paths
+  function sanitize(name) {
+    return name
+      .replace(/[.#$[\]]/g, '')   // elimina caracteres prohibidos
+      .replace(/\s+/g, '_')       // espacios → guión bajo
+      .replace(/_+/g, '_')        // colapsa guiones bajos repetidos
+      .replace(/^_|_$/g, '');     // limpia extremos
+  }
+  return `${sanitize(local)}_vs_${sanitize(visitante)}`;
 }
 
 // ─────────────────────────────────────────
