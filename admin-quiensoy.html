@@ -278,7 +278,7 @@
 
           <!-- Botón -->
           <div class="bib-field" style="justify-content:flex-end;">
-            <button class="admin-btn primary" id="add-btn" onclick="handleAddCard()">Subir carta</button>
+            <button type="button" class="admin-btn primary" id="add-btn" onclick="handleAddCard()">Subir carta</button>
             <span id="add-status" style="font-size:11px;color:var(--crema-3);margin-top:4px;"></span>
           </div>
         </div>
@@ -287,7 +287,7 @@
         <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <span id="add-file-name" style="font-size:11px;color:var(--crema-3);"></span>
           <div class="bib-preview-wrap" id="add-preview-wrap" style="margin:0;">
-            <img id="add-preview-img" />
+            <img id="add-preview-img" alt="Vista previa de la carta" />
           </div>
         </div>
 
@@ -314,8 +314,8 @@
     <div class="modal-box">
       <p class="modal-text" id="modal-text"></p>
       <div class="modal-actions">
-        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
-        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+        <button type="button" class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button type="button" class="admin-btn primary" id="modal-confirm">Confirmar</button>
       </div>
     </div>
   </div>
@@ -416,7 +416,7 @@
         <div class="bib-card">
           <div class="bib-card-img-wrap">
             <img src="${c.url}" alt="${c.nombre}" loading="lazy" />
-            <button class="bib-card-del" onclick="confirmDelete('${c.id}','${(c.fileId||'')}','${escAttr(c.nombre)}')" title="Eliminar">✕</button>
+            <button type="button" class="bib-card-del" onclick="confirmDelete('${c.id}','${(c.fileId||'')}','${escAttr(c.nombre)}')" title="Eliminar">✕</button>
           </div>
           <div class="bib-card-info">
             <div class="bib-card-name" title="${escAttr(c.nombre)}">${c.nombre}</div>
