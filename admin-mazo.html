@@ -145,7 +145,7 @@
             <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 4" maxlength="30">
             <input type="text" class="mazo-search-input" style="padding:8px 10px; font-size:14px;" placeholder="Prohibida 5" maxlength="30">
           </div>
-          <button class="admin-btn primary" style="align-self:flex-start;" onclick="handleAddCard()">Agregar</button>
+          <button type="button" class="admin-btn primary" style="align-self:flex-start;" onclick="handleAddCard()">Agregar</button>
         </div>
       </div>
 
@@ -167,8 +167,8 @@
     <div class="modal-box">
       <p class="modal-text" id="modal-text"></p>
       <div class="modal-actions">
-        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
-        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+        <button type="button" class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button type="button" class="admin-btn primary" id="modal-confirm">Confirmar</button>
       </div>
     </div>
   </div>
@@ -222,8 +222,8 @@
               ${(card.forbidden || []).map(f => `• ${f}<br>`).join('')}
             </div>
             <div class="mazo-card-actions">
-              <button class="mazo-btn" onclick="openEdit('${id}')">Editar</button>
-              <button class="mazo-btn delete" onclick="confirmDelete('${id}', '${card.word.replace(/'/g, "\\'")}')">Eliminar</button>
+              <button type="button" class="mazo-btn" onclick="openEdit('${id}')">Editar</button>
+              <button type="button" class="mazo-btn delete" onclick="confirmDelete('${id}', '${card.word.replace(/'/g, "\\'")}')">Eliminar</button>
             </div>
           </div>
           <div class="edit-mode hidden" id="edit-${id}">
@@ -237,8 +237,8 @@
               `).join('')}
             </div>
             <div class="mazo-card-actions">
-              <button class="mazo-btn" style="background:var(--dorado); color:var(--negro); border:none;" onclick="saveEdit('${id}')">Guardar</button>
-              <button class="mazo-btn secondary" onclick="closeEdit('${id}')">Cancelar</button>
+              <button type="button" class="mazo-btn" style="background:var(--dorado); color:var(--negro); border:none;" onclick="saveEdit('${id}')">Guardar</button>
+              <button type="button" class="mazo-btn secondary" onclick="closeEdit('${id}')">Cancelar</button>
             </div>
           </div>
         </div>
