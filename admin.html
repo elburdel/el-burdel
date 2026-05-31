@@ -228,24 +228,24 @@
     <div class="admin-section-nav">
       <div class="admin-nav-wrap">
         <div class="admin-nav-top">
-          <button class="admin-nav-btn open" id="nav-btn-admin" onclick="toggleNavGroup('admin')">⚙️ Admin</button>
-          <button class="admin-nav-btn juegos" id="nav-btn-juegos" onclick="toggleNavGroup('juegos')">🎮 Juegos</button>
+          <button type="button" class="admin-nav-btn open" id="nav-btn-admin" onclick="toggleNavGroup('admin')">⚙️ Admin</button>
+          <button type="button" class="admin-nav-btn juegos" id="nav-btn-juegos" onclick="toggleNavGroup('juegos')">🎮 Juegos</button>
         </div>
         <div class="admin-nav-tabs open" id="nav-tabs-admin">
-          <button class="active-section active" data-section="usuarios">👥 Usuarios</button>
-          <button class="active-section" data-section="sesion">📡 Sesión</button>
-          <button class="active-section" data-section="musica">🎵 Música</button>
-          <button class="active-section" data-section="tablon">📋 Tablón</button>
-          <button class="active-section" data-section="noticias">📰 Noticias</button>
-          <button class="active-section" data-section="galeria">🖼️ Galería</button>
+          <button type="button" class="active-section active" data-section="usuarios">👥 Usuarios</button>
+          <button type="button" class="active-section" data-section="sesion">📡 Sesión</button>
+          <button type="button" class="active-section" data-section="musica">🎵 Música</button>
+          <button type="button" class="active-section" data-section="tablon">📋 Tablón</button>
+          <button type="button" class="active-section" data-section="noticias">📰 Noticias</button>
+          <button type="button" class="active-section" data-section="galeria">🖼️ Galería</button>
         </div>
         <div class="admin-nav-tabs" id="nav-tabs-juegos">
-          <button class="active-section juego" data-section="taboo">🃏 Taboo</button>
-          <button class="active-section juego" data-section="wordle">🔤 Wordle</button>
-          <button class="active-section juego" data-section="impostor">🕵️ Impostor</button>
-          <button class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
-          <button class="active-section juego" data-section="mundial">⚽ Mundial</button>
-          <button class="active-section juego" data-section="millon">💰 El Millón</button>
+          <button type="button" class="active-section juego" data-section="taboo">🃏 Taboo</button>
+          <button type="button" class="active-section juego" data-section="wordle">🔤 Wordle</button>
+          <button type="button" class="active-section juego" data-section="impostor">🕵️ Impostor</button>
+          <button type="button" class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
+          <button type="button" class="active-section juego" data-section="mundial">⚽ Mundial</button>
+          <button type="button" class="active-section juego" data-section="millon">💰 El Millón</button>
         </div>
       </div>
     </div>
@@ -260,10 +260,10 @@
 
         <!-- TABS USUARIOS -->
         <div class="admin-tabs">
-          <button class="admin-tab active" onclick="filterUsers('pending')">Pendientes</button>
-          <button class="admin-tab" onclick="filterUsers('active')">Activos</button>
-          <button class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
-          <button class="admin-tab" onclick="filterUsers('all')">Todos</button>
+          <button type="button" class="admin-tab active" onclick="filterUsers('pending')">Pendientes</button>
+          <button type="button" class="admin-tab" onclick="filterUsers('active')">Activos</button>
+          <button type="button" class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
+          <button type="button" class="admin-tab" onclick="filterUsers('all')">Todos</button>
         </div>
         <div style="margin-bottom:12px;">
           <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
@@ -288,7 +288,7 @@
               placeholder="Email del usuario"
               style="flex:1;min-width:200px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;"
             />
-            <button class="admin-btn secondary" onclick="sendPasswordReset()">Enviar email</button>
+            <button type="button" class="admin-btn secondary" onclick="sendPasswordReset()">Enviar email</button>
           </div>
         </div>
       </div>
@@ -303,22 +303,22 @@
         <div class="admin-card" style="margin-bottom:20px;">
           <div class="admin-card-label">Juego activo</div>
           <div class="games-toggle-grid">
-            <button class="game-toggle" data-game="none" onclick="setActiveGame('none')">
+            <button type="button" class="game-toggle" data-game="none" onclick="setActiveGame('none')">
               <span>🚫</span> Ninguno
             </button>
-            <button class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
+            <button type="button" class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
               <span>🃏</span> Taboo
             </button>
-            <button class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
+            <button type="button" class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
               <span>🔤</span> Wordle
             </button>
-            <button class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
+            <button type="button" class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
               <span>🕵️</span> Impostor
             </button>
-            <button class="game-toggle" data-game="quiensoy" onclick="setActiveGame('quiensoy')">
+            <button type="button" class="game-toggle" data-game="quiensoy" onclick="setActiveGame('quiensoy')">
               <span>🪪</span> ¿Quién Soy?
             </button>
-            <button class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
+            <button type="button" class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
               <span>💰</span> Millonario
             </button>
           </div>
@@ -351,7 +351,7 @@
                 <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
                 <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
               </div>
-              <button class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
+              <button type="button" class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
             </div>
           </div>
         </div>
@@ -373,7 +373,7 @@
         <div class="admin-card" id="card-equipos-taboo" style="margin-bottom:20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
             <div class="admin-card-label" style="margin:0;">Equipos</div>
-            <button class="admin-btn primary" style="background:var(--rojo-claro);border-color:var(--rojo-claro);color:#fff;" onclick="handleFinalizarJuego()">🏆 Finalizar juego</button>
+            <button type="button" class="admin-btn primary" style="background:var(--rojo-claro);border-color:var(--rojo-claro);color:#fff;" onclick="handleFinalizarJuego()">🏆 Finalizar juego</button>
           </div>
           <div id="equipos-taboo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div>
@@ -405,7 +405,7 @@
                   <span class="score-team-value" id="score-rojo">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-rojo" min="0" value="0" />
-                    <button class="score-edit-btn" onclick="editScore('rojo')">OK</button>
+                    <button type="button" class="score-edit-btn" onclick="editScore('rojo')">OK</button>
                   </div>
                 </div>
                 <div class="taboo-score-team azul">
@@ -413,7 +413,7 @@
                   <span class="score-team-value" id="score-azul">0</span>
                   <div class="score-edit-row">
                     <input type="number" class="score-edit-input" id="input-score-azul" min="0" value="0" />
-                    <button class="score-edit-btn" onclick="editScore('azul')">OK</button>
+                    <button type="button" class="score-edit-btn" onclick="editScore('azul')">OK</button>
                   </div>
                 </div>
               </div>
@@ -460,17 +460,17 @@
             <div class="admin-card">
               <div class="admin-card-label">Control del turno</div>
               <div class="turn-action-btns" style="margin-bottom:10px">
-                <button class="btn-timer-toggle" id="btn-timer-toggle" onclick="toggleTimer()">▶ Iniciar tiempo</button>
+                <button type="button" class="btn-timer-toggle" id="btn-timer-toggle" onclick="toggleTimer()">▶ Iniciar tiempo</button>
               </div>
               <div class="turn-action-btns" style="margin-bottom:10px">
-                <button class="btn-next-card" onclick="nextCard()">🃏 Enviar tarjeta aleatoria</button>
+                <button type="button" class="btn-next-card" onclick="nextCard()">🃏 Enviar tarjeta aleatoria</button>
               </div>
               <div class="turn-action-btns">
-                <button class="btn-correct" onclick="handleCorrect()">✓ Correcta (+1 punto)</button>
-                <button class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (siguiente)</button>
+                <button type="button" class="btn-correct" onclick="handleCorrect()">✓ Correcta (+1 punto)</button>
+                <button type="button" class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (siguiente)</button>
               </div>
               <div class="turn-action-btns" style="margin-top:8px">
-                <button class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">⏭ Pasar (−seg penalización)</button>
+                <button type="button" class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">⏭ Pasar (−seg penalización)</button>
               </div>
             </div>
 
@@ -499,7 +499,7 @@
             <!-- Reset -->
             <div class="admin-card">
               <div class="admin-card-label">Reiniciar juego</div>
-              <button class="admin-btn secondary" style="width:100%" onclick="confirmResetTaboo()">Resetear puntajes y turno</button>
+              <button type="button" class="admin-btn secondary" style="width:100%" onclick="confirmResetTaboo()">Resetear puntajes y turno</button>
             </div>
 
           </div>
@@ -516,8 +516,8 @@
 
         <!-- Selector de modo -->
         <div class="wordle-mode-selector" style="max-width:320px;margin-bottom:20px;">
-          <button class="wordle-mode-btn active" id="admin-mode-btn-5" onclick="setWordleAdminMode('5')">5 letras</button>
-          <button class="wordle-mode-btn" id="admin-mode-btn-6" onclick="setWordleAdminMode('6')">6 letras</button>
+          <button type="button" class="wordle-mode-btn active" id="admin-mode-btn-5" onclick="setWordleAdminMode('5')">5 letras</button>
+          <button type="button" class="wordle-mode-btn" id="admin-mode-btn-6" onclick="setWordleAdminMode('6')">6 letras</button>
         </div>
 
         <!-- Palabra del día actual -->
@@ -563,8 +563,8 @@
               style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-family:var(--font-display);font-size:18px;letter-spacing:4px;text-transform:uppercase;outline:none;"
               oninput="this.value=this.value.toUpperCase()"
             />
-            <button class="admin-btn primary" onclick="handleForceWord()">Forzar</button>
-            <button class="admin-btn secondary" onclick="handleClearForced()">Quitar forzada</button>
+            <button type="button" class="admin-btn primary" onclick="handleForceWord()">Forzar</button>
+            <button type="button" class="admin-btn secondary" onclick="handleClearForced()">Quitar forzada</button>
           </div>
           <div id="admin-force-msg" style="margin-top:8px;font-size:12px;min-height:18px;"></div>
         </div>
@@ -587,7 +587,7 @@
             <select id="select-reset-user" style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;">
               <option value="">— Elegir usuario —</option>
             </select>
-            <button class="admin-btn secondary" onclick="handleResetUserWordle()">Resetear</button>
+            <button type="button" class="admin-btn secondary" onclick="handleResetUserWordle()">Resetear</button>
           </div>
         </div>
 
@@ -597,7 +597,7 @@
           <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
             Borra los stats de Wordle (puntos, racha, historial) de TODOS los usuarios. ¡No se puede deshacer!
           </p>
-          <button class="admin-btn secondary" style="background-color: var(--rojo); color: white; width: 100%; border: none;" onclick="handleResetAllWordle()">Resetear Ranking Global</button>
+          <button type="button" class="admin-btn secondary" style="background-color: var(--rojo); color: white; width: 100%; border: none;" onclick="handleResetAllWordle()">Resetear Ranking Global</button>
         </div>
 
       </div>
@@ -621,10 +621,10 @@
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
             <div class="admin-card-label" style="margin:0;">Jugadores que participan</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="admin-btn secondary small" onclick="impSelectAll()">Todos</button>
-              <button class="admin-btn secondary small" onclick="impSelectByTeam('rojo')">Solo 🔴</button>
-              <button class="admin-btn secondary small" onclick="impSelectByTeam('azul')">Solo 🔵</button>
-              <button class="admin-btn secondary small" onclick="impSelectNone()">Ninguno</button>
+              <button type="button" class="admin-btn secondary small" onclick="impSelectAll()">Todos</button>
+              <button type="button" class="admin-btn secondary small" onclick="impSelectByTeam('rojo')">Solo 🔴</button>
+              <button type="button" class="admin-btn secondary small" onclick="impSelectByTeam('azul')">Solo 🔵</button>
+              <button type="button" class="admin-btn secondary small" onclick="impSelectNone()">Ninguno</button>
             </div>
           </div>
           <div id="imp-participants-list" style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -661,7 +661,7 @@
               <select id="imp-impostor-select" style="flex:1;min-width:160px;background:var(--negro-3);color:var(--crema);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:8px 10px;font-size:13px;font-family:var(--font-body);">
                 <option value="">— Elegir jugador —</option>
               </select>
-              <button class="admin-btn secondary small" onclick="pickRandomImpostor()">🎲 Random</button>
+              <button type="button" class="admin-btn secondary small" onclick="pickRandomImpostor()">🎲 Random</button>
             </div>
           </div>
 
@@ -677,7 +677,7 @@
           </div>
 
           <div class="admin-card-actions">
-            <button class="admin-btn primary" onclick="handleStartImpostor()">🕵️ Iniciar ronda</button>
+            <button type="button" class="admin-btn primary" onclick="handleStartImpostor()">🕵️ Iniciar ronda</button>
           </div>
         </div>
 
@@ -702,10 +702,10 @@
               <option value="">— ¿A quién votaron? —</option>
             </select>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="admin-btn primary" onclick="handleRevealImpostor('players')" style="flex:1;">
+              <button type="button" class="admin-btn primary" onclick="handleRevealImpostor('players')" style="flex:1;">
                 ✅ Descubrieron al Impostor
               </button>
-              <button class="admin-btn secondary" onclick="handleRevealImpostor('impostor')" style="flex:1;">
+              <button type="button" class="admin-btn secondary" onclick="handleRevealImpostor('impostor')" style="flex:1;">
                 🎭 El Impostor se salvó
               </button>
             </div>
@@ -717,7 +717,7 @@
           <div class="admin-card-label">Resultado de la ronda</div>
           <div id="imp-result-display" style="font-size:14px;color:var(--crema-2);line-height:1.9;margin-bottom:20px;padding:16px;background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.15);border-radius:8px;"></div>
           <div class="admin-card-actions">
-            <button class="admin-btn secondary" onclick="handleResetImpostor()">🔄 Nueva ronda</button>
+            <button type="button" class="admin-btn secondary" onclick="handleResetImpostor()">🔄 Nueva ronda</button>
           </div>
         </div>
 
@@ -765,7 +765,7 @@
             </div>
 
             <div style="display:flex;gap:8px;align-items:center;">
-              <button class="admin-btn primary" id="music-upload-btn" onclick="musicUpload()">Subir tema</button>
+              <button type="button" class="admin-btn primary" id="music-upload-btn" onclick="musicUpload()">Subir tema</button>
               <span id="music-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
             </div>
           </div>
@@ -793,7 +793,7 @@
           <textarea class="admin-textarea" id="tablon-input" placeholder="Escribí el mensaje del tablón..." maxlength="300"></textarea>
           <div class="admin-card-actions">
             <span class="char-count" id="char-count">0 / 300</span>
-            <button class="admin-btn primary" onclick="saveTablon()">Publicar</button>
+            <button type="button" class="admin-btn primary" onclick="saveTablon()">Publicar</button>
           </div>
         </div>
       </div>
@@ -807,7 +807,7 @@
 
         <div class="admin-section-header">
           <h2 class="admin-section-title">📰 Noticias</h2>
-          <button class="admin-btn primary" onclick="abrirModalNoticia(null)">+ Nueva noticia</button>
+          <button type="button" class="admin-btn primary" onclick="abrirModalNoticia(null)">+ Nueva noticia</button>
         </div>
 
         <div id="admin-noticias-timeline" class="admin-noticias-timeline">
@@ -822,7 +822,7 @@
       <div class="noticia-modal">
         <div class="noticia-modal-header">
           <h3 id="noticia-modal-titulo">Nueva noticia</h3>
-          <button class="noticia-modal-cerrar" onclick="cerrarModalNoticia()">✕</button>
+          <button type="button" class="noticia-modal-cerrar" onclick="cerrarModalNoticia()">✕</button>
         </div>
         <div class="noticia-modal-body">
 
@@ -877,8 +877,8 @@
 
         </div>
         <div class="noticia-modal-footer">
-          <button class="admin-btn secondary" onclick="cerrarModalNoticia()">Cancelar</button>
-          <button class="admin-btn primary" id="btn-guardar-noticia" onclick="guardarNoticia()">Publicar</button>
+          <button type="button" class="admin-btn secondary" onclick="cerrarModalNoticia()">Cancelar</button>
+          <button type="button" class="admin-btn primary" id="btn-guardar-noticia" onclick="guardarNoticia()">Publicar</button>
         </div>
       </div>
     </div>
@@ -933,20 +933,20 @@
                   style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
                   <option value="">— Elegir carta —</option>
                 </select>
-                <button class="admin-btn secondary" onclick="qsPickRandomCard()" title="Carta aleatoria"
+                <button type="button" class="admin-btn secondary" onclick="qsPickRandomCard()" title="Carta aleatoria"
                   style="padding:9px 14px;font-size:16px;">🎲</button>
               </div>
             </div>
 
             <!-- Preview de carta seleccionada -->
             <div id="qs-card-preview" style="display:none;border-radius:10px;overflow:hidden;border:1px solid rgba(200,150,0,0.2);max-width:200px;">
-              <img id="qs-card-preview-img" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
+              <img id="qs-card-preview-img" alt="Vista previa de la carta" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
               <div style="padding:8px 10px;font-size:11px;color:var(--crema-3);" id="qs-card-preview-label"></div>
             </div>
           </div>
 
           <div class="admin-card-actions" style="margin-top:16px;">
-            <button class="admin-btn primary" onclick="qsStartRound()">▶ Iniciar turno</button>
+            <button type="button" class="admin-btn primary" onclick="qsStartRound()">▶ Iniciar turno</button>
           </div>
         </div>
 
@@ -964,14 +964,14 @@
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;">
-            <button class="admin-btn secondary" id="qs-pause-btn" onclick="qsTogglePause()">⏸ Pausar</button>
-            <button class="admin-btn secondary" onclick="qsResetTimer()">🔄 Reiniciar tiempo</button>
+            <button type="button" class="admin-btn secondary" id="qs-pause-btn" onclick="qsTogglePause()">⏸ Pausar</button>
+            <button type="button" class="admin-btn secondary" onclick="qsResetTimer()">🔄 Reiniciar tiempo</button>
           </div>
 
           <div class="admin-card-label" style="margin-bottom:10px;">Resultado del turno</div>
           <div style="display:flex;gap:8px;">
-            <button class="admin-btn primary" style="flex:1;background:#3a6e3a;" onclick="qsResolve(true)">✅ Adivinó</button>
-            <button class="admin-btn primary" style="flex:1;background:#6e3a3a;" onclick="qsResolve(false)">❌ No adivinó</button>
+            <button type="button" class="admin-btn primary" style="flex:1;background:#3a6e3a;" onclick="qsResolve(true)">✅ Adivinó</button>
+            <button type="button" class="admin-btn primary" style="flex:1;background:#6e3a3a;" onclick="qsResolve(false)">❌ No adivinó</button>
           </div>
         </div>
 
@@ -979,7 +979,7 @@
         <div class="admin-card hidden" id="qs-result-card-admin" style="margin-bottom:16px;">
           <div class="admin-card-label">Resultado</div>
           <div id="qs-result-display" style="font-size:14px;color:var(--crema-2);line-height:1.7;padding:4px 0 12px;"></div>
-          <button class="admin-btn secondary" onclick="qsNextRound()">⏭ Siguiente turno</button>
+          <button type="button" class="admin-btn secondary" onclick="qsNextRound()">⏭ Siguiente turno</button>
         </div>
 
         <!-- ── Marcador de equipos ── -->
@@ -1003,7 +1003,7 @@
             <span>Biblioteca de cartas</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <a href="admin-quiensoy.html" class="admin-btn secondary small" style="text-decoration:none;">📚 Gestionar biblioteca</a>
-              <button class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
+              <button type="button" class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
             </div>
           </div>
 
@@ -1036,11 +1036,11 @@
                   style="font-size:12px;padding:8px 14px;width:fit-content;">📎 Elegir imagen</button>
                 <span id="qs-upload-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:3px;"></span>
                 <div id="qs-upload-preview" style="margin-top:8px;display:none;">
-                  <img id="qs-upload-preview-img" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
+                  <img id="qs-upload-preview-img" alt="Vista previa de la carta a subir" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
                 </div>
               </div>
               <div style="display:flex;gap:8px;align-items:center;">
-                <button class="admin-btn primary" onclick="qsUploadCard()" id="qs-upload-btn">Subir carta</button>
+                <button type="button" class="admin-btn primary" onclick="qsUploadCard()" id="qs-upload-btn">Subir carta</button>
                 <span id="qs-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
               </div>
             </div>
@@ -1059,7 +1059,7 @@
 
         <div class="admin-section-header">
           <h2 class="admin-section-title">🖼️ Galería</h2>
-          <button class="admin-btn primary" onclick="galeriaAbrirModalAlbum(null)">+ Nuevo álbum</button>
+          <button type="button" class="admin-btn primary" onclick="galeriaAbrirModalAlbum(null)">+ Nuevo álbum</button>
         </div>
 
         <!-- Lista de álbumes -->
@@ -1163,7 +1163,7 @@
               <select id="mil-add-player-select" class="mil-select" style="flex:1;">
                 <option value="">— Elegir usuario —</option>
               </select>
-              <button class="admin-btn secondary" onclick="milAddPlayer()" style="white-space:nowrap;">+ Agregar</button>
+              <button type="button" class="admin-btn secondary" onclick="milAddPlayer()" style="white-space:nowrap;">+ Agregar</button>
             </div>
           </div>
 
@@ -1187,7 +1187,7 @@
             </div>
           </div>
 
-          <button class="admin-btn primary" onclick="milStartGame()" style="width:100%;">
+          <button type="button" class="admin-btn primary" onclick="milStartGame()" style="width:100%;">
             💰 Iniciar partida
           </button>
         </div>
@@ -1200,7 +1200,7 @@
             <div class="admin-card-label">Tópico de conversación</div>
             <div style="display:flex;gap:8px;">
               <input type="text" id="mil-topic-input" class="mil-input" style="flex:1;" placeholder="Ej: Relaciones tóxicas..." maxlength="80">
-              <button class="admin-btn secondary" onclick="milSetTopic()">Actualizar</button>
+              <button type="button" class="admin-btn secondary" onclick="milSetTopic()">Actualizar</button>
             </div>
           </div>
 
@@ -1208,16 +1208,16 @@
           <div class="admin-card" style="margin-bottom:14px;">
             <div class="admin-card-label">Control de fase y tiempo</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-              <button class="admin-btn secondary" onclick="milSetPhase('talking')" style="flex:1;">💬 Hablar</button>
-              <button class="admin-btn secondary" onclick="milSetPhase('voting')"  style="flex:1;">🗳️ Votar</button>
-              <button class="admin-btn secondary" onclick="milSetPhase('results')" style="flex:1;">📊 Resultados</button>
-              <button class="admin-btn secondary" onclick="milSetPhase('final')"   style="flex:1;">🏁 Final</button>
+              <button type="button" class="admin-btn secondary" onclick="milSetPhase('talking')" style="flex:1;">💬 Hablar</button>
+              <button type="button" class="admin-btn secondary" onclick="milSetPhase('voting')"  style="flex:1;">🗳️ Votar</button>
+              <button type="button" class="admin-btn secondary" onclick="milSetPhase('results')" style="flex:1;">📊 Resultados</button>
+              <button type="button" class="admin-btn secondary" onclick="milSetPhase('final')"   style="flex:1;">🏁 Final</button>
             </div>
             <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:6px;">Extender tiempo</div>
             <div style="display:flex;gap:6px;">
-              <button class="admin-btn secondary" onclick="milExtendTimer(60)"  style="flex:1;">+1 min</button>
-              <button class="admin-btn secondary" onclick="milExtendTimer(120)" style="flex:1;">+2 min</button>
-              <button class="admin-btn secondary" onclick="milExtendTimer(300)" style="flex:1;">+5 min</button>
+              <button type="button" class="admin-btn secondary" onclick="milExtendTimer(60)"  style="flex:1;">+1 min</button>
+              <button type="button" class="admin-btn secondary" onclick="milExtendTimer(120)" style="flex:1;">+2 min</button>
+              <button type="button" class="admin-btn secondary" onclick="milExtendTimer(300)" style="flex:1;">+5 min</button>
             </div>
           </div>
 
@@ -1237,7 +1237,7 @@
               <div style="font-size:12px;color:var(--crema-3);">Esperando votos...</div>
             </div>
 
-            <button class="admin-btn primary" onclick="milProcessVotes()" style="width:100%;margin-bottom:8px;">
+            <button type="button" class="admin-btn primary" onclick="milProcessVotes()" style="width:100%;margin-bottom:8px;">
               📊 Procesar votos y pasar a resultados
             </button>
             <div id="mil-process-result" style="display:none;"></div>
@@ -1256,8 +1256,8 @@
               </select>
             </div>
             <div style="display:flex;gap:8px;">
-              <button class="admin-btn primary"   onclick="milNextRound(true)"  style="flex:1;">💰 Tenía el millón → Siguiente</button>
-              <button class="admin-btn secondary"  onclick="milNextRound(false)" style="flex:1;">✋ Era inocente → Siguiente</button>
+              <button type="button" class="admin-btn primary"   onclick="milNextRound(true)"  style="flex:1;">💰 Tenía el millón → Siguiente</button>
+              <button type="button" class="admin-btn secondary"  onclick="milNextRound(false)" style="flex:1;">✋ Era inocente → Siguiente</button>
             </div>
           </div>
 
@@ -1272,7 +1272,7 @@
                 <select id="mil-rotate-select" class="mil-select" style="flex:1;">
                   <option value="">🎲 Random</option>
                 </select>
-                <button class="admin-btn secondary" onclick="milRotateMillion()">Rotar</button>
+                <button type="button" class="admin-btn secondary" onclick="milRotateMillion()">Rotar</button>
               </div>
               <div style="font-size:11px;color:var(--crema-3);margin-top:4px;">Los jugadores no ven este cambio.</div>
             </div>
@@ -1291,7 +1291,7 @@
                     <option value="medium">Media (+1 voto)</option>
                     <option value="hard">Difícil (inmunidad)</option>
                   </select>
-                  <button class="admin-btn secondary" onclick="milAssignMission()">Asignar</button>
+                  <button type="button" class="admin-btn secondary" onclick="milAssignMission()">Asignar</button>
                 </div>
               </div>
             </div>
@@ -1311,8 +1311,8 @@
         <div class="admin-card" style="border-color:rgba(224,80,80,0.2);">
           <div class="admin-card-label" style="color:#e05050;">Zona de peligro</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="admin-btn secondary" onclick="milEndGame()"   style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">🏁 Terminar partida</button>
-            <button class="admin-btn secondary" onclick="milResetGame()" style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">🗑️ Resetear todo</button>
+            <button type="button" class="admin-btn secondary" onclick="milEndGame()"   style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">🏁 Terminar partida</button>
+            <button type="button" class="admin-btn secondary" onclick="milResetGame()" style="flex:1;border-color:rgba(224,80,80,0.3);color:#e05050;">🗑️ Resetear todo</button>
           </div>
         </div>
 
@@ -1324,7 +1324,7 @@
       <div class="noticia-modal" style="max-width:640px;">
         <div class="noticia-modal-header">
           <h3 id="galeria-modal-titulo">Nuevo álbum</h3>
-          <button class="noticia-modal-cerrar" onclick="galeriaCerrarModal()">✕</button>
+          <button type="button" class="noticia-modal-cerrar" onclick="galeriaCerrarModal()">✕</button>
         </div>
         <div class="noticia-modal-body">
 
@@ -1405,8 +1405,8 @@
 
         </div>
         <div class="noticia-modal-footer">
-          <button class="admin-btn secondary" onclick="galeriaCerrarModal()">Cancelar</button>
-          <button class="admin-btn primary" id="btn-guardar-album" onclick="galeriaGuardarAlbum()">Crear álbum</button>
+          <button type="button" class="admin-btn secondary" onclick="galeriaCerrarModal()">Cancelar</button>
+          <button type="button" class="admin-btn primary" id="btn-guardar-album" onclick="galeriaGuardarAlbum()">Crear álbum</button>
         </div>
       </div>
     </div>
@@ -1423,8 +1423,8 @@
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <button class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
-        <button class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
+        <button type="button" class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
+        <button type="button" class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
       </div>
     </div>
   </div>
@@ -1448,8 +1448,8 @@
     <div class="modal-box">
       <p class="modal-text" id="modal-text"></p>
       <div class="modal-actions">
-        <button class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
-        <button class="admin-btn primary" id="modal-confirm">Confirmar</button>
+        <button type="button" class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
+        <button type="button" class="admin-btn primary" id="modal-confirm">Confirmar</button>
       </div>
     </div>
   </div>
@@ -1643,11 +1643,11 @@
           </div>
           <div class="user-status status-${u.status}">${statusLabel(u.status)}</div>
           <div class="user-actions">
-            ${u.status === "pending" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
-            ${u.status === "active" ? `<button class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
-            ${u.status === "paused" ? `<button class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
-            <button class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
-            <button class="user-btn" onclick="openEditUser('${uid}')" style="background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.25);color:var(--dorado);">✏️</button>
+            ${u.status === "pending" ? `<button type="button" class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
+            ${u.status === "active" ? `<button type="button" class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
+            ${u.status === "paused" ? `<button type="button" class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
+            <button type="button" class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
+            <button type="button" class="user-btn" onclick="openEditUser('${uid}')" style="background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.25);color:var(--dorado);">✏️</button>
           </div>
         </div>
       `).join("");
@@ -1706,9 +1706,9 @@
             <span class="sesion-nick">${u.nick}</span>
             <span class="sesion-team-badge" title="${teamName}">${teamEmoji}</span>
             <div class="sesion-team-btns">
-              ${team !== "rojo" ? `<button class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
-              ${team !== "azul" ? `<button class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
-              ${team !== "sin"  ? `<button class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">⚪</button>` : ""}
+              ${team !== "rojo" ? `<button type="button" class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
+              ${team !== "azul" ? `<button type="button" class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
+              ${team !== "sin"  ? `<button type="button" class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">⚪</button>` : ""}
             </div>
           </div>
         `;
@@ -3403,11 +3403,11 @@
               </div>
               ${badge}
               <div class="admin-noticia-acciones">
-                <button class="admin-noticia-btn toggle-vis" title="${visible?"Ocultar":"Publicar"}"
+                <button type="button" class="admin-noticia-btn toggle-vis" title="${visible?"Ocultar":"Publicar"}"
                   onclick="toggleNVis('${n.id}',${visible})">${visible?"🙈":"👁"}</button>
-                <button class="admin-noticia-btn" title="Editar"
+                <button type="button" class="admin-noticia-btn" title="Editar"
                   onclick="abrirModalNoticia('${n.id}')">✏️</button>
-                <button class="admin-noticia-btn del" title="Eliminar"
+                <button type="button" class="admin-noticia-btn del" title="Eliminar"
                   onclick="confirmarEliminarNoticia('${n.id}')">🗑️</button>
               </div>
             </div>`;
@@ -3419,7 +3419,7 @@
               ${miniDia}
               <span class="admin-noticias-dia-label">${label}</span>
               <div class="admin-noticias-dia-linea"></div>
-              <button class="admin-noticias-dia-btn"
+              <button type="button" class="admin-noticias-dia-btn"
                 onclick="abrirModalNoticia(null,'${fecha}')">+ Agregar acá</button>
             </div>
             ${rows}
@@ -3482,11 +3482,11 @@
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
-              <button class="admin-noticia-btn toggle-vis" title="${vis ? "Ocultar" : "Publicar"}"
+              <button type="button" class="admin-noticia-btn toggle-vis" title="${vis ? "Ocultar" : "Publicar"}"
                 onclick="galeriaToggleVis('${a.id}',${vis})">${vis ? "🙈" : "👁"}</button>
-              <button class="admin-noticia-btn" title="Editar álbum y subir fotos"
+              <button type="button" class="admin-noticia-btn" title="Editar álbum y subir fotos"
                 onclick="galeriaAbrirModalAlbum('${a.id}')">✏️</button>
-              <button class="admin-noticia-btn del" title="Eliminar álbum completo"
+              <button type="button" class="admin-noticia-btn del" title="Eliminar álbum completo"
                 onclick="galeriaConfirmarEliminar('${a.id}','${escN(a.nombre || "")}')">🗑️</button>
             </div>
           </div>`;
@@ -3719,7 +3719,7 @@
       cont.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span style="font-size:12px;color:var(--crema-3);">${pendientes.length} foto${pendientes.length !== 1 ? "s" : ""} en cola</span>
-          <button class="admin-btn primary small" onclick="galeriaSubirTodo()">⬆️ Subir todo</button>
+          <button type="button" class="admin-btn primary small" onclick="galeriaSubirTodo()">⬆️ Subir todo</button>
         </div>
         ${pendientes.map((q, i) => `
           <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--negro-3);border-radius:6px;border:1px solid rgba(200,150,0,0.08);">
@@ -3729,7 +3729,7 @@
               value="${q.titulo}"
               oninput="galeriaTituloChange(${_galQueue.indexOf(q)}, this.value)"
               style="width:140px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.15);border-radius:4px;padding:5px 8px;color:var(--crema);font-size:12px;outline:none;" />
-            ${q.status === "pending" ? `<button class="noticia-slot-del" style="position:static;" onclick="galeriaQuitarDeQueue(${_galQueue.indexOf(q)})">✕</button>` : ""}
+            ${q.status === "pending" ? `<button type="button" class="noticia-slot-del" style="position:static;" onclick="galeriaQuitarDeQueue(${_galQueue.indexOf(q)})">✕</button>` : ""}
           </div>
         `).join("")}`;
     }
@@ -3801,9 +3801,9 @@
             <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" alt="">
             ${esMini ? `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);font-size:9px;text-align:center;color:var(--dorado);padding:3px;letter-spacing:1px;">PORTADA</div>` : ""}
             <div style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
-              ${!esMini ? `<button style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:var(--dorado);" title="Usar como portada"
+              ${!esMini ? `<button type="button" style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:var(--dorado);" title="Usar como portada"
                 onclick="galeriaSetPortada('${albumId}','${f.url}','${f.fileId}')">⭐</button>` : ""}
-              <button style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:#f09090;" title="Eliminar foto"
+              <button type="button" style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:#f09090;" title="Eliminar foto"
                 onclick="galeriaEliminarFoto('${f.id}','${albumId}')">🗑️</button>
             </div>
           </div>`;
@@ -3950,7 +3950,7 @@
               Votos disponibles: ${1 + extraVotes}${immune2 ? " + inmune" : ""}
             </div>
             <div class="mil-vote-btn-row">
-              ${alive.map(([tuid, tp]) => `<button class="admin-btn secondary" style="font-size:11px;padding:5px 8px;" onclick="milAdminVoteFor('${uid}','${tuid}')">→ ${tp.nick}</button>`).join("")}
+              ${alive.map(([tuid, tp]) => `<button type="button" class="admin-btn secondary" style="font-size:11px;padding:5px 8px;" onclick="milAdminVoteFor('${uid}','${tuid}')">→ ${tp.nick}</button>`).join("")}
             </div>
           </div>`;
         }
@@ -3958,10 +3958,10 @@
         // Toggle tipo de misión
         const missionToggle = `<div style="display:flex;gap:5px;align-items:center;margin-top:6px;flex-wrap:wrap;">
           <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);">Misión:</span>
-          <button class="mil-mission-badge ${mtype === 'none'    ? 'none'    : ''}" onclick="milSetMissionType('${uid}','none')"    style="${mtype==='none'?'border:1px solid rgba(255,255,255,0.2);':''}">Sin misión</button>
-          <button class="mil-mission-badge ${mtype === 'millon'  ? 'millon'  : ''}" onclick="milSetMissionType('${uid}','millon')"  style="${mtype==='millon'?'':'color:var(--crema-3);'}">💰 Del millón</button>
-          <button class="mil-mission-badge ${mtype === 'tercero' ? 'tercero' : ''}" onclick="milSetMissionType('${uid}','tercero')" style="${mtype==='tercero'?'':'color:var(--crema-3);'}">🎭 Tercero</button>
-          <button class="mil-mission-badge completo" onclick="milToggleMissionComplete('${uid}')" style="${p.missionComplete?'':'opacity:0.4;'}">✅ Completó</button>
+          <button type="button" class="mil-mission-badge ${mtype === 'none'    ? 'none'    : ''}" onclick="milSetMissionType('${uid}','none')"    style="${mtype==='none'?'border:1px solid rgba(255,255,255,0.2);':''}">Sin misión</button>
+          <button type="button" class="mil-mission-badge ${mtype === 'millon'  ? 'millon'  : ''}" onclick="milSetMissionType('${uid}','millon')"  style="${mtype==='millon'?'':'color:var(--crema-3);'}">💰 Del millón</button>
+          <button type="button" class="mil-mission-badge ${mtype === 'tercero' ? 'tercero' : ''}" onclick="milSetMissionType('${uid}','tercero')" style="${mtype==='tercero'?'':'color:var(--crema-3);'}">🎭 Tercero</button>
+          <button type="button" class="mil-mission-badge completo" onclick="milToggleMissionComplete('${uid}')" style="${p.missionComplete?'':'opacity:0.4;'}">✅ Completó</button>
         </div>`;
 
         const missionText = mission ? `<div style="font-size:11px;color:var(--crema-3);margin-top:4px;font-style:italic;">"${mission.text}"</div>` : "";
@@ -3978,7 +3978,7 @@
             ${voteButtons}
           </div>
           <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;margin-left:8px;">
-            ${p.alive!==false ? `<button class="admin-btn secondary" style="font-size:11px;padding:4px 8px;border-color:rgba(224,80,80,0.3);color:#e05050;" onclick="milManualEliminate('${uid}')">☠️</button>` : ""}
+            ${p.alive!==false ? `<button type="button" class="admin-btn secondary" style="font-size:11px;padding:4px 8px;border-color:rgba(224,80,80,0.3);color:#e05050;" onclick="milManualEliminate('${uid}')">☠️</button>` : ""}
           </div>
         </div>`;
       }).join("");
@@ -3994,7 +3994,7 @@
       el.innerHTML = entries.map(([uid, p]) => `
         <div class="mil-player-row">
           <span class="mil-player-nick">${p.nick || uid}</span>
-          <button class="admin-btn secondary" style="font-size:11px;padding:4px 8px;" onclick="milRemovePlayer('${uid}')">✕</button>
+          <button type="button" class="admin-btn secondary" style="font-size:11px;padding:4px 8px;" onclick="milRemovePlayer('${uid}')">✕</button>
         </div>`).join("");
     }
 
