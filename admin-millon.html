@@ -402,6 +402,81 @@
       </div>
     </div>
 
+    <!-- ══ PRE-RONDA (fase pregame) ══ -->
+    <div class="mil-admin-section" id="section-pregame" style="display:none;">
+      <div class="mil-admin-section-title">⚙️ Configurar próxima ronda</div>
+      <div class="admin-card" style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--crema-3);margin-bottom:14px;line-height:1.6;">
+          Configurá todo antes de lanzar la ronda. Los jugadores ven "Esperando al admin" hasta que presiones <strong style="color:var(--crema);">Lanzar ronda</strong>.
+        </div>
+        <div id="pregame-content">
+          <!-- se rellena dinámicamente -->
+        </div>
+        <button class="admin-btn primary" onclick="handleLaunchRound()" style="width:100%;font-size:16px;letter-spacing:2px;margin-top:8px;">
+          🚀 LANZAR RONDA
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ RONDA FINAL ══ -->
+    <div class="mil-admin-section" id="section-final" style="display:none;">
+      <div class="mil-admin-section-title">🏁 Ronda final</div>
+      <div class="admin-card" style="margin-bottom:10px;">
+
+        <!-- Timer y tópico (igual que en ronda normal) -->
+        <div style="margin-bottom:14px;">
+          <label class="mil-label">Tópico de conversación</label>
+          <div class="mil-row">
+            <input type="text" id="final-topic-input" class="mil-input" style="flex:1;" placeholder="Tópico final..." maxlength="80" />
+            <button class="admin-btn secondary small" onclick="handleSetTopicFinal()">Actualizar</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <button class="admin-btn primary" onclick="handleOpenVoting()" style="width:100%;font-size:16px;letter-spacing:2px;">
+            🗳️ ABRIR VOTACIÓN FINAL
+          </button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div class="mil-label">Extender tiempo</div>
+          <div class="mil-row">
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(60)">+1 min</button>
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(120)">+2 min</button>
+            <button class="admin-btn secondary small" onclick="handleExtendTimer(300)">+5 min</button>
+          </div>
+        </div>
+
+        <!-- Contenido dinámico (jugadores vivos, millonario) -->
+        <div id="final-content"></div>
+
+        <!-- Votos en tiempo real -->
+        <div style="margin-top:14px;">
+          <div class="mil-label">Votos en tiempo real</div>
+          <div id="final-votes-tally">
+            <div style="font-size:12px;color:var(--crema-3);">Sin votos aún.</div>
+          </div>
+          <div id="final-votes-who" style="font-size:11px;color:var(--crema-3);line-height:1.8;margin-top:6px;"></div>
+          <button class="admin-btn primary" onclick="handleProcessVotes()" style="width:100%;margin-top:10px;">
+            📊 Cerrar votación final
+          </button>
+        </div>
+
+        <!-- Declarar ganador -->
+        <div style="margin-top:16px;">
+          <div class="mil-label">Declarar resultado final</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="admin-btn primary" style="flex:1;" onclick="handleDeclareFinalWinner(true)">
+              💰 El millonario sobrevivió → Ganó
+            </button>
+            <button class="admin-btn secondary" style="flex:1;" onclick="handleDeclareFinalWinner(false)">
+              🎉 Lo descubrieron → Ganaron inocentes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ HISTORIAL ══ -->
     <div class="mil-admin-section" id="section-history" style="display:none;">
       <div class="mil-admin-section-title">Historial de rondas</div>
@@ -436,6 +511,7 @@
       adminOpenEnrollment, adminCloseEnrollment, adminKickPlayer,
       adminStartGame, adminSetPhase, adminSetTopic, adminOpenVoting,
       adminProcessVotes, adminNextRound,
+      adminPrepareNextRound, adminLaunchRound, adminDeclareFinalWinner,
       adminRotateMillion, adminEliminatePlayer,
       adminAssignMission, adminAssignMissionFromLibrary,
       adminValidateMissions,
@@ -443,9 +519,9 @@
       adminExtendTimer,
       listenState, listenPlayers, listenVotes,
       playersRef, missionsRef, historyRef,
-      MISSIONS, REWARD_LABELS,
+      MISSIONS, REWARD_LABELS, pickRandom,
     } from "./games/millon.js";
-    import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { db } from "./js/firebase-init.js";
 
     const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
@@ -455,7 +531,8 @@
     let currentVotes   = {};
     let currentMissions = {};
     let lastProcessed  = null;
-    let selectedLibMission = null; // misión seleccionada de la biblioteca
+    let selectedLibMission = null;
+    let pregameConfig  = {};  // config temporal de la ronda por configurar
 
     // ── Auth ──
     onSession(async (user) => {
@@ -536,29 +613,23 @@
       const active = state?.active;
       const enrollmentOpen = state?.enrollmentOpen;
 
-      // Lobby siempre visible (muestra anotados en todo momento)
       show("section-lobby");
 
-      // Botones abrir/cerrar
       const btnOpen  = document.getElementById("btn-open-enroll");
       const btnClose = document.getElementById("btn-close-enroll");
       if (btnOpen)  btnOpen.disabled  = !!enrollmentOpen;
       if (btnClose) btnClose.disabled = !enrollmentOpen;
 
-      // Sección iniciar: visible si no hay partida activa o si terminó
-      showIf("section-start", !active || phase === "ended");
-
-      // Jugadores durante partida
-      showIf("section-players", !!(active && phase !== "ended"));
-
-      // Controles de ronda
-      showIf("section-round", !!(active && phase !== "ended"));
-
-      // Herramientas avanzadas
-      showIf("section-advanced", !!(active && phase !== "ended"));
-
-      // Historial siempre
+      showIf("section-start",    !active || phase === "ended");
+      showIf("section-players",  !!(active && phase !== "ended"));
+      showIf("section-pregame",  phase === "pregame");
+      showIf("section-round",    !!(active && phase !== "ended" && phase !== "pregame" && phase !== "final"));
+      showIf("section-final",    phase === "final");
+      showIf("section-advanced", !!(active && phase !== "ended" && phase !== "pregame"));
       show("section-history");
+
+      if (phase === "pregame") renderPregamePanel(state);
+      if (phase === "final")   renderFinalPanel(state);
     }
 
     // ── Lobby list ──
@@ -619,8 +690,13 @@
 
     // ── Votos en tiempo real ──
     function renderVotesTally() {
-      const tallyEl   = document.getElementById("votes-live-tally");
-      const whoEl     = document.getElementById("votes-who-voted");
+      renderVotesTallyInto("votes-live-tally", "votes-who-voted");
+      renderVotesTallyInto("final-votes-tally", "final-votes-who");
+    }
+
+    function renderVotesTallyInto(tallyId, whoId) {
+      const tallyEl = document.getElementById(tallyId);
+      const whoEl   = document.getElementById(whoId);
       if (!tallyEl) return;
 
       const voteEntries = Object.entries(currentVotes);
@@ -630,7 +706,6 @@
         return;
       }
 
-      // Conteo
       const tally = {};
       voteEntries.forEach(([, v]) => {
         const t = v.voted;
@@ -647,7 +722,6 @@
           </div>`;
         }).join("");
 
-      // Quién votó / quién falta
       const enrolled = Object.entries(currentPlayers).filter(([,p]) => p.enrolled && p.alive!==false);
       const votedUids = new Set(voteEntries.map(([uid]) => uid));
       const voted   = enrolled.filter(([uid]) => votedUids.has(uid)).map(([,p]) => p.nick);
@@ -784,14 +858,132 @@
       selectedLibMission = missions[idx] || null;
     };
 
-    // ── Renderizar al cargar por primera vez ──
-    window.addEventListener("DOMContentLoaded", () => {
-      renderLibraryMissions();
-    });
+    // ── Panel pre-ronda (fase pregame) ──
+    function renderPregamePanel(state) {
+      const el = document.getElementById("pregame-content");
+      if (!el) return;
+
+      const aliveEntries = Object.entries(currentPlayers).filter(([,p]) => p.enrolled && p.alive !== false);
+      const currentMil   = state?.millionaireUid;
+      const isFinal      = state?.nextIsFinal;
+      const round        = state?.round || 1;
+
+      let html = `
+        <div style="background:rgba(200,150,0,0.06);border:1px solid rgba(200,150,0,0.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:4px;">
+            ${isFinal ? "🏁 RONDA FINAL" : `Configurando ronda ${round}`}
+          </div>
+          <div style="font-size:13px;color:var(--crema-2);">
+            ${aliveEntries.length} jugadores vivos
+            ${isFinal ? " · Esta es la ronda final" : ""}
+          </div>
+        </div>
+
+        <!-- 1. Elegir millonario -->
+        <div style="margin-bottom:18px;">
+          <div class="mil-label">1. ¿Quién tiene el millón?</div>
+          <div style="display:flex;flex-direction:column;gap:6px;" id="pregame-mil-radios">
+            ${aliveEntries.map(([uid, p]) => `
+              <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--negro-3);border-radius:8px;cursor:pointer;border:1px solid rgba(200,150,0,${uid===currentMil?'0.4':'0.08'});">
+                <input type="radio" name="pregame-mil" value="${uid}" ${uid===currentMil?'checked':''} style="accent-color:#f5c842;width:16px;height:16px;" onchange="pregameConfig.millionaireUid='${uid}'"/>
+                <span style="font-size:13px;color:var(--crema);">${p.nick||uid}</span>
+                ${uid===currentMil?'<span style="font-size:10px;color:#f5c842;margin-left:auto;">actual</span>':''}
+              </label>`).join("")}
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--negro-3);border-radius:8px;cursor:pointer;border:1px solid rgba(200,150,0,0.08);">
+              <input type="radio" name="pregame-mil" value="__random__" style="accent-color:#f5c842;width:16px;height:16px;" onchange="pregameConfig.millionaireUid='__random__'"/>
+              <span style="font-size:13px;color:var(--crema-3);">🎲 Elegir al azar</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Tiempo de charla -->
+        <div style="margin-bottom:18px;">
+          <div class="mil-label">2. Tiempo de charla (segundos)</div>
+          <input type="number" id="pregame-talktime" class="mil-input" value="${state?.timerEndsAt ? '300' : '300'}" min="60" max="900"
+            onchange="pregameConfig.talkTime=parseInt(this.value)||300" style="width:120px;" />
+        </div>
+
+        <!-- 3. Misiones por jugador -->
+        <div style="margin-bottom:18px;">
+          <div class="mil-label">3. Misiones (opcional — si no asignás, se auto-generan)</div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="pregame-missions-list">
+            ${aliveEntries.map(([uid, p]) => {
+              const existing = currentMissions[uid];
+              return `
+              <div style="background:var(--negro-3);border:1px solid rgba(200,150,0,0.1);border-radius:8px;padding:10px 12px;">
+                <div style="font-size:12px;font-weight:500;color:var(--crema);margin-bottom:6px;">${p.nick||uid}</div>
+                <input type="text" id="pmission-${uid}" class="mil-input"
+                  placeholder="Dejar vacío = auto · o escribir misión personalizada"
+                  value="${existing?.text||''}" maxlength="160"
+                  style="margin-bottom:5px;"
+                  onchange="updatePregameMission('${uid}')"/>
+                <div style="display:flex;gap:6px;">
+                  <select id="preward-${uid}" class="mil-select" style="flex:1;" onchange="updatePregameMission('${uid}')">
+                    <option value="extra_vote" ${existing?.reward==='extra_vote'?'selected':''}>+1 Voto extra</option>
+                    <option value="double_vote" ${existing?.reward==='double_vote'?'selected':''}>+2 Votos</option>
+                    <option value="immune" ${existing?.reward==='immune'?'selected':''}>Inmunidad</option>
+                    <option value="block_vote" ${existing?.reward==='block_vote'?'selected':''}>Bloquear voto</option>
+                    <option value="transfer_million" ${existing?.reward==='transfer_million'?'selected':''}>Pasar el millón</option>
+                  </select>
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
+
+      el.innerHTML = html;
+
+      // Inicializar config con valores actuales
+      pregameConfig.millionaireUid = currentMil || "__random__";
+      pregameConfig.talkTime = 300;
+      pregameConfig.missions = {};
+    }
+
+    window.updatePregameMission = function(uid) {
+      const text   = document.getElementById(`pmission-${uid}`)?.value?.trim();
+      const reward = document.getElementById(`preward-${uid}`)?.value || "extra_vote";
+      if (!pregameConfig.missions) pregameConfig.missions = {};
+      if (text) {
+        pregameConfig.missions[uid] = { text, reward, difficulty: "custom" };
+      } else {
+        delete pregameConfig.missions[uid];
+      }
+    };
+
+    // ── Panel ronda final ──
+    function renderFinalPanel(state) {
+      const aliveEntries = Object.entries(currentPlayers).filter(([,p]) => p.enrolled && p.alive !== false);
+      const milNick = currentPlayers[state?.millionaireUid]?.nick || "?";
+      const el = document.getElementById("final-content");
+      if (!el) return;
+
+      el.innerHTML = `
+        <div style="background:rgba(200,80,80,0.08);border:1px solid rgba(200,80,80,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#e88;margin-bottom:4px;">Ronda Final</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.7;">
+            Si el millonario <strong style="color:#f5c842;">${milNick}</strong> sobrevive esta votación, <strong>gana automáticamente</strong>.<br>
+            Si es eliminado, ganan los inocentes.
+          </div>
+        </div>
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);margin-bottom:8px;">Jugadores vivos</div>
+        ${aliveEntries.map(([uid,p]) => `
+          <div class="mil-player-row">
+            <span>${p.nick||uid}</span>
+            ${uid===state?.millionaireUid ? '<span class="mil-tag millionaire">💰 Millonario</span>' : ''}
+            ${p.immune ? '<span class="mil-tag immune">🛡️ Inmune</span>' : ''}
+          </div>`).join("")}
+      `;
+    }
 
     // ══════════════════════════════════════════
     // HANDLERS
     // ══════════════════════════════════════════
+
+    window.handleSetTopicFinal = async function() {
+      const topic = document.getElementById("final-topic-input")?.value?.trim() || "";
+      await adminSetTopic(topic);
+      toast(topic ? `Tópico: "${topic}"` : "Tópico borrado");
+    };
 
     window.handleOpenEnrollment = async function() {
       if (!confirm("¿Abrir inscripciones? Esto va a borrar los jugadores anteriores.")) return;
@@ -901,14 +1093,59 @@
 
     window.handleNextRound = async function(hadMillion) {
       const elimUid = document.getElementById("eliminated-select")?.value || null;
-      const result = await adminNextRound(elimUid, hadMillion);
-      if (result.ended) {
-        toast("🏁 ¡Final del juego!");
+      // Usar el flujo con configuración manual
+      await handlePrepareNextRound(elimUid);
+    };
+
+    window.handlePrepareNextRound = async function(elimUid) {
+      if (!elimUid) elimUid = document.getElementById("eliminated-select")?.value || null;
+      const prep = await adminPrepareNextRound(elimUid);
+      if (prep.isFinal) {
+        toast("🏁 ¡Llegaron a la ronda final!");
       } else {
-        const nick = result.newMillionaire && currentPlayers[result.newMillionaire]
-          ? currentPlayers[result.newMillionaire].nick : "?";
-        toast(result.rotated ? `🔄 Millón rotó a ${nick}` : "▶ Nueva ronda");
+        toast(`⚙️ Configurá la ronda ${prep.round} y presioná Lanzar`);
       }
+    };
+
+    window.handleLaunchRound = async function() {
+      const aliveEntries = Object.entries(currentPlayers).filter(([,p]) => p.enrolled && p.alive !== false);
+
+      // Resolver millonario
+      let milUid = pregameConfig.millionaireUid;
+      if (!milUid || milUid === "__random__") {
+        const candidates = aliveEntries.map(([uid]) => uid);
+        milUid = pickRandom(candidates);
+      }
+
+      const talkTime = parseInt(document.getElementById("pregame-talktime")?.value) || pregameConfig.talkTime || 300;
+
+      // Recolectar misiones del panel (por si el admin las modificó directamente)
+      const missions = {};
+      aliveEntries.forEach(([uid]) => {
+        const text   = document.getElementById(`pmission-${uid}`)?.value?.trim();
+        const reward = document.getElementById(`preward-${uid}`)?.value || "extra_vote";
+        if (text) missions[uid] = { text, reward, difficulty: "custom" };
+      });
+
+      const result = await adminLaunchRound({ millionaireUid: milUid, talkTime, missions });
+
+      if (result.ok) {
+        const nick = currentPlayers[result.millionaireUid]?.nick || result.millionaireUid;
+        toast(result.isFinal
+          ? `🏁 Ronda final iniciada · Millonario: ${nick}`
+          : `💰 Ronda iniciada · Millonario: ${nick}`);
+        pregameConfig = {};
+      }
+    };
+
+    window.handleDeclareFinalWinner = async function(millionaireWon) {
+      const milNick = currentPlayers[currentState?.millionaireUid]?.nick || "?";
+      const msg = millionaireWon
+        ? `¿Confirmar que ${milNick} (millonario) sobrevivió y GANÓ?`
+        : `¿Confirmar que los inocentes eliminaron al millonario (${milNick}) y GANARON?`;
+      if (!confirm(msg)) return;
+      await adminDeclareFinalWinner(millionaireWon);
+      toast(millionaireWon ? `🏆 ¡${milNick} ganó!` : "🏆 ¡Ganaron los inocentes!");
     };
 
     window.handleRotateMillion = async function() {
