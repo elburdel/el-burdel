@@ -136,6 +136,40 @@
     .mil-topic-label { font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--crema-3); margin-bottom:5px; }
     .mil-topic-text { font-family:var(--font-title); font-size:20px; letter-spacing:1px; color:var(--crema); }
 
+    /* Mensaje privado de ronda */
+    .mil-round-msg {
+      width: 100%; border-radius: 16px; padding: 28px 22px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      text-align: center; animation: fadeSlideUp .5s ease both;
+    }
+    @keyframes fadeSlideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+    .mil-round-msg.normal {
+      background: rgba(40,40,80,0.25);
+      border: 2px solid rgba(100,100,200,0.25);
+    }
+    .mil-round-msg.millonario {
+      background: rgba(26,74,42,0.35);
+      border: 2px solid rgba(200,150,0,0.45);
+      box-shadow: 0 0 40px rgba(200,150,0,0.08);
+    }
+    .mil-round-msg.mision {
+      background: rgba(60,40,100,0.25);
+      border: 2px solid rgba(150,100,200,0.35);
+    }
+    .mil-round-msg-icon { font-size: 44px; }
+    .mil-round-msg-title { font-family:var(--font-title); font-size:22px; letter-spacing:2px; }
+    .mil-round-msg.normal    .mil-round-msg-title { color: var(--crema-2); }
+    .mil-round-msg.millonario .mil-round-msg-title { color: #f5c842; }
+    .mil-round-msg.mision    .mil-round-msg-title { color: #ccf; }
+    .mil-round-msg-body { font-size: 13px; color: var(--crema-3); line-height: 1.8; }
+    .mil-round-msg-btn {
+      width: 100%; padding: 14px;
+      background: rgba(200,150,0,0.1); border: 1px solid rgba(200,150,0,0.35);
+      border-radius: 10px; color: #f5c842; font-family: var(--font-title);
+      font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all .2s; margin-top: 4px;
+    }
+    .mil-round-msg-btn:hover { background: rgba(200,150,0,0.18); }
+
     /* Card de rol — toque para ver */
     .mil-reveal-btn {
       width: 100%;
@@ -329,6 +363,13 @@
       <div class="mil-waiting-sub">
         Las inscripciones están cerradas.<br>
         El admin va a iniciar la ronda en breve.
+      </div>
+    </div>
+
+    <!-- ── MENSAJE PRIVADO DE RONDA ── -->
+    <div class="mil-state" id="state-message">
+      <div id="mil-round-message-card">
+        <!-- se rellena dinámicamente -->
       </div>
     </div>
 
@@ -538,6 +579,7 @@
     let roleRevealed  = false;
     let selectedVoteTarget = null;
     let isEnrolled    = false;
+    let msgDismissedForRound = 0; // nro de ronda donde ya vimos el mensaje
 
     // ── Auth ──
     onSession(async (user) => {
@@ -578,13 +620,16 @@
     // ── State change ──
     function onStateChange(state) {
       const prevPhase = currentState?.phase;
+      const prevRound = currentState?.round;
       currentState = state;
 
-      if (state?.phase === "talking" && prevPhase !== "talking") roleRevealed = false;
+      // Si arranca una nueva ronda (round subió), resetear mensaje y rol
+      if (state?.phase === "talking" && (prevPhase !== "talking" || state.round !== prevRound)) {
+        roleRevealed = false;
+        // NO reseteamos msgDismissedForRound aquí — se compara con state.round en renderByPhase
+      }
 
-      // Actualizar estado de inscripción desde players
       isEnrolled = !!(players[currentUid]?.enrolled);
-
       renderByPhase(state);
     }
 
@@ -619,6 +664,16 @@
         }
 
         if (phase === "talking") {
+          // Si es una ronda nueva y aún no vimos el mensaje privado → mostrar mensaje
+          const round = state.round || 1;
+          if (msgDismissedForRound < round && !roleRevealed) {
+            renderRoundMessage(state);
+            show("state-message");
+            updateTopicBoxes(state.topic);
+            startTimer(state.timerEndsAt);
+            renderPlayerGrids();
+            return;
+          }
           if (roleRevealed) {
             show("state-revealed");
             renderMissionDisplay();
@@ -654,6 +709,75 @@
       if (phase === "ended") { show("state-ended"); return; }
       show("state-waiting");
     }
+
+    // ── Mensaje privado de ronda ──
+    function renderRoundMessage(state) {
+      const el = document.getElementById("mil-round-message-card");
+      if (!el) return;
+
+      const isMillionaire = state?.millionaireUid === currentUid;
+      const hasMission    = !!(myMission && !myMission.isFake);
+      const round         = state?.round || 1;
+
+      const rewardLabels = {
+        extra_vote: "+1 voto extra 🗳️", double_vote: "+2 votos 🗳️",
+        immune: "Inmunidad 🛡️", block_vote: "Bloquear voto 🚫",
+        transfer_million: "Pasar el millón 💰", reveal_suspect: "Ver sospechoso 👁️",
+      };
+
+      if (isMillionaire) {
+        el.innerHTML = `
+          <div class="mil-round-msg millonario">
+            <div class="mil-round-msg-icon">💰</div>
+            <div class="mil-round-msg-title">Bienvenido a la ronda ${round}</div>
+            <div class="mil-round-msg-body">
+              <strong style="color:#f5c842;">Actualmente poseés el millón.</strong><br>
+              Intentá pasar desapercibido.<br>
+              Si cumplís tu misión podés obtener una ventaja especial.
+              ${hasMission ? `<br><br><strong style="color:var(--crema);">Tu misión:</strong><br>${myMission.text}` : ""}
+              ${hasMission && myMission.reward ? `<br><strong style="color:#f5c842;">Recompensa:</strong> ${rewardLabels[myMission.reward] || myMission.reward}` : ""}
+            </div>
+            <button class="mil-round-msg-btn" onclick="dismissMessage()">Entendido →</button>
+          </div>`;
+      } else if (hasMission) {
+        el.innerHTML = `
+          <div class="mil-round-msg mision">
+            <div class="mil-round-msg-icon">🎭</div>
+            <div class="mil-round-msg-title">Bienvenido a la ronda ${round}</div>
+            <div class="mil-round-msg-body">
+              No tenés el millón.<br>
+              Sin embargo, recibiste una <strong style="color:#ccf;">misión especial</strong>.<br>
+              Si la completás, obtenés una ventaja.<br><br>
+              <strong style="color:var(--crema);">Tu misión:</strong><br>${myMission.text}
+              ${myMission.reward ? `<br><strong style="color:#ccf;">Recompensa:</strong> ${rewardLabels[myMission.reward] || myMission.reward}` : ""}
+            </div>
+            <button class="mil-round-msg-btn" onclick="dismissMessage()">Entendido →</button>
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <div class="mil-round-msg normal">
+            <div class="mil-round-msg-icon">👥</div>
+            <div class="mil-round-msg-title">Bienvenido a la ronda ${round}</div>
+            <div class="mil-round-msg-body">
+              No poseés el millón.<br>
+              Participá normalmente y observá a los demás jugadores.<br>
+              Intentá descubrir quién podría tener el millón.<br>
+              Algunas personas podrían tener ventajas o misiones especiales.
+            </div>
+            <button class="mil-round-msg-btn" onclick="dismissMessage()">Entendido →</button>
+          </div>`;
+      }
+    }
+
+    window.dismissMessage = function() {
+      const round = currentState?.round || 1;
+      msgDismissedForRound = round;
+      hideAll();
+      show("state-ready");
+      updateTopicBoxes(currentState?.topic);
+      if (currentState?.timerEndsAt) startTimer(currentState.timerEndsAt);
+      renderPlayerGrids();
+    };
 
     // ── Inscripción ──
     window.handleEnroll = async function() {
@@ -939,7 +1063,7 @@
     }
 
     // ── Helpers ──
-    const ALL_STATES = ["state-lobby","state-waiting","state-ready","state-revealed","state-voting","state-results","state-final","state-ended","state-not-enrolled"];
+    const ALL_STATES = ["state-lobby","state-waiting","state-message","state-ready","state-revealed","state-voting","state-results","state-final","state-ended","state-not-enrolled"];
     function hideAll() { ALL_STATES.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove("active"); }); }
     function show(id)  { const e=document.getElementById(id); if(e) e.classList.add("active"); }
   </script>
