@@ -57,7 +57,7 @@
     }
     .mil-state.active { display: flex; }
 
-    /* Waiting */
+    /* Waiting / Lobby */
     .mil-waiting-icon { font-size: 60px; animation: pulse 2.5s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.06);opacity:.7} }
     .mil-waiting-title {
@@ -65,6 +65,55 @@
       letter-spacing: 2px; color: var(--crema-2);
     }
     .mil-waiting-sub { font-size: 14px; color: var(--crema-3); line-height: 1.7; }
+
+    /* Botón inscripción */
+    .mil-enroll-btn {
+      width: 100%; padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(200,150,0,0.18), rgba(200,150,0,0.08));
+      border: 2px solid rgba(200,150,0,0.5);
+      border-radius: 16px;
+      color: #f5c842; font-family: var(--font-title);
+      font-size: 24px; letter-spacing: 3px;
+      cursor: pointer; transition: all .2s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .mil-enroll-btn:hover { background: linear-gradient(135deg, rgba(200,150,0,0.28), rgba(200,150,0,0.14)); box-shadow: 0 0 30px rgba(200,150,0,0.15); }
+    .mil-enroll-btn:active { transform: scale(.98); }
+    .mil-enroll-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .mil-enroll-sub { font-size: 12px; color: var(--crema-3); letter-spacing: 1px; font-family: var(--font-body); }
+
+    /* Pill inscripto */
+    .mil-enrolled-pill {
+      width: 100%; padding: 14px 18px;
+      background: rgba(50,150,50,0.1);
+      border: 1px solid rgba(50,150,50,0.3);
+      border-radius: 10px; text-align: center;
+      font-size: 14px; color: #6c6; line-height: 1.6;
+    }
+
+    /* Lista de jugadores inscriptos */
+    .mil-lobby-list {
+      width: 100%;
+      background: rgba(200,150,0,0.04);
+      border: 1px solid rgba(200,150,0,0.1);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .mil-lobby-label {
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--crema-3); margin-bottom: 10px;
+    }
+    .mil-lobby-player {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0; border-bottom: 1px solid rgba(200,150,0,0.06);
+      font-size: 14px; color: var(--crema-2);
+    }
+    .mil-lobby-player:last-child { border-bottom: none; }
+    .mil-lobby-player.self { color: #f5c842; }
+    .mil-lobby-count {
+      font-family: var(--font-title); font-size: 18px;
+      letter-spacing: 1px; color: var(--crema-3);
+      margin-top: 8px;
+    }
 
     /* Timer */
     .mil-timer {
@@ -243,13 +292,43 @@
 
     <div id="mil-loading">Cargando...</div>
 
-    <!-- ── ESPERANDO ── -->
+    <!-- ── LOBBY: inscripción abierta ── -->
+    <div class="mil-state" id="state-lobby">
+      <div class="mil-waiting-icon">💰</div>
+      <div class="mil-waiting-title">Inscripciones abiertas</div>
+      <div class="mil-waiting-sub">
+        El admin va a iniciar la partida en breve.<br>
+        Anotate para participar.
+      </div>
+
+      <!-- Botón inscribirse -->
+      <button class="mil-enroll-btn" id="btn-enroll" onclick="handleEnroll()">
+        <span>QUIERO JUGAR</span>
+        <span class="mil-enroll-sub">Tocar para anotarme</span>
+      </button>
+
+      <!-- Confirmación de inscripción -->
+      <div class="mil-enrolled-pill" id="enrolled-confirm" style="display:none;">
+        ✅ Estás anotado/a. El admin va a iniciar la partida pronto.
+      </div>
+
+      <!-- Lista de anotados -->
+      <div class="mil-lobby-list" id="lobby-players-box">
+        <div class="mil-lobby-label">Anotados</div>
+        <div id="lobby-players-list">
+          <div style="font-size:12px;color:var(--crema-3);">Nadie todavía...</div>
+        </div>
+        <div class="mil-lobby-count" id="lobby-count">0 jugadores</div>
+      </div>
+    </div>
+
+    <!-- ── ESPERANDO (inscripciones cerradas, partida no iniciada) ── -->
     <div class="mil-state" id="state-waiting">
       <div class="mil-waiting-icon">💰</div>
       <div class="mil-waiting-title">Esperando al admin</div>
       <div class="mil-waiting-sub">
-        El admin va a iniciar la ronda en breve.<br>
-        Cuando arranque, vas a ver tu rol.
+        Las inscripciones están cerradas.<br>
+        El admin va a iniciar la ronda en breve.
       </div>
     </div>
 
@@ -291,7 +370,7 @@
       </div>
       <!-- Rol -->
       <div id="mil-role-display"></div>
-      <!-- Misión (solo millonario) -->
+      <!-- Misión (solo millonario o jugador con misión) -->
       <div id="mil-mission-display" style="display:none;width:100%;"></div>
       <button class="mil-hide-btn" onclick="hideRole()">🙈 Ocultar mi rol</button>
       <!-- Jugadores -->
@@ -304,7 +383,7 @@
       <div class="mil-waiting-icon" style="animation:none;font-size:48px;">🗳️</div>
       <div class="mil-waiting-title">¡A votar!</div>
       <div class="mil-waiting-sub">El tiempo terminó. Votá a quien creas que tiene el millón.</div>
-      <div class="mil-voted-notice" id="mil-voted-notice" style="display:none;">✅ Ya votaste esta ronda</div>
+      <div class="mil-voted-notice" id="mil-voted-notice" style="display:none;">✅ Tu voto fue registrado correctamente.</div>
       <button class="mil-vote-btn" id="mil-vote-open-btn" onclick="openVoteModal()">💰 Votar</button>
       <div style="width:100%;text-align:left;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:4px;">Jugadores</div>
       <div class="mil-players-grid" id="mil-players-voting"></div>
@@ -326,7 +405,7 @@
         Si el millonario sobrevive esta votación,<br>
         <strong style="color:var(--crema);">gana automáticamente.</strong>
       </div>
-      <div class="mil-voted-notice" id="mil-voted-notice-final" style="display:none;">✅ Ya votaste esta ronda</div>
+      <div class="mil-voted-notice" id="mil-voted-notice-final" style="display:none;">✅ Tu voto fue registrado correctamente.</div>
       <button class="mil-vote-btn" id="mil-vote-final-btn" onclick="openVoteModal()">💰 Voto Final</button>
     </div>
 
@@ -337,15 +416,37 @@
       <div class="mil-waiting-sub">El admin va a resetear el juego.</div>
     </div>
 
+    <!-- ── NO INSCRIPTO (partida activa sin estar anotado) ── -->
+    <div class="mil-state" id="state-not-enrolled">
+      <div class="mil-waiting-icon" style="animation:none;font-size:48px;">👀</div>
+      <div class="mil-waiting-title">Modo espectador</div>
+      <div class="mil-waiting-sub">
+        No estás anotado en esta partida.<br>
+        Podés ver la lista de jugadores, pero no participar.<br>
+        Esperá la próxima ronda de inscripciones.
+      </div>
+    </div>
+
   </main>
 
-  <!-- Modal de votación -->
+  <!-- Modal de votación con confirmación -->
   <div class="mil-modal-overlay" id="mil-vote-modal" style="display:none;" onclick="if(event.target===this)closeVoteModal()">
     <div class="mil-modal">
-      <div class="mil-modal-title">💰 ¿Quién tiene el millón?</div>
-      <div id="mil-vote-options"></div>
-      <button class="mil-confirm-btn" id="mil-confirm-btn" onclick="confirmVote()" disabled>Confirmar voto</button>
-      <button class="mil-cancel-btn" onclick="closeVoteModal()">Cancelar</button>
+      <!-- Paso 1: elegir -->
+      <div id="vote-step-1">
+        <div class="mil-modal-title">💰 ¿Quién tiene el millón?</div>
+        <div id="mil-vote-options"></div>
+        <button class="mil-confirm-btn" id="mil-confirm-btn" onclick="goToVoteConfirm()" disabled>Continuar →</button>
+        <button class="mil-cancel-btn" onclick="closeVoteModal()">Cancelar</button>
+      </div>
+      <!-- Paso 2: confirmar -->
+      <div id="vote-step-2" style="display:none;text-align:center;">
+        <div class="mil-modal-title">¿Estás seguro?</div>
+        <div style="font-size:13px;color:var(--crema-3);margin-bottom:18px;">Vas a votar a:</div>
+        <div id="vote-confirm-name" style="font-family:var(--font-title);font-size:32px;letter-spacing:3px;color:#f5c842;margin-bottom:24px;"></div>
+        <button class="mil-confirm-btn" onclick="confirmVote()">Confirmar voto</button>
+        <button class="mil-cancel-btn" onclick="backToVoteSelect()">← Cambiar selección</button>
+      </div>
     </div>
   </div>
 
@@ -387,10 +488,10 @@
         <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;">
           <div style="font-family:var(--font-title);font-size:15px;letter-spacing:1px;color:var(--crema);margin-bottom:8px;">📋 LA RONDA</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
-            <div>1️⃣ Tocá el botón para ver tu rol en privado.</div>
-            <div>2️⃣ El admin da un tópico y arranca el timer.</div>
+            <div>1️⃣ Anotate cuando las inscripciones estén abiertas.</div>
+            <div>2️⃣ El admin inicia la partida. Tocá para ver tu rol en privado.</div>
             <div>3️⃣ Charlan libremente. Cumplí tu misión sin que se note.</div>
-            <div>4️⃣ Cuando termina el tiempo, votan a quién creen que tiene el millón.</div>
+            <div>4️⃣ El admin abre la votación. Votan a quién creen que tiene el millón.</div>
             <div>5️⃣ El más votado queda eliminado. El juego sigue hasta quedar 3.</div>
           </div>
         </div>
@@ -420,21 +521,23 @@
     import { onSession, getUserData } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
     import {
-      joinGame, setDisconnected, castVote,
+      enrollPlayer, unenrollPlayer, registerPresence,
+      setDisconnected, castVote,
       listenState, listenPlayers, listenMyMission, listenVotes
     } from "./games/millon.js";
 
     initNavbar();
 
-    let currentUid   = null;
-    let currentNick  = null;
-    let currentState = null;
-    let players      = {};
-    let myMission    = null;
-    let myVote       = null;
+    let currentUid    = null;
+    let currentNick   = null;
+    let currentState  = null;
+    let players       = {};
+    let myMission     = null;
+    let myVote        = null;
     let timerInterval = null;
     let roleRevealed  = false;
     let selectedVoteTarget = null;
+    let isEnrolled    = false;
 
     // ── Auth ──
     onSession(async (user) => {
@@ -447,8 +550,8 @@
       currentNick = data.nick;
       document.getElementById("mil-nick-label").textContent = data.nick;
 
-      // Auto-registro en millon/players
-      await joinGame(currentUid, currentNick);
+      // Solo registrar presencia, NO inscribir automáticamente
+      await registerPresence(currentUid, currentNick);
 
       document.getElementById("mil-loading").style.display = "none";
       startListeners();
@@ -461,7 +564,13 @@
     // ── Listeners ──
     function startListeners() {
       listenState(onStateChange);
-      listenPlayers(p => { players = p || {}; renderPlayerGrids(); });
+      listenPlayers(p => {
+        players = p || {};
+        isEnrolled = !!(players[currentUid]?.enrolled);
+        renderPlayerGrids();
+        renderLobbyList();
+        updateEnrollButton();
+      });
       listenMyMission(currentUid, m => { myMission = m; renderMissionDisplay(); });
       listenVotes(v => { myVote = v?.[currentUid]?.voted || null; renderVoteState(); });
     }
@@ -471,8 +580,10 @@
       const prevPhase = currentState?.phase;
       currentState = state;
 
-      // Si arranca nueva ronda, resetear roleRevealed
       if (state?.phase === "talking" && prevPhase !== "talking") roleRevealed = false;
+
+      // Actualizar estado de inscripción desde players
+      isEnrolled = !!(players[currentUid]?.enrolled);
 
       renderByPhase(state);
     }
@@ -481,44 +592,129 @@
       hideAll();
       stopTimer();
 
-      if (!state || !state.active) {
-        if (state?.phase === "ended") show("state-ended");
-        else show("state-waiting");
-        return;
-      }
+      // Sin estado: esperar
+      if (!state) { show("state-waiting"); return; }
 
       const phase = state.phase;
 
-      if (phase === "talking") {
-        if (roleRevealed) {
-          show("state-revealed");
-          renderMissionDisplay();
-        } else {
-          show("state-ready");
-        }
-        updateTopicBoxes(state.topic);
-        startTimer(state.timerEndsAt);
-        renderPlayerGrids();
+      // Lobby: inscripciones abiertas
+      if (phase === "lobby" || (!state.active && state.enrollmentOpen)) {
+        show("state-lobby");
+        renderLobbyList();
+        updateEnrollButton();
+        return;
       }
-      else if (phase === "voting") {
-        show("state-voting");
-        renderVoteState();
-        renderPlayerGrids();
-      }
-      else if (phase === "results") {
-        show("state-results");
-        renderResult(state);
-      }
-      else if (phase === "final") {
-        show("state-final");
-        renderVoteState();
-      }
-      else if (phase === "ended") {
-        show("state-ended");
-      }
-      else {
+
+      // Inscripciones cerradas, partida no iniciada
+      if (!state.active && !state.enrollmentOpen && phase !== "ended") {
         show("state-waiting");
+        return;
       }
+
+      // Partida activa: verificar si el jugador está inscripto
+      if (state.active) {
+        if (!isEnrolled) {
+          show("state-not-enrolled");
+          return;
+        }
+
+        if (phase === "talking") {
+          if (roleRevealed) {
+            show("state-revealed");
+            renderMissionDisplay();
+          } else {
+            show("state-ready");
+          }
+          updateTopicBoxes(state.topic);
+          startTimer(state.timerEndsAt);
+          renderPlayerGrids();
+        }
+        else if (phase === "voting") {
+          show("state-voting");
+          renderVoteState();
+          renderPlayerGrids();
+        }
+        else if (phase === "results") {
+          show("state-results");
+          renderResult(state);
+        }
+        else if (phase === "final") {
+          show("state-final");
+          renderVoteState();
+        }
+        else if (phase === "ended") {
+          show("state-ended");
+        }
+        else {
+          show("state-waiting");
+        }
+        return;
+      }
+
+      if (phase === "ended") { show("state-ended"); return; }
+      show("state-waiting");
+    }
+
+    // ── Inscripción ──
+    window.handleEnroll = async function() {
+      if (isEnrolled) return;
+      const btn = document.getElementById("btn-enroll");
+      btn.disabled = true;
+
+      const result = await enrollPlayer(currentUid, currentNick);
+      if (result.ok) {
+        isEnrolled = true;
+        updateEnrollButton();
+      } else {
+        btn.disabled = false;
+        alert(result.reason || "No se pudo inscribir.");
+      }
+    };
+
+    function updateEnrollButton() {
+      const btn     = document.getElementById("btn-enroll");
+      const confirm = document.getElementById("enrolled-confirm");
+      if (!btn || !confirm) return;
+
+      const enrollmentOpen = currentState?.enrollmentOpen;
+
+      if (isEnrolled) {
+        btn.style.display     = "none";
+        confirm.style.display = "block";
+      } else if (!enrollmentOpen) {
+        btn.disabled = true;
+        btn.style.display = "flex";
+        confirm.style.display = "none";
+      } else {
+        btn.disabled = false;
+        btn.style.display = "flex";
+        confirm.style.display = "none";
+      }
+    }
+
+    function renderLobbyList() {
+      const listEl  = document.getElementById("lobby-players-list");
+      const countEl = document.getElementById("lobby-count");
+      if (!listEl || !countEl) return;
+
+      const enrolled = Object.entries(players).filter(([, p]) => p.enrolled === true);
+
+      if (!enrolled.length) {
+        listEl.innerHTML = '<div style="font-size:12px;color:var(--crema-3);">Nadie todavía...</div>';
+        countEl.textContent = "0 jugadores";
+        return;
+      }
+
+      listEl.innerHTML = enrolled.map(([uid, p]) => `
+        <div class="mil-lobby-player ${uid === currentUid ? 'self' : ''}">
+          <span>${uid === currentUid ? '👤' : '🎭'}</span>
+          <span>${p.nick || '?'}</span>
+          ${uid === currentUid ? '<span style="font-size:10px;color:var(--crema-3);margin-left:auto;">tú</span>' : ''}
+        </div>`
+      ).join("");
+
+      const n = enrolled.length;
+      countEl.textContent = `${n} jugador${n !== 1 ? 'es' : ''}`;
     }
 
     // ── Rol ──
@@ -535,8 +731,7 @@
             <div class="mil-role-hint">Tenés el millón. Cumplí tu misión<br>sin que nadie te descubra.</div>
           </div>`;
       } else {
-        const myPlayer = players[currentUid];
-        const mtype = myPlayer?.missionType || "none";
+        const mtype = players[currentUid]?.missionType || "none";
         if (mtype === "tercero") {
           roleEl.innerHTML = `
             <div class="mil-role-card millonario" style="border-color:rgba(100,100,200,0.4);background:rgba(40,40,100,0.2);">
@@ -620,7 +815,7 @@
 
     // ── Grids de jugadores ──
     function renderPlayerGrids() {
-      const alive = Object.entries(players).filter(([,p]) => p.alive !== false);
+      const alive = Object.entries(players).filter(([,p]) => p.alive !== false && p.enrolled);
       renderGrid("mil-players-ready",    alive);
       renderGrid("mil-players-revealed", alive);
       renderGrid("mil-players-voting",   alive);
@@ -636,7 +831,7 @@
         </div>`).join("");
     }
 
-    // ── Votación ──
+    // ── Votación con confirmación en 2 pasos ──
     function renderVoteState() {
       const voted = !!myVote;
       const notice1 = document.getElementById("mil-voted-notice");
@@ -651,14 +846,16 @@
 
     window.openVoteModal = function() {
       if (myVote) return;
-      const alive = Object.entries(players).filter(([uid,p]) => p.alive!==false && uid!==currentUid);
+      const alive = Object.entries(players).filter(([uid,p]) => p.alive!==false && p.enrolled && uid!==currentUid);
       const list = document.getElementById("mil-vote-options");
       list.innerHTML = alive.map(([uid,p]) =>
         `<button class="mil-vote-option" onclick="selectVote('${uid}',this)">🎭 ${p.nick||'?'}</button>`
       ).join("");
       selectedVoteTarget = null;
-      const btn = document.getElementById("mil-confirm-btn");
-      btn.disabled = true;
+      document.getElementById("mil-confirm-btn").disabled = true;
+      // Mostrar paso 1
+      document.getElementById("vote-step-1").style.display = "block";
+      document.getElementById("vote-step-2").style.display = "none";
       document.getElementById("mil-vote-modal").style.display = "flex";
     };
 
@@ -667,6 +864,19 @@
       document.querySelectorAll(".mil-vote-option").forEach(b => b.classList.remove("sel"));
       btnEl.classList.add("sel");
       document.getElementById("mil-confirm-btn").disabled = false;
+    };
+
+    window.goToVoteConfirm = function() {
+      if (!selectedVoteTarget) return;
+      const nick = players[selectedVoteTarget]?.nick || selectedVoteTarget;
+      document.getElementById("vote-confirm-name").textContent = nick;
+      document.getElementById("vote-step-1").style.display = "none";
+      document.getElementById("vote-step-2").style.display = "block";
+    };
+
+    window.backToVoteSelect = function() {
+      document.getElementById("vote-step-1").style.display = "block";
+      document.getElementById("vote-step-2").style.display = "none";
     };
 
     window.confirmVote = async function() {
@@ -729,7 +939,7 @@
     }
 
     // ── Helpers ──
-    const ALL_STATES = ["state-waiting","state-ready","state-revealed","state-voting","state-results","state-final","state-ended"];
+    const ALL_STATES = ["state-lobby","state-waiting","state-ready","state-revealed","state-voting","state-results","state-final","state-ended","state-not-enrolled"];
     function hideAll() { ALL_STATES.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove("active"); }); }
     function show(id)  { const e=document.getElementById(id); if(e) e.classList.add("active"); }
   </script>
