@@ -568,6 +568,101 @@ export async function adminResetGame() {
 }
 
 // ══════════════════════════════════════════
+// ADMIN — VALIDAR MISIONES Y APLICAR RECOMPENSAS
+// ══════════════════════════════════════════
+
+// validations: { uid: true/false }  (true = cumplió)
+export async function adminValidateMissions(validations) {
+  const [missionsSnap, playersSnap] = await Promise.all([
+    get(missionsRef()),
+    get(playersRef()),
+  ]);
+
+  const missions = missionsSnap.exists() ? missionsSnap.val() : {};
+  const players  = playersSnap.exists()  ? playersSnap.val()  : {};
+
+  const missionUpdates  = {};
+  const playerUpdates   = {};
+  const rewardsApplied  = [];
+
+  Object.entries(validations).forEach(([uid, completed]) => {
+    const mission = missions[uid];
+    if (!mission) return;
+
+    // Marcar misión como completada/no completada
+    missionUpdates[uid] = { ...mission, completed };
+
+    if (!completed) return;
+    if (mission.isFake) return;
+
+    const reward  = mission.reward;
+    const player  = players[uid] || {};
+    const nick    = player.nick || uid;
+
+    switch (reward) {
+      case "extra_vote":
+        playerUpdates[uid] = {
+          ...player,
+          votesExtra: (player.votesExtra || 0) + 1,
+        };
+        rewardsApplied.push({ uid, nick, reward, label: "+1 voto extra" });
+        break;
+
+      case "double_vote":
+        playerUpdates[uid] = {
+          ...player,
+          votesExtra: (player.votesExtra || 0) + 2,
+        };
+        rewardsApplied.push({ uid, nick, reward, label: "+2 votos" });
+        break;
+
+      case "immune":
+        playerUpdates[uid] = { ...player, immune: true };
+        rewardsApplied.push({ uid, nick, reward, label: "Inmunidad" });
+        break;
+
+      case "block_vote":
+        playerUpdates[uid] = { ...player, blockVote: true };
+        rewardsApplied.push({ uid, nick, reward, label: "Bloqueo de voto" });
+        break;
+
+      case "transfer_million":
+        // El admin decide a quién — solo se marca, el admin la ejecuta con adminRotateMillion
+        rewardsApplied.push({ uid, nick, reward, label: "Puede pasar el millón (manual)" });
+        break;
+
+      case "reveal_suspect":
+        rewardsApplied.push({ uid, nick, reward, label: "Sabe quién lo sospecha (ver admin)" });
+        break;
+
+      default:
+        break;
+    }
+  });
+
+  // Escribir en Firebase
+  if (Object.keys(missionUpdates).length) {
+    await set(missionsRef(), missionUpdates);
+  }
+  for (const [uid, data] of Object.entries(playerUpdates)) {
+    await update(playerRef(uid), data);
+  }
+
+  return { ok: true, rewardsApplied };
+}
+
+// ══════════════════════════════════════════
+// ADMIN — ASIGNAR MISIÓN DESDE BIBLIOTECA
+// ══════════════════════════════════════════
+
+export async function adminAssignMissionFromLibrary(uid, difficulty, reward) {
+  const mission = pickMission(difficulty);
+  mission.reward = reward || mission.reward;
+  await set(missionRef(uid), { ...mission, completed: false, detected: false });
+  return { ok: true, mission };
+}
+
+// ══════════════════════════════════════════
 // ADMIN — EXTENDER TIMER
 // ══════════════════════════════════════════
 
