@@ -75,6 +75,32 @@
     .mil-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--negro-2); border: 1px solid rgba(212,168,0,0.3); border-radius: 10px; padding: 12px 20px; font-size: 13px; color: var(--crema); z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
     .mil-toast.show { opacity: 1; }
     .log-entry { font-size: 11px; color: var(--crema-3); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.6; }
+
+    /* Validación de misiones */
+    .mil-validation-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; background: var(--negro-3); border-radius: 8px; margin-bottom: 6px;
+      border: 1px solid rgba(200,150,0,0.08); transition: border-color .15s;
+    }
+    .mil-validation-row.checked { border-color: rgba(50,150,50,0.35); background: rgba(50,150,50,0.06); }
+    .mil-validation-row input[type=checkbox] { width:18px; height:18px; accent-color: #6c6; flex-shrink:0; margin-top:2px; cursor:pointer; }
+    .mil-validation-nick { font-size:13px; font-weight:500; color:var(--crema); }
+    .mil-validation-mission { font-size:11px; color:var(--crema-3); margin-top:2px; line-height:1.5; }
+    .mil-validation-reward { font-size:10px; letter-spacing:1px; margin-top:3px; }
+    .mil-validation-reward.extra_vote   { color: #f5c842; }
+    .mil-validation-reward.immune       { color: #6c6; }
+    .mil-validation-reward.double_vote  { color: #f5c842; }
+    .mil-validation-reward.block_vote   { color: #aaf; }
+    .mil-validation-reward.transfer_million { color: #e88; }
+
+    /* Biblioteca de misiones */
+    .mil-lib-option {
+      padding: 8px 10px; border-radius: 6px; cursor: pointer;
+      border: 1px solid rgba(200,150,0,0.1); background: var(--negro-3);
+      font-size: 12px; color: var(--crema-2); line-height: 1.5; transition: all .12s;
+    }
+    .mil-lib-option:hover { border-color: rgba(200,150,0,0.3); background: rgba(200,150,0,0.06); }
+    .mil-lib-option.selected { border-color: #f5c842; background: rgba(200,150,0,0.1); color: var(--crema); }
   </style>
 </head>
 <body style="background:var(--negro);min-height:100vh;">
@@ -240,6 +266,20 @@
         <div id="votes-result-preview" style="display:none;margin-top:12px;"></div>
       </div>
 
+      <!-- Validación de misiones -->
+      <div class="admin-card" id="section-mission-validation" style="display:none;margin-bottom:10px;">
+        <div class="admin-card-label">✅ Validación de misiones</div>
+        <div style="font-size:11px;color:var(--crema-3);margin-bottom:12px;line-height:1.6;">
+          Marcá quiénes cumplieron su misión antes de pasar a la siguiente ronda.<br>
+          Las recompensas se aplican automáticamente al confirmar.
+        </div>
+        <div id="mission-validation-list"></div>
+        <button class="admin-btn primary" onclick="handleApplyValidations()" style="width:100%;margin-top:12px;">
+          ⚡ Aplicar recompensas confirmadas
+        </button>
+        <div id="rewards-applied-preview" style="display:none;margin-top:10px;font-size:12px;color:var(--crema-3);line-height:1.8;"></div>
+      </div>
+
       <!-- Siguiente ronda -->
       <div class="admin-card" style="margin-bottom:10px;">
         <div class="admin-card-label">Siguiente ronda</div>
@@ -290,22 +330,72 @@
           </div>
         </div>
 
-        <!-- Asignar misión -->
+        <!-- Asignar misión — biblioteca + personalizada -->
         <div style="margin-bottom:0;">
-          <div class="mil-label">Asignar misión personalizada</div>
+          <div class="mil-label">Asignar misión</div>
           <div style="display:flex;flex-direction:column;gap:8px;">
+
+            <!-- Jugador -->
             <select id="mission-player-select" class="mil-select">
               <option value="">— Elegir jugador —</option>
             </select>
-            <input type="text" id="mission-custom-text" class="mil-input" placeholder="Texto de la misión..." maxlength="120" />
-            <div class="mil-row">
-              <select id="mission-difficulty-select" class="mil-select" style="flex:1;">
-                <option value="easy">Fácil (+1 voto)</option>
-                <option value="medium">Media (+1 voto)</option>
-                <option value="hard">Difícil (inmunidad)</option>
-              </select>
-              <button class="admin-btn secondary small" onclick="handleAssignMission()">Asignar</button>
+
+            <!-- Tabs biblioteca / personalizada -->
+            <div style="display:flex;gap:0;border:1px solid rgba(200,150,0,0.2);border-radius:6px;overflow:hidden;">
+              <button id="tab-biblioteca" onclick="switchMissionTab('biblioteca')"
+                style="flex:1;padding:8px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:rgba(200,150,0,0.15);color:#f5c842;font-family:var(--font-body);">
+                📚 Biblioteca
+              </button>
+              <button id="tab-personalizada" onclick="switchMissionTab('personalizada')"
+                style="flex:1;padding:8px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:none;background:var(--negro-3);color:var(--crema-3);font-family:var(--font-body);">
+                ✏️ Personalizada
+              </button>
             </div>
+
+            <!-- Panel biblioteca -->
+            <div id="panel-biblioteca">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                <div>
+                  <label class="mil-label" style="margin-bottom:3px;">Categoría</label>
+                  <select id="lib-category" class="mil-select" onchange="renderLibraryMissions()">
+                    <option value="easy">Fáciles</option>
+                    <option value="medium">Medias</option>
+                    <option value="hard">Difíciles</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="mil-label" style="margin-bottom:3px;">Recompensa</label>
+                  <select id="lib-reward" class="mil-select">
+                    <option value="extra_vote">+1 Voto extra</option>
+                    <option value="double_vote">+2 Votos</option>
+                    <option value="immune">Inmunidad</option>
+                    <option value="block_vote">Bloquear voto</option>
+                    <option value="transfer_million">Pasar el millón</option>
+                    <option value="reveal_suspect">Ver sospechoso</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Lista de misiones de la biblioteca -->
+              <div id="library-missions-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+              <button class="admin-btn secondary small" onclick="handleAssignFromLibrary()" style="width:100%;">Asignar misión seleccionada</button>
+            </div>
+
+            <!-- Panel personalizada -->
+            <div id="panel-personalizada" style="display:none;">
+              <input type="text" id="mission-custom-text" class="mil-input" placeholder="Texto de la misión..." maxlength="160" style="margin-bottom:6px;" />
+              <div class="mil-row">
+                <select id="mission-reward-select" class="mil-select" style="flex:1;">
+                  <option value="extra_vote">+1 Voto extra</option>
+                  <option value="double_vote">+2 Votos</option>
+                  <option value="immune">Inmunidad</option>
+                  <option value="block_vote">Bloquear voto</option>
+                  <option value="transfer_million">Pasar el millón</option>
+                  <option value="reveal_suspect">Ver sospechoso</option>
+                </select>
+                <button class="admin-btn secondary small" onclick="handleAssignMission()">Asignar</button>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -347,10 +437,13 @@
       adminStartGame, adminSetPhase, adminSetTopic, adminOpenVoting,
       adminProcessVotes, adminNextRound,
       adminRotateMillion, adminEliminatePlayer,
-      adminAssignMission, adminEndGame, adminResetGame,
+      adminAssignMission, adminAssignMissionFromLibrary,
+      adminValidateMissions,
+      adminEndGame, adminResetGame,
       adminExtendTimer,
       listenState, listenPlayers, listenVotes,
       playersRef, missionsRef, historyRef,
+      MISSIONS, REWARD_LABELS,
     } from "./games/millon.js";
     import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { db } from "./js/firebase-init.js";
@@ -360,7 +453,9 @@
     let currentState   = null;
     let currentPlayers = {};
     let currentVotes   = {};
+    let currentMissions = {};
     let lastProcessed  = null;
+    let selectedLibMission = null; // misión seleccionada de la biblioteca
 
     // ── Auth ──
     onSession(async (user) => {
@@ -377,6 +472,10 @@
       listenState(onStateChange);
       listenPlayers(onPlayersChange);
       listenVotes(onVotesChange);
+      onValue(ref(db, "millon/missions"), (snap) => {
+        currentMissions = snap.exists() ? snap.val() : {};
+        renderMissionValidationPanel();
+      });
       onValue(ref(db, "millon/history"), (snap) => {
         renderHistory(snap.exists() ? snap.val() : {});
       });
@@ -606,6 +705,90 @@
       }).join("");
     }
 
+    // ── Validación de misiones ──
+    function renderMissionValidationPanel() {
+      const panel = document.getElementById("section-mission-validation");
+      const list  = document.getElementById("mission-validation-list");
+      if (!panel || !list) return;
+
+      // Solo mostrar en fase results o voting
+      const phase = currentState?.phase;
+      const showPanel = phase === "results" || phase === "voting";
+      panel.style.display = showPanel ? "block" : "none";
+      if (!showPanel) return;
+
+      // Jugadores con misión real (no fake) y vivos o recién eliminados
+      const withMission = Object.entries(currentMissions).filter(([uid, m]) => {
+        return m && !m.isFake && m.text && currentPlayers[uid];
+      });
+
+      if (!withMission.length) {
+        list.innerHTML = '<div style="font-size:12px;color:var(--crema-3);">No hay misiones asignadas esta ronda.</div>';
+        return;
+      }
+
+      const rewardLabels = {
+        extra_vote: "+1 Voto extra 🗳️", double_vote: "+2 Votos 🗳️🗳️",
+        immune: "Inmunidad 🛡️", block_vote: "Bloquear voto 🚫",
+        transfer_million: "Pasar el millón 💰", reveal_suspect: "Ver sospechoso 👁️",
+      };
+
+      list.innerHTML = withMission.map(([uid, m]) => {
+        const nick  = currentPlayers[uid]?.nick || uid;
+        const isMil = currentState?.millionaireUid === uid;
+        const rwLbl = rewardLabels[m.reward] || m.reward || "—";
+        return `
+          <div class="mil-validation-row" id="vrow-${uid}">
+            <input type="checkbox" id="vcheck-${uid}"
+              onchange="document.getElementById('vrow-${uid}').classList.toggle('checked', this.checked)" />
+            <div style="flex:1;">
+              <div class="mil-validation-nick">
+                ${nick} ${isMil ? '<span style="font-size:10px;color:#f5c842;">💰 millonario</span>' : ''}
+              </div>
+              <div class="mil-validation-mission">${m.text}</div>
+              <div class="mil-validation-reward ${m.reward || ''}">Recompensa: ${rwLbl}</div>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    // ── Tabs biblioteca / personalizada ──
+    window.switchMissionTab = function(tab) {
+      const isLib = tab === "biblioteca";
+      document.getElementById("panel-biblioteca").style.display    = isLib ? "block" : "none";
+      document.getElementById("panel-personalizada").style.display = isLib ? "none"  : "block";
+      document.getElementById("tab-biblioteca").style.background    = isLib ? "rgba(200,150,0,0.15)" : "var(--negro-3)";
+      document.getElementById("tab-biblioteca").style.color         = isLib ? "#f5c842" : "var(--crema-3)";
+      document.getElementById("tab-personalizada").style.background = isLib ? "var(--negro-3)" : "rgba(200,150,0,0.15)";
+      document.getElementById("tab-personalizada").style.color      = isLib ? "var(--crema-3)" : "#f5c842";
+      if (isLib) renderLibraryMissions();
+    };
+
+    window.renderLibraryMissions = function() {
+      const cat = document.getElementById("lib-category")?.value || "easy";
+      const missions = MISSIONS[cat] || [];
+      const el = document.getElementById("library-missions-list");
+      if (!el) return;
+      selectedLibMission = null;
+      el.innerHTML = missions.map((m, i) => `
+        <div class="mil-lib-option" id="libopt-${i}" onclick="selectLibMission(${i}, '${cat}')">
+          ${m.text}
+        </div>`).join("");
+    };
+
+    window.selectLibMission = function(idx, cat) {
+      document.querySelectorAll(".mil-lib-option").forEach(el => el.classList.remove("selected"));
+      const el = document.getElementById(`libopt-${idx}`);
+      if (el) el.classList.add("selected");
+      const missions = MISSIONS[cat] || [];
+      selectedLibMission = missions[idx] || null;
+    };
+
+    // ── Renderizar al cargar por primera vez ──
+    window.addEventListener("DOMContentLoaded", () => {
+      renderLibraryMissions();
+    });
+
     // ══════════════════════════════════════════
     // HANDLERS
     // ══════════════════════════════════════════
@@ -743,14 +926,61 @@
       toast(`☠️ ${currentPlayers[uid]?.nick || uid} eliminado`);
     };
 
+    window.handleApplyValidations = async function() {
+      const withMission = Object.entries(currentMissions).filter(([uid, m]) => m && !m.isFake && m.text);
+      if (!withMission.length) return toast("No hay misiones para validar");
+
+      const validations = {};
+      withMission.forEach(([uid]) => {
+        const cb = document.getElementById(`vcheck-${uid}`);
+        validations[uid] = cb ? cb.checked : false;
+      });
+
+      const result = await adminValidateMissions(validations);
+      if (!result.ok) return toast("❌ Error al aplicar recompensas");
+
+      const preview = document.getElementById("rewards-applied-preview");
+      if (preview) {
+        if (result.rewardsApplied.length) {
+          preview.style.display = "block";
+          preview.innerHTML = "<strong style='color:var(--crema);'>Recompensas aplicadas:</strong><br>" +
+            result.rewardsApplied.map(r => `✅ ${r.nick}: ${r.label}`).join("<br>");
+        } else {
+          preview.style.display = "block";
+          preview.innerHTML = "<span style='color:var(--crema-3);'>Sin recompensas esta ronda.</span>";
+        }
+      }
+
+      toast(`⚡ ${result.rewardsApplied.length} recompensa${result.rewardsApplied.length !== 1 ? "s" : ""} aplicada${result.rewardsApplied.length !== 1 ? "s" : ""}`);
+    };
+
+    window.handleAssignFromLibrary = async function() {
+      const uid    = document.getElementById("mission-player-select")?.value;
+      const reward = document.getElementById("lib-reward")?.value || "extra_vote";
+      if (!uid) return toast("Elegí un jugador");
+      if (!selectedLibMission) return toast("Seleccioná una misión de la lista");
+
+      const { set } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+      const { missionRef } = await import("./games/millon.js");
+      await adminAssignMission(uid, {
+        text:       selectedLibMission.text,
+        difficulty: document.getElementById("lib-category")?.value || "easy",
+        reward,
+        isFake:     false,
+      });
+
+      toast(`📋 Misión asignada a ${currentPlayers[uid]?.nick || uid}`);
+      selectedLibMission = null;
+      document.querySelectorAll(".mil-lib-option").forEach(el => el.classList.remove("selected"));
+    };
+
     window.handleAssignMission = async function() {
-      const uid  = document.getElementById("mission-player-select")?.value;
-      const text = document.getElementById("mission-custom-text")?.value?.trim();
-      const diff = document.getElementById("mission-difficulty-select")?.value || "easy";
+      const uid    = document.getElementById("mission-player-select")?.value;
+      const text   = document.getElementById("mission-custom-text")?.value?.trim();
+      const reward = document.getElementById("mission-reward-select")?.value || "extra_vote";
       if (!uid)  return toast("Elegí un jugador");
       if (!text) return toast("Escribí el texto de la misión");
-      const rewardMap = { easy: "extra_vote", medium: "extra_vote", hard: "immune" };
-      await adminAssignMission(uid, { text, difficulty: diff, reward: rewardMap[diff] });
+      await adminAssignMission(uid, { text, difficulty: "custom", reward, isFake: false });
       toast(`📋 Misión asignada a ${currentPlayers[uid]?.nick || uid}`);
       document.getElementById("mission-custom-text").value = "";
     };
