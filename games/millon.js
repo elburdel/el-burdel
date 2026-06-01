@@ -1,7 +1,7 @@
 // games/millon.js — Lógica Firebase para El Millón · El Burdel
 // Estructura Firebase:
-//   millon/state    → { active, phase, round, millionaireUid, timerEndsAt, topic }
-//   millon/players  → { uid: { nick, alive, votesExtra, immune, connected, ready } }
+//   millon/state    → { active, phase, round, millionaireUid, timerEndsAt, topic, enrollmentOpen }
+//   millon/players  → { uid: { nick, alive, votesExtra, immune, connected, enrolled } }
 //   millon/missions → { uid: { text, difficulty, reward, completed, detected, isFake } }
 //   millon/votes    → { uid: { voted } }
 //   millon/history  → { round1: { millionaire, eliminated, mission, success } }
@@ -42,7 +42,7 @@ export const MISSIONS = {
     { text: "Hablá muchísimo durante al menos 2 minutos seguidos", reward: "extra_vote" },
     { text: "No hablés durante 1 minuto entero", reward: "extra_vote" },
     { text: "Interrumpí exactamente 3 veces", reward: "extra_vote" },
-    { text: "Hacé que alguien diga \"yo no fui\"", reward: "extra_vote" },
+    { text: 'Hacé que alguien diga "yo no fui"', reward: "extra_vote" },
     { text: "Coincidí con todo lo que diga una persona", reward: "extra_vote" },
   ],
   hard: [
@@ -62,12 +62,12 @@ export const MISSIONS = {
 };
 
 export const REWARD_LABELS = {
-  extra_vote: "+1 Voto extra",
-  immune: "Inmunidad esta ronda",
-  double_vote: "+2 Votos",
-  transfer_million: "Pasar el millón",
-  block_vote: "Bloquear un voto",
-  reveal_suspect: "Ver quién sospecha de vos",
+  extra_vote:      "+1 Voto extra",
+  immune:          "Inmunidad esta ronda",
+  double_vote:     "+2 Votos",
+  transfer_million:"Pasar el millón",
+  block_vote:      "Bloquear un voto",
+  reveal_suspect:  "Ver quién sospecha de vos",
 };
 
 // ══════════════════════════════════════════
@@ -82,19 +82,18 @@ export function pickMission(difficulty = "easy") {
   const pool = MISSIONS[difficulty] || MISSIONS.easy;
   const mission = { ...pickRandom(pool) };
   mission.completed = false;
-  mission.detected = false;
+  mission.detected  = false;
   mission.difficulty = difficulty;
   if (!mission.isFake) mission.isFake = false;
   return mission;
 }
 
 export function pickMissionWithFakeChance(difficulty = "easy") {
-  // 15% de chance de misión falsa
   if (Math.random() < 0.15) {
     const fake = { ...pickRandom(MISSIONS.fake) };
     fake.difficulty = difficulty;
-    fake.completed = false;
-    fake.detected = false;
+    fake.completed  = false;
+    fake.detected   = false;
     return fake;
   }
   return pickMission(difficulty);
@@ -127,15 +126,15 @@ export const voteRef      = (uid) => ref(db, `millon/votes/${uid}`);
 // ══════════════════════════════════════════
 
 export const DEFAULT_SETTINGS = {
-  talkTime: 300,      // segundos de conversación por ronda
-  minPlayers: 6,      // mínimo para iniciar
-  finalPlayers: 3,    // jugadores al llegar al final
-  revealVotes: false, // mostrar quién votó a quién en resultados
-  allowTransfer: true // permitir que el millón se transfiera
+  talkTime:     300,
+  minPlayers:   4,
+  finalPlayers: 3,
+  revealVotes:  false,
+  allowTransfer: true,
 };
 
 // ══════════════════════════════════════════
-// ESTADO PÚBLICO — lo que ven los jugadores
+// ESTADO PÚBLICO
 // ══════════════════════════════════════════
 
 export async function getPublicState() {
@@ -155,19 +154,72 @@ export async function getSettings() {
 }
 
 // ══════════════════════════════════════════
-// JOIN / PRESENCIA JUGADOR
+// INSCRIPCIÓN — JUGADOR
+// Se llama solo cuando el jugador presiona "Quiero jugar"
 // ══════════════════════════════════════════
 
+export async function enrollPlayer(uid, nick) {
+  // Verificar que las inscripciones estén abiertas
+  const stateSnap = await get(stateRef());
+  const state = stateSnap.exists() ? stateSnap.val() : {};
+  if (!state.enrollmentOpen) {
+    return { ok: false, reason: "Las inscripciones están cerradas." };
+  }
+  // Verificar que no haya partida activa
+  if (state.active && state.phase !== "ended") {
+    return { ok: false, reason: "Ya hay una partida en curso." };
+  }
+
+  const snap = await get(playerRef(uid));
+  const existing = snap.exists() ? snap.val() : {};
+  await update(playerRef(uid), {
+    nick:       nick || existing.nick || "Jugador",
+    connected:  true,
+    alive:      true,
+    enrolled:   true,
+    votesExtra: 0,
+    immune:     false,
+    ready:      false,
+  });
+  return { ok: true };
+}
+
+export async function unenrollPlayer(uid) {
+  const snap = await get(playerRef(uid));
+  if (!snap.exists()) return;
+  await update(playerRef(uid), { enrolled: false, connected: false });
+}
+
+// Registrar presencia sin inscribir al jugador en la partida
+// (para jugadores que llegan a la página pero aún no presionaron "Quiero jugar")
+export async function registerPresence(uid, nick) {
+  const snap = await get(playerRef(uid));
+  const existing = snap.exists() ? snap.val() : {};
+  // Solo actualizamos connected y nick; enrolled permanece como estaba
+  await update(playerRef(uid), {
+    nick:      nick || existing.nick || "Jugador",
+    connected: true,
+    enrolled:  existing.enrolled || false,
+    alive:     existing.alive !== undefined ? existing.alive : false,
+  });
+}
+
+export async function setDisconnected(uid) {
+  await update(playerRef(uid), { connected: false });
+}
+
+// Compat: joinGame sigue funcionando durante la partida activa
 export async function joinGame(uid, nick) {
   const snap = await get(playerRef(uid));
   const existing = snap.exists() ? snap.val() : {};
   await update(playerRef(uid), {
-    nick: nick || existing.nick || "Jugador",
-    connected: true,
-    alive: existing.alive !== undefined ? existing.alive : true,
+    nick:       nick || existing.nick || "Jugador",
+    connected:  true,
+    alive:      existing.alive !== undefined ? existing.alive : true,
+    enrolled:   existing.enrolled !== undefined ? existing.enrolled : false,
     votesExtra: existing.votesExtra || 0,
-    immune: existing.immune || false,
-    ready: existing.ready || false,
+    immune:     existing.immune || false,
+    ready:      existing.ready || false,
   });
 }
 
@@ -175,12 +227,8 @@ export async function setReady(uid, value) {
   await update(playerRef(uid), { ready: value });
 }
 
-export async function setDisconnected(uid) {
-  await update(playerRef(uid), { connected: false });
-}
-
 // ══════════════════════════════════════════
-// OBTENER MISIÓN PROPIA (solo el jugador la ve)
+// MISIÓN PROPIA
 // ══════════════════════════════════════════
 
 export async function getMyMission(uid) {
@@ -193,7 +241,6 @@ export async function getMyMission(uid) {
 // ══════════════════════════════════════════
 
 export async function castVote(voterUid, targetUid) {
-  // Solo se puede votar una vez por ronda
   const snap = await get(voteRef(voterUid));
   if (snap.exists()) return { ok: false, reason: "Ya votaste esta ronda." };
   await set(voteRef(voterUid), { voted: targetUid });
@@ -206,7 +253,7 @@ export async function getMyVote(uid) {
 }
 
 // ══════════════════════════════════════════
-// LISTENERS TIEMPO REAL — para el cliente
+// LISTENERS TIEMPO REAL
 // ══════════════════════════════════════════
 
 export function listenState(callback) {
@@ -234,7 +281,36 @@ export function listenVotes(callback) {
 }
 
 // ══════════════════════════════════════════
+// ADMIN — ABRIR / CERRAR INSCRIPCIONES
+// ══════════════════════════════════════════
+
+export async function adminOpenEnrollment() {
+  // Resetea jugadores anteriores y abre inscripciones
+  await set(playersRef(), null);
+  await set(stateRef(), {
+    active:          false,
+    phase:           "lobby",
+    enrollmentOpen:  true,
+    round:           0,
+    millionaireUid:  null,
+    timerEndsAt:     null,
+    topic:           "",
+  });
+  return { ok: true };
+}
+
+export async function adminCloseEnrollment() {
+  await update(stateRef(), { enrollmentOpen: false });
+  return { ok: true };
+}
+
+export async function adminKickPlayer(uid) {
+  await update(playerRef(uid), { enrolled: false, connected: false });
+}
+
+// ══════════════════════════════════════════
 // ADMIN — INICIAR PARTIDA
+// Solo los jugadores con enrolled:true participan
 // ══════════════════════════════════════════
 
 export async function adminStartGame(settings = {}) {
@@ -242,14 +318,16 @@ export async function adminStartGame(settings = {}) {
   await set(settingsRef(), mergedSettings);
 
   const playersSnap = await get(playersRef());
-  const allPlayers = playersSnap.exists() ? playersSnap.val() : {};
-  const uids = Object.keys(allPlayers).filter(uid => allPlayers[uid].connected);
+  const allPlayers  = playersSnap.exists() ? playersSnap.val() : {};
+
+  // Solo los inscriptos
+  const uids = Object.keys(allPlayers).filter(uid => allPlayers[uid].enrolled === true);
 
   if (uids.length < mergedSettings.minPlayers) {
-    return { ok: false, reason: `Se necesitan al menos ${mergedSettings.minPlayers} jugadores conectados.` };
+    return { ok: false, reason: `Se necesitan al menos ${mergedSettings.minPlayers} jugadores inscriptos.` };
   }
 
-  // Elegir millonario
+  // Elegir millonario al azar
   const millionaireUid = pickRandom(uids);
 
   // Asignar misiones
@@ -263,28 +341,29 @@ export async function adminStartGame(settings = {}) {
   // Resetear votos
   await set(votesRef(), null);
 
-  // Resetear jugadores
+  // Resetear jugadores inscriptos
   const playersUpdate = {};
   uids.forEach(uid => {
     playersUpdate[uid] = {
       ...allPlayers[uid],
-      alive: true,
+      alive:      true,
       votesExtra: 0,
-      immune: false,
+      immune:     false,
+      enrolled:   true,
     };
   });
   await set(playersRef(), playersUpdate);
 
   // Setear estado
-  const settings_ = await getSettings();
   await set(stateRef(), {
-    active: true,
-    phase: "talking",
-    round: 1,
+    active:          true,
+    phase:           "talking",
+    enrollmentOpen:  false,
+    round:           1,
     millionaireUid,
-    timerEndsAt: Date.now() + settings_.talkTime * 1000,
-    topic: "",
-    totalPlayers: uids.length,
+    timerEndsAt:     Date.now() + mergedSettings.talkTime * 1000,
+    topic:           "",
+    totalPlayers:    uids.length,
   });
 
   return { ok: true, millionaireUid };
@@ -296,6 +375,10 @@ export async function adminStartGame(settings = {}) {
 
 export async function adminSetPhase(phase) {
   await update(stateRef(), { phase });
+}
+
+export async function adminOpenVoting() {
+  await update(stateRef(), { phase: "voting" });
 }
 
 export async function adminSetTopic(topic) {
@@ -347,11 +430,11 @@ export async function adminProcessVotes() {
   const missionText = missionSnap?.exists() ? missionSnap.val().text : "";
 
   await push(historyRef(), {
-    round: state.round,
+    round:       state.round,
     millionaire: state.millionaireUid,
-    eliminated: eliminatedUid,
-    mission: missionText,
-    success: !hadMillion,
+    eliminated:  eliminatedUid,
+    mission:     missionText,
+    success:     !hadMillion,
     tally,
   });
 
@@ -378,33 +461,27 @@ export async function adminNextRound(eliminatedUid, hadMillion) {
   const state    = stateSnap.exists() ? stateSnap.val() : {};
   const settings = { ...DEFAULT_SETTINGS, ...(settingsSnap.exists() ? settingsSnap.val() : {}) };
 
-  // Eliminar jugador
   if (eliminatedUid) {
     await update(playerRef(eliminatedUid), { alive: false });
   }
 
-  // Contar vivos
   const aliveUids = Object.keys(players).filter(
-    uid => players[uid].alive && uid !== eliminatedUid
+    uid => players[uid].alive && uid !== eliminatedUid && players[uid].enrolled
   );
 
-  // ¿Terminó el juego?
   if (aliveUids.length <= settings.finalPlayers) {
     await update(stateRef(), { phase: "final", active: true });
     return { ended: true };
   }
 
-  // Rotar millón si fue descubierto, o random
   let newMillionaire = state.millionaireUid;
   if (hadMillion || Math.random() < 0.25) {
-    // 25% chance de rotar aunque no fue descubierto (paranoia)
     const candidates = aliveUids.filter(uid => uid !== state.millionaireUid);
     if (candidates.length > 0) {
       newMillionaire = pickRandom(candidates);
     }
   }
 
-  // Nuevas misiones
   const totalAlive = aliveUids.length;
   const missionsUpdate = {};
   aliveUids.forEach(uid => {
@@ -415,24 +492,23 @@ export async function adminNextRound(eliminatedUid, hadMillion) {
   await set(missionsRef(), missionsUpdate);
   await set(votesRef(), null);
 
-  // Resetear inmunidades y votos extra
   const playersUpdate = {};
   aliveUids.forEach(uid => {
     playersUpdate[uid] = {
       ...players[uid],
-      alive: true,
-      immune: false,
+      alive:      true,
+      immune:     false,
       votesExtra: 0,
     };
   });
   await set(playersRef(), playersUpdate);
 
   await update(stateRef(), {
-    phase: "talking",
-    round: (state.round || 1) + 1,
+    phase:          "talking",
+    round:          (state.round || 1) + 1,
     millionaireUid: newMillionaire,
-    timerEndsAt: Date.now() + settings.talkTime * 1000,
-    totalPlayers: state.totalPlayers || aliveUids.length,
+    timerEndsAt:    Date.now() + settings.talkTime * 1000,
+    totalPlayers:   state.totalPlayers || aliveUids.length,
   });
 
   return { ended: false, newMillionaire, rotated: newMillionaire !== state.millionaireUid };
@@ -448,7 +524,7 @@ export async function adminRotateMillion(targetUid = null) {
   const stateSnap = await get(stateRef());
   const state = stateSnap.exists() ? stateSnap.val() : {};
 
-  const aliveUids = Object.keys(players).filter(uid => players[uid].alive);
+  const aliveUids = Object.keys(players).filter(uid => players[uid].alive && players[uid].enrolled);
   const newMillionaire = targetUid || pickRandom(aliveUids.filter(uid => uid !== state.millionaireUid));
 
   await update(stateRef(), { millionaireUid: newMillionaire });
@@ -471,7 +547,7 @@ export async function adminAssignMission(uid, missionData) {
   await set(missionRef(uid), {
     ...missionData,
     completed: false,
-    detected: false,
+    detected:  false,
   });
 }
 
