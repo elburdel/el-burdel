@@ -303,6 +303,35 @@
     /* Loading */
     #mil-loading { font-size:13px; color:var(--crema-3); letter-spacing:1.5px; text-transform:uppercase; padding:64px 0; text-align:center; }
 
+    /* Pantalla final ganador/perdedor */
+    .mil-final-card {
+      width:100%; border-radius:20px; padding:40px 24px;
+      display:flex; flex-direction:column; align-items:center; gap:18px;
+      text-align:center; animation: fadeSlideUp .6s ease both;
+    }
+    .mil-final-card.win-mil {
+      background: linear-gradient(160deg, rgba(26,74,42,0.5), rgba(200,150,0,0.12));
+      border: 2px solid rgba(200,150,0,0.5);
+      box-shadow: 0 0 60px rgba(200,150,0,0.1);
+    }
+    .mil-final-card.lose-mil {
+      background: rgba(30,30,50,0.4);
+      border: 2px solid rgba(100,100,200,0.3);
+    }
+    .mil-final-card.win-innocent {
+      background: linear-gradient(160deg, rgba(40,80,130,0.35), rgba(60,40,100,0.2));
+      border: 2px solid rgba(100,150,255,0.35);
+    }
+    .mil-final-icon { font-size: 64px; }
+    .mil-final-title {
+      font-family: var(--font-title); font-size: 36px;
+      letter-spacing: 4px; line-height: 1.1;
+    }
+    .mil-final-card.win-mil     .mil-final-title { color: #f5c842; }
+    .mil-final-card.lose-mil    .mil-final-title { color: #888; }
+    .mil-final-card.win-innocent .mil-final-title { color: #aaf; }
+    .mil-final-subtitle { font-size: 14px; color: var(--crema-3); line-height: 1.7; }
+
     /* Ya votaste */
     .mil-voted-notice {
       width:100%; padding:14px; text-align:center;
@@ -356,13 +385,13 @@
       </div>
     </div>
 
-    <!-- ── ESPERANDO (inscripciones cerradas, partida no iniciada) ── -->
+    <!-- ── ESPERANDO (inscripciones cerradas, partida no iniciada, o pre-ronda) ── -->
     <div class="mil-state" id="state-waiting">
       <div class="mil-waiting-icon">💰</div>
-      <div class="mil-waiting-title">Esperando al admin</div>
-      <div class="mil-waiting-sub">
-        Las inscripciones están cerradas.<br>
-        El admin va a iniciar la ronda en breve.
+      <div class="mil-waiting-title" id="waiting-title">Esperando al admin</div>
+      <div class="mil-waiting-sub" id="waiting-sub">
+        El admin está configurando la próxima ronda.<br>
+        Ya arranca.
       </div>
     </div>
 
@@ -455,6 +484,11 @@
       <div class="mil-waiting-icon" style="animation:none;">🏁</div>
       <div class="mil-waiting-title">Partida terminada</div>
       <div class="mil-waiting-sub">El admin va a resetear el juego.</div>
+    </div>
+
+    <!-- ── VICTORIA / DERROTA FINAL ── -->
+    <div class="mil-state" id="state-winner">
+      <div id="mil-final-result-card" style="width:100%;"></div>
     </div>
 
     <!-- ── NO INSCRIPTO (partida activa sin estar anotado) ── -->
@@ -637,12 +671,10 @@
       hideAll();
       stopTimer();
 
-      // Sin estado: esperar
       if (!state) { show("state-waiting"); return; }
 
       const phase = state.phase;
 
-      // Lobby: inscripciones abiertas
       if (phase === "lobby" || (!state.active && state.enrollmentOpen)) {
         show("state-lobby");
         renderLobbyList();
@@ -650,21 +682,29 @@
         return;
       }
 
-      // Inscripciones cerradas, partida no iniciada
       if (!state.active && !state.enrollmentOpen && phase !== "ended") {
+        const waitTitle = document.getElementById("waiting-title");
+        const waitSub   = document.getElementById("waiting-sub");
+        if (waitTitle) waitTitle.textContent = "Esperando al admin";
+        if (waitSub)   waitSub.textContent   = "Las inscripciones están cerradas. El admin va a iniciar la ronda en breve.";
         show("state-waiting");
         return;
       }
 
-      // Partida activa: verificar si el jugador está inscripto
+      // Fase pregame: admin configurando la próxima ronda
+      if (phase === "pregame") {
+        const waitTitle = document.getElementById("waiting-title");
+        const waitSub   = document.getElementById("waiting-sub");
+        if (waitTitle) waitTitle.textContent = state.nextIsFinal ? "Preparando ronda final" : "El admin configura la ronda";
+        if (waitSub)   waitSub.textContent   = "Ya arranca. Esperá un momento.";
+        show("state-waiting");
+        return;
+      }
+
       if (state.active) {
-        if (!isEnrolled) {
-          show("state-not-enrolled");
-          return;
-        }
+        if (!isEnrolled) { show("state-not-enrolled"); return; }
 
         if (phase === "talking") {
-          // Si es una ronda nueva y aún no vimos el mensaje privado → mostrar mensaje
           const round = state.round || 1;
           if (msgDismissedForRound < round && !roleRevealed) {
             renderRoundMessage(state);
@@ -698,7 +738,13 @@
           renderVoteState();
         }
         else if (phase === "ended") {
-          show("state-ended");
+          // Verificar si hay resultado final declarado
+          if (state.millionaireWon !== undefined) {
+            renderFinalWinnerScreen(state);
+            show("state-winner");
+          } else {
+            show("state-ended");
+          }
         }
         else {
           show("state-waiting");
@@ -706,7 +752,16 @@
         return;
       }
 
-      if (phase === "ended") { show("state-ended"); return; }
+      if (phase === "ended") {
+        if (state.millionaireWon !== undefined) {
+          renderFinalWinnerScreen(state);
+          show("state-winner");
+        } else {
+          show("state-ended");
+        }
+        return;
+      }
+
       show("state-waiting");
     }
 
@@ -1019,6 +1074,51 @@
       document.getElementById("mil-vote-modal").style.display = "none";
     };
 
+    // ── Pantalla final ganador/perdedor ──
+    function renderFinalWinnerScreen(state) {
+      const el = document.getElementById("mil-final-result-card");
+      if (!el) return;
+
+      const millionaireWon = state.millionaireWon;
+      const isMil = state.millionaireUid === currentUid;
+      const milNick = players[state.millionaireUid]?.nick || "?";
+
+      let cardClass, icon, title, subtitle;
+
+      if (millionaireWon) {
+        if (isMil) {
+          cardClass = "win-mil";
+          icon = "💰";
+          title = "¡GANASTE!";
+          subtitle = "Sobreviviste hasta el final con el millón.<br>Nadie te descubrió. Sos el Millonario.";
+        } else {
+          cardClass = "lose-mil";
+          icon = "😔";
+          title = "PERDISTE";
+          subtitle = `<strong style="color:#f5c842;">${milNick}</strong> tenía el millón y sobrevivió hasta el final.<br>Esta vez no lo encontraron.`;
+        }
+      } else {
+        if (isMil) {
+          cardClass = "lose-mil";
+          icon = "💀";
+          title = "TE DESCUBRIERON";
+          subtitle = "Los inocentes detectaron que tenías el millón.<br>Ganaron ellos.";
+        } else {
+          cardClass = "win-innocent";
+          icon = "🎉";
+          title = "¡GANARON!";
+          subtitle = `El millonario era <strong style="color:#f5c842;">${milNick}</strong>.<br>Lo descubrieron. Ganan los inocentes.`;
+        }
+      }
+
+      el.innerHTML = `
+        <div class="mil-final-card ${cardClass}">
+          <div class="mil-final-icon">${icon}</div>
+          <div class="mil-final-title">${title}</div>
+          <div class="mil-final-subtitle">${subtitle}</div>
+        </div>`;
+    }
+
     // ── Resultados ──
     function renderResult(state) {
       const elimUid  = state.eliminatedUid;
@@ -1063,7 +1163,7 @@
     }
 
     // ── Helpers ──
-    const ALL_STATES = ["state-lobby","state-waiting","state-message","state-ready","state-revealed","state-voting","state-results","state-final","state-ended","state-not-enrolled"];
+    const ALL_STATES = ["state-lobby","state-waiting","state-message","state-ready","state-revealed","state-voting","state-results","state-final","state-ended","state-not-enrolled","state-winner"];
     function hideAll() { ALL_STATES.forEach(id => { const e=document.getElementById(id); if(e) e.classList.remove("active"); }); }
     function show(id)  { const e=document.getElementById(id); if(e) e.classList.add("active"); }
   </script>
