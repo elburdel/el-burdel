@@ -327,8 +327,10 @@ export async function adminStartGame(settings = {}) {
     return { ok: false, reason: `Se necesitan al menos ${mergedSettings.minPlayers} jugadores inscriptos.` };
   }
 
-  // Elegir millonario al azar
-  const millionaireUid = pickRandom(uids);
+  // Elegir millonario — respetar override del admin si existe
+  const millionaireUid = (mergedSettings.millionaireOverride && uids.includes(mergedSettings.millionaireOverride))
+    ? mergedSettings.millionaireOverride
+    : pickRandom(uids);
 
   // Asignar misiones
   const missionsUpdate = {};
@@ -450,7 +452,9 @@ export async function adminProcessVotes() {
 // ADMIN — SIGUIENTE RONDA
 // ══════════════════════════════════════════
 
-export async function adminNextRound(eliminatedUid, hadMillion) {
+// ── Paso 1: eliminar jugador y preparar la siguiente ronda
+// Devuelve los datos necesarios para que el admin configure antes de iniciar
+export async function adminPrepareNextRound(eliminatedUid) {
   const [playersSnap, stateSnap, settingsSnap] = await Promise.all([
     get(playersRef()),
     get(stateRef()),
@@ -461,37 +465,72 @@ export async function adminNextRound(eliminatedUid, hadMillion) {
   const state    = stateSnap.exists() ? stateSnap.val() : {};
   const settings = { ...DEFAULT_SETTINGS, ...(settingsSnap.exists() ? settingsSnap.val() : {}) };
 
+  // Marcar eliminado
   if (eliminatedUid) {
     await update(playerRef(eliminatedUid), { alive: false });
   }
 
   const aliveUids = Object.keys(players).filter(
-    uid => players[uid].alive && uid !== eliminatedUid && players[uid].enrolled
+    uid => players[uid].enrolled && players[uid].alive !== false && uid !== eliminatedUid
   );
 
-  if (aliveUids.length <= settings.finalPlayers) {
-    await update(stateRef(), { phase: "final", active: true });
-    return { ended: true };
+  const isFinal = aliveUids.length <= settings.finalPlayers;
+
+  if (isFinal) {
+    await update(stateRef(), { phase: "pregame", active: true, nextIsFinal: true });
+  } else {
+    await update(stateRef(), { phase: "pregame", active: true, nextIsFinal: false });
   }
 
-  let newMillionaire = state.millionaireUid;
-  if (hadMillion || Math.random() < 0.25) {
-    const candidates = aliveUids.filter(uid => uid !== state.millionaireUid);
-    if (candidates.length > 0) {
-      newMillionaire = pickRandom(candidates);
-    }
-  }
+  return {
+    aliveUids,
+    currentMillionaire: state.millionaireUid,
+    isFinal,
+    round: (state.round || 1) + 1,
+    talkTime: settings.talkTime,
+  };
+}
 
-  const totalAlive = aliveUids.length;
+// ── Paso 2: el admin confirmó configuración → lanzar ronda
+// config: { millionaireUid, talkTime, missions: { uid: { text, reward, difficulty } } }
+export async function adminLaunchRound(config) {
+  const [playersSnap, stateSnap, settingsSnap] = await Promise.all([
+    get(playersRef()),
+    get(stateRef()),
+    get(settingsRef()),
+  ]);
+
+  const players  = playersSnap.exists() ? playersSnap.val() : {};
+  const state    = stateSnap.exists() ? stateSnap.val() : {};
+  const settings = { ...DEFAULT_SETTINGS, ...(settingsSnap.exists() ? settingsSnap.val() : {}) };
+
+  const talkTime = config.talkTime || settings.talkTime || 300;
+  const aliveUids = Object.keys(players).filter(
+    uid => players[uid].enrolled && players[uid].alive !== false
+  );
+
+  const isFinal = state.nextIsFinal || aliveUids.length <= settings.finalPlayers;
+
+  // Missions: usar las del config, o auto-generar para los que no tengan
   const missionsUpdate = {};
   aliveUids.forEach(uid => {
-    const difficulty = getDifficultyForRound(totalAlive, state.totalPlayers || totalAlive);
-    missionsUpdate[uid] = pickMissionWithFakeChance(difficulty);
+    if (config.missions && config.missions[uid]) {
+      missionsUpdate[uid] = {
+        ...config.missions[uid],
+        completed: false,
+        detected:  false,
+        isFake:    false,
+      };
+    } else {
+      const difficulty = getDifficultyForRound(aliveUids.length, state.totalPlayers || aliveUids.length);
+      missionsUpdate[uid] = pickMissionWithFakeChance(difficulty);
+    }
   });
 
   await set(missionsRef(), missionsUpdate);
   await set(votesRef(), null);
 
+  // Resetear players vivos
   const playersUpdate = {};
   aliveUids.forEach(uid => {
     playersUpdate[uid] = {
@@ -499,19 +538,55 @@ export async function adminNextRound(eliminatedUid, hadMillion) {
       alive:      true,
       immune:     false,
       votesExtra: 0,
+      blockVote:  false,
     };
   });
   await set(playersRef(), playersUpdate);
 
+  const newRound = (state.round || 1);
   await update(stateRef(), {
-    phase:          "talking",
-    round:          (state.round || 1) + 1,
-    millionaireUid: newMillionaire,
-    timerEndsAt:    Date.now() + settings.talkTime * 1000,
+    phase:          isFinal ? "final" : "talking",
+    round:          newRound,
+    millionaireUid: config.millionaireUid,
+    timerEndsAt:    Date.now() + talkTime * 1000,
+    nextIsFinal:    isFinal,
     totalPlayers:   state.totalPlayers || aliveUids.length,
   });
 
-  return { ended: false, newMillionaire, rotated: newMillionaire !== state.millionaireUid };
+  return { ok: true, isFinal, millionaireUid: config.millionaireUid };
+}
+
+// Compat: versión simplificada sin configuración previa
+export async function adminNextRound(eliminatedUid, hadMillion) {
+  const prep = await adminPrepareNextRound(eliminatedUid);
+  const { aliveUids, currentMillionaire, isFinal, talkTime } = prep;
+
+  if (isFinal) return { ended: true };
+
+  // Sin configuración manual: elegir millonario automáticamente si tenía el millón
+  let newMillionaire = currentMillionaire;
+  if (hadMillion) {
+    const candidates = aliveUids.filter(uid => uid !== currentMillionaire);
+    if (candidates.length > 0) newMillionaire = pickRandom(candidates);
+  }
+
+  const result = await adminLaunchRound({
+    millionaireUid: newMillionaire,
+    talkTime,
+    missions: null, // auto-generar
+  });
+
+  return { ended: false, newMillionaire, rotated: newMillionaire !== currentMillionaire };
+}
+
+// ── Declarar ganador de la ronda final
+export async function adminDeclareFinalWinner(millionaireWon) {
+  await update(stateRef(), {
+    phase:           "ended",
+    active:          false,
+    millionaireWon,
+  });
+  return { ok: true };
 }
 
 // ══════════════════════════════════════════
