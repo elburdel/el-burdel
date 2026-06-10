@@ -10,14 +10,14 @@
   <meta property="og:site_name" content="El Burdel" />
   <meta property="og:title" content="El Burdel" />
   <meta property="og:description" content="Tu panel de juego en El Burdel." />
-  <meta property="og:url" content="https://elburdel.github.io/el-burdel/dashboard.html" />
-  <meta property="og:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta property="og:url" content="https://elburdel.com.ar/dashboard.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="El Burdel" />
   <meta name="twitter:description" content="Tu panel de juego en El Burdel." />
-  <meta name="twitter:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
@@ -265,12 +265,12 @@
 
     // ── AUTH ──
     onSession(async (user) => {
-      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      if (!user) { window.location.href = "/login.html"; return; }
       const data = await getUserData(user.uid);
-      if (!data) { window.location.href = "/el-burdel/login.html"; return; }
-      if (data.status === "pending") { window.location.href = "/el-burdel/pending.html"; return; }
-      if (data.status === "paused")  { window.location.href = "/el-burdel/paused.html"; return; }
-      if (data.role === "admin")     { window.location.href = "/el-burdel/admin.html"; return; }
+      if (!data) { window.location.href = "/login.html"; return; }
+      if (data.status === "pending") { window.location.href = "/pending.html"; return; }
+      if (data.status === "paused")  { window.location.href = "/paused.html"; return; }
+      if (data.role === "admin")     { window.location.href = "/admin.html"; return; }
 
       currentUser = user;
       currentUserData = data;
