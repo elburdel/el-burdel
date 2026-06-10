@@ -10,14 +10,14 @@
   <meta property="og:site_name" content="El Burdel" />
   <meta property="og:title" content="Cuenta pausada — El Burdel" />
   <meta property="og:description" content="Tu cuenta está pausada." />
-  <meta property="og:url" content="https://elburdel.github.io/el-burdel/paused.html" />
-  <meta property="og:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta property="og:url" content="https://elburdel.com.ar/paused.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cuenta pausada — El Burdel" />
   <meta name="twitter:description" content="Tu cuenta está pausada." />
-  <meta name="twitter:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
     .status-main {
@@ -133,21 +133,21 @@
 
     onSession(async (user) => {
       if (!user) {
-        window.location.href = "/el-burdel/login.html";
+        window.location.href = "/login.html";
         return;
       }
       const data = await getUserData(user.uid);
       if (!data) return;
       if (data.status === "active" && data.role === "admin") {
-        window.location.href = "/el-burdel/admin.html";
+        window.location.href = "/admin.html";
         return;
       }
       if (data.status === "active") {
-        window.location.href = "/el-burdel/dashboard.html";
+        window.location.href = "/dashboard.html";
         return;
       }
       if (data.status === "pending") {
-        window.location.href = "/el-burdel/pending.html";
+        window.location.href = "/pending.html";
         return;
       }
       const nick = document.getElementById("status-nick");
