@@ -276,9 +276,9 @@ let votosData = {};     // votos del partido actual abierto
 // ─────────────────────────────────────────
 
 onSession(async (user) => {
-  if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+  if (!user) { window.location.href = "/login.html"; return; }
   const data = await getUserData(user.uid);
-  if (!data || data.status !== "active") { window.location.href = "/el-burdel/pending.html"; return; }
+  if (!data || data.status !== "active") { window.location.href = "/pending.html"; return; }
   currentUser = user;
   isAdmin = (user.uid === ADMIN_UID);
 
