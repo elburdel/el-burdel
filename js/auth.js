@@ -83,7 +83,7 @@ async function loginUser(email, password) {
 // Logout
 async function logoutUser() {
   await signOut(auth);
-  window.location.href = "/el-burdel/index.html";
+  window.location.href = "/index.html";
 }
 
 // Recuperar contraseña
@@ -102,22 +102,22 @@ async function getUserData(uid) {
 async function redirectByRole(user) {
   const data = await getUserData(user.uid);
   if (!data) {
-    window.location.href = "/el-burdel/login.html";
+    window.location.href = "/login.html";
     return;
   }
   if (data.status === "pending") {
-    window.location.href = "/el-burdel/pending.html";
+    window.location.href = "/pending.html";
     return;
   }
   if (data.status === "paused") {
-    window.location.href = "/el-burdel/paused.html";
+    window.location.href = "/paused.html";
     return;
   }
   if (data.role === "admin") {
-    window.location.href = "/el-burdel/admin.html";
+    window.location.href = "/admin.html";
     return;
   }
-  window.location.href = "/el-burdel/dashboard.html";
+  window.location.href = "/dashboard.html";
 }
 
 // Listener de sesión activa
