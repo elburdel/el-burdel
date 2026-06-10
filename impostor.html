@@ -10,14 +10,14 @@
   <meta property="og:site_name" content="El Burdel" />
   <meta property="og:title" content="El Impostor — El Burdel" />
   <meta property="og:description" content="¿Quién no tiene la palabra?" />
-  <meta property="og:url" content="https://elburdel.github.io/el-burdel/impostor.html" />
-  <meta property="og:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta property="og:url" content="https://elburdel.com.ar/impostor.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="El Impostor — El Burdel" />
   <meta name="twitter:description" content="¿Quién no tiene la palabra?" />
-  <meta name="twitter:image" content="https://elburdel.github.io/el-burdel/assets/img/og-cover.jpg" />
+  <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -422,10 +422,10 @@
 
     // ── Auth ──
     onSession(async (user) => {
-      if (!user) { window.location.href = "/el-burdel/login.html"; return; }
+      if (!user) { window.location.href = "/login.html"; return; }
       const data = await getUserData(user.uid);
-      if (!data || data.status !== "active") { window.location.href = "/el-burdel/login.html"; return; }
-      if (data.role === "admin") { window.location.href = "/el-burdel/admin.html"; return; }
+      if (!data || data.status !== "active") { window.location.href = "/login.html"; return; }
+      if (data.role === "admin") { window.location.href = "/admin.html"; return; }
 
       currentUser = user;
       currentUid = user.uid;
