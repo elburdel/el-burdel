@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restablecer contraseña — El Burdel</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+</head>
+<body>
+
+  <main class="login-main">
+    <div class="login-card">
+
+      <div class="login-bombitas">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+
+      <h1 class="login-title">El Burdel</h1>
+
+      <!-- ESTADO: cargando -->
+      <div id="estado-cargando" class="tab-content">
+        <p class="recover-text">Verificando el link...</p>
+      </div>
+
+      <!-- ESTADO: formulario nueva contraseña -->
+      <div id="estado-form" class="tab-content hidden">
+        <p class="recover-text">Ingresá tu nueva contraseña.</p>
+        <div class="form-group">
+          <label class="form-label">Nueva contraseña <span class="form-hint">(mínimo 6 caracteres)</span></label>
+          <input type="password" id="nueva-pass" class="form-input" placeholder="••••••••" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Repetir contraseña</label>
+          <input type="password" id="nueva-pass-2" class="form-input" placeholder="••••••••" />
+        </div>
+        <button class="form-btn" id="btn-guardar" onclick="handleReset()">Guardar contraseña</button>
+      </div>
+
+      <!-- ESTADO: éxito -->
+      <div id="estado-ok" class="tab-content hidden">
+        <p class="recover-text">✅ ¡Contraseña actualizada! Ya podés iniciar sesión.</p>
+        <a href="/login.html" class="form-btn" style="display:block; text-align:center; text-decoration:none; margin-top:8px;">
+          Ir al login
+        </a>
+      </div>
+
+      <!-- ESTADO: error -->
+      <div id="estado-error" class="tab-content hidden">
+        <p class="recover-text" id="msg-error">El link no es válido o ya expiró.</p>
+        <a href="/login.html" class="form-link" style="display:block; text-align:center; margin-top:12px;">
+          ← Volver al login
+        </a>
+      </div>
+
+      <!-- MENSAJE inline (validaciones) -->
+      <div class="form-msg hidden" id="form-msg"></div>
+
+      <div class="login-bombitas bottom">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { auth } from "./js/firebase-init.js";
+    import {
+      verifyPasswordResetCode,
+      confirmPasswordReset
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // Leer parámetros de la URL
+    const params  = new URLSearchParams(window.location.search);
+    const mode    = params.get("mode");
+    const oobCode = params.get("oobCode");
+
+    function mostrar(id) {
+      ["estado-cargando", "estado-form", "estado-ok", "estado-error"].forEach(e => {
+        document.getElementById(e).classList.add("hidden");
+      });
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function showMsg(msg, type) {
+      const el = document.getElementById("form-msg");
+      el.textContent = msg;
+      el.className = `form-msg ${type}`;
+    }
+
+    function hideMsg() {
+      document.getElementById("form-msg").className = "form-msg hidden";
+    }
+
+    // Solo manejamos resetPassword
+    if (mode !== "resetPassword" || !oobCode) {
+      mostrar("estado-error");
+      document.getElementById("msg-error").textContent = "El link no es válido o ya expiró.";
+    } else {
+      // Verificar que el código siga siendo válido
+      verifyPasswordResetCode(auth, oobCode)
+        .then(() => mostrar("estado-form"))
+        .catch(() => {
+          mostrar("estado-error");
+          document.getElementById("msg-error").textContent =
+            "El link expiró o ya fue usado. Pedí uno nuevo desde el login.";
+        });
+    }
+
+    window.handleReset = async () => {
+      const pass1 = document.getElementById("nueva-pass").value;
+      const pass2 = document.getElementById("nueva-pass-2").value;
+      hideMsg();
+
+      if (pass1.length < 6) {
+        showMsg("La contraseña debe tener al menos 6 caracteres.", "error");
+        return;
+      }
+      if (pass1 !== pass2) {
+        showMsg("Las contraseñas no coinciden.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btn-guardar");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      try {
+        await confirmPasswordReset(auth, oobCode, pass1);
+        mostrar("estado-ok");
+      } catch (e) {
+        const msg = e.code === "auth/expired-action-code"
+          ? "El link expiró. Pedí uno nuevo desde el login."
+          : e.code === "auth/invalid-action-code"
+          ? "El link ya fue usado o no es válido."
+          : e.code === "auth/weak-password"
+          ? "La contraseña es demasiado débil."
+          : "No se pudo actualizar la contraseña. Intentá de nuevo.";
+        showMsg(msg, "error");
+        btn.disabled = false;
+        btn.textContent = "Guardar contraseña";
+      }
+    };
+  </script>
+
+  <script type="module">
+    import { initNavbar } from "./js/navbar.js";
+    initNavbar();
+  </script>
+
+</body>
+</html>
