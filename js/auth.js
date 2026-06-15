@@ -88,7 +88,7 @@ async function logoutUser() {
 
 // Recuperar contraseña
 async function recoverPassword(email) {
-  await sendPasswordResetEmail(auth, email);
+  await sendPasswordResetEmail(auth, email, { url: "https://elburdel.com.ar/auth-action.html" });
 }
 
 // Obtener datos del usuario desde DB
