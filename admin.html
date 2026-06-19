@@ -3665,19 +3665,8 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    // ── EL MILLÓN — Admin Logic ──
-    // ══════════════════════════════════════════════════════════
-
-    let milState   = null;
-    let milPlayers = {};   // uid → { nick, alive, immune, votesExtra, missionType }
-    let milVotes   = {};   // uid → { voted }
-    let milTimerInterval = null;
-
-    function initMillonAdmin() {
-      milListenState(s => { milState = s; milRenderAll(); });
-      milListenPlayers(p => { milPlayers = p || {}; milRenderAll(); milPopulateSelects(); });
-      milListenVotes(v => { milVotes = v || {}; milRenderTally(); milRenderStat(); });
-    }
+    // ── EL MILLÓN — panel completo en admin-millon.html ──
+    function initMillonAdmin() { /* noop */ }
 
 
   </script>
