@@ -922,8 +922,11 @@ function actualizarAdmin(num, data) {
       : `${participantes.length} participantes`;
   }
 
-  // Canvas mini
-  dibujarRuleta(`admin-canvas-${num}`, participantes, currentAngles[num]);
+  // Canvas mini — dibujar en anguloFinal si hay giro, o en 0
+  const anguloActual = (data.giro && typeof data.giro.anguloFinal === "number")
+    ? data.giro.anguloFinal
+    : currentAngles[num];
+  dibujarRuleta(`admin-canvas-${num}`, participantes, anguloActual);
 
   // Chips forzado
   renderForzadoChips(num, participantes);
@@ -932,6 +935,11 @@ function actualizarAdmin(num, data) {
   const giro = data.giro;
   if (giro && giro.id && giro.id !== giroIds[num]) {
     giroIds[num] = giro.id;
+    // Actualizar canvas del admin al ángulo final correcto
+    if (typeof giro.anguloFinal === "number") {
+      currentAngles[num] = giro.anguloFinal;
+      dibujarRuleta(`admin-canvas-${num}`, participantes, giro.anguloFinal);
+    }
     // Mostrar resultado en admin después de la duración
     const delay = giro.timestamp ? Math.max(0, (giro.timestamp + (giro.duracion || 5000)) - Date.now()) : 5000;
     setTimeout(() => {
