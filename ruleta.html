@@ -23,14 +23,12 @@
     <span class="rul-modo-badge" id="modo-badge">—</span>
   </div>
 
-  <!-- Estado: esperando configuración -->
   <div class="rul-waiting" id="estado-waiting">
     <div class="rul-waiting-icon">🎡</div>
     <div class="rul-waiting-title">ESPERANDO AL ADMIN</div>
     <div class="rul-waiting-sub">La ruleta se configurará en breve...</div>
   </div>
 
-  <!-- Stage principal (oculto hasta que haya datos) -->
   <div class="rul-stage hidden" id="rul-stage">
 
     <!-- Ruleta 1 -->
@@ -40,7 +38,7 @@
         <div class="rul-pointer"></div>
         <canvas class="rul-canvas" id="canvas-1" width="500" height="500"></canvas>
       </div>
-      <div class="rul-resultado" id="resultado-1">
+      <div class="rul-resultado">
         <div class="rul-resultado-label">RESULTADO</div>
         <div class="rul-resultado-nombre" id="resultado-nombre-1"></div>
       </div>
@@ -63,7 +61,7 @@
         <div class="rul-pointer"></div>
         <canvas class="rul-canvas" id="canvas-2" width="500" height="500"></canvas>
       </div>
-      <div class="rul-resultado" id="resultado-2">
+      <div class="rul-resultado">
         <div class="rul-resultado-label">RESULTADO</div>
         <div class="rul-resultado-nombre" id="resultado-nombre-2"></div>
       </div>
@@ -95,7 +93,6 @@ import { onRuletaConfig, onRuletaData, onParejas } from "./games/ruleta.js";
 
 initNavbar();
 
-// ── Paleta de colores para los segmentos ──
 const PALETA = [
   "#c89600","#8b1a1a","#3a6b3a","#1a3a6b","#6b1a5a",
   "#6b4f1a","#1a5a6b","#5a6b1a","#6b1a1a","#1a6b5a",
@@ -108,16 +105,17 @@ let modo = "1";
 let ruletaState = { 1: {}, 2: {} };
 let giroIds = { 1: null, 2: null };
 let spinning = { 1: false, 2: false };
+// currentAngles: el ángulo donde quedó dibujada la ruleta actualmente
+// SIEMPRE parte desde 0 al inicio de cada giro
 let currentAngles = { 1: 0, 2: 0 };
 let animFrames = { 1: null, 2: null };
 
-// ── Audio (Web Audio API) ──
+// ── Audio ──
 let audioCtx = null;
 function getAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
-
 function playTick() {
   try {
     const ctx = getAudio();
@@ -130,12 +128,10 @@ function playTick() {
     osc.start(); osc.stop(ctx.currentTime + 0.04);
   } catch(e) {}
 }
-
 function playGanador() {
   try {
     const ctx = getAudio();
-    const notes = [523, 659, 784, 1047];
-    notes.forEach((freq, i) => {
+    [523, 659, 784, 1047].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
@@ -149,116 +145,69 @@ function playGanador() {
 }
 
 // ── Dibujar ruleta ──
-function dibujarRuleta(num, participantes, anguloActual) {
+function dibujarRuleta(num, participantes, angulo) {
   const canvas = document.getElementById(`canvas-${num}`);
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
   const cx = W / 2, cy = H / 2, r = W / 2 - 4;
   const n = participantes.length;
-
   ctx.clearRect(0, 0, W, H);
 
   if (n === 0) {
     ctx.fillStyle = "rgba(200,150,0,0.08)";
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "rgba(200,150,0,0.2)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(200,150,0,0.2)"; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
     return;
   }
 
   const slice = (Math.PI * 2) / n;
-
   for (let i = 0; i < n; i++) {
-    const startA = anguloActual + i * slice;
-    const endA   = startA + slice;
-
-    // Segmento
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, startA, endA);
-    ctx.closePath();
-    ctx.fillStyle = PALETA[i % PALETA.length];
-    ctx.fill();
-
-    // Borde
-    ctx.strokeStyle = "rgba(0,0,0,0.3)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Texto
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(startA + slice / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#fff";
-    const fontSize = Math.max(10, Math.min(18, Math.floor(r * 0.13)));
-    ctx.font = `bold ${fontSize}px DM Sans, sans-serif`;
-    ctx.shadowColor = "rgba(0,0,0,0.7)";
-    ctx.shadowBlur = 3;
-    const label = participantes[i].length > 14 ? participantes[i].slice(0, 13) + "…" : participantes[i];
-    ctx.fillText(label, r - 10, fontSize / 3);
-    ctx.restore();
+    const sA = angulo + i * slice;
+    const eA = sA + slice;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, sA, eA); ctx.closePath();
+    ctx.fillStyle = PALETA[i % PALETA.length]; ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(sA + slice / 2);
+    ctx.textAlign = "right"; ctx.fillStyle = "#fff";
+    const fs = Math.max(10, Math.min(18, Math.floor(r * 0.13)));
+    ctx.font = `bold ${fs}px DM Sans, sans-serif`;
+    ctx.shadowColor = "rgba(0,0,0,0.7)"; ctx.shadowBlur = 3;
+    const lbl = participantes[i].length > 14 ? participantes[i].slice(0, 13) + "…" : participantes[i];
+    ctx.fillText(lbl, r - 10, fs / 3); ctx.restore();
   }
-
-  // Centro
-  ctx.beginPath();
-  ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-  ctx.fillStyle = "#0d0d0d";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(200,150,0,0.5)";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Borde exterior
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(200,150,0,0.4)";
-  ctx.lineWidth = 4;
-  ctx.stroke();
-}
-
-// ── Calcular ángulo para que el puntero apunte al resultado ──
-// El puntero está arriba (−π/2). Queremos que el segmento del resultado quede ahí.
-function calcAnguloDestino(participantes, resultado, vueltasExtra = 8) {
-  const n = participantes.length;
-  const idx = participantes.indexOf(resultado);
-  if (idx === -1) return Math.PI * 2 * vueltasExtra;
-  const slice = (Math.PI * 2) / n;
-  // Centro del segmento tiene que quedar en -π/2 (arriba)
-  const centroSegmento = idx * slice + slice / 2;
-  const destino = -Math.PI / 2 - centroSegmento;
-  // Sumamos vueltas completas para que gire bastante
-  return destino + Math.PI * 2 * vueltasExtra;
+  ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+  ctx.fillStyle = "#0d0d0d"; ctx.fill();
+  ctx.strokeStyle = "rgba(200,150,0,0.5)"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(200,150,0,0.4)"; ctx.lineWidth = 4; ctx.stroke();
 }
 
 // ── Animación ──
-function animarRuleta(num, participantes, resultado, duracion) {
+// CLAVE: startAngle siempre es 0 (reset al inicio de cada giro)
+// anguloFinal viene de Firebase — mismo valor para todos los clientes
+function animarRuleta(num, participantes, anguloFinal, resultado, duracion) {
   if (animFrames[num]) cancelAnimationFrame(animFrames[num]);
   spinning[num] = true;
 
-  const startAngle = currentAngles[num];
-  const targetDelta = calcAnguloDestino(participantes, resultado);
-  const endAngle = startAngle + targetDelta;
+  // Siempre arrancamos desde 0 para que todos los clientes hagan el mismo recorrido
+  const startAngle = 0;
+  const totalDelta = anguloFinal; // anguloFinal ya incluye las vueltas
 
   const startTime = performance.now();
-  let lastTickAngle = startAngle;
+  let lastTickAngle = 0;
 
-  function easeOut(t) {
-    return 1 - Math.pow(1 - t, 4);
-  }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
 
   function frame(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duracion, 1);
-    const easedProgress = easeOut(progress);
-    const angle = startAngle + targetDelta * easedProgress;
+    const angle = totalDelta * easeOut(progress);
 
     currentAngles[num] = angle;
     dibujarRuleta(num, participantes, angle);
 
-    // Tick sound cada ~1 segmento pasado
     const slice = (Math.PI * 2) / participantes.length;
     if (Math.abs(angle - lastTickAngle) >= slice * 0.8) {
       lastTickAngle = angle;
@@ -268,7 +217,8 @@ function animarRuleta(num, participantes, resultado, duracion) {
     if (progress < 1) {
       animFrames[num] = requestAnimationFrame(frame);
     } else {
-      currentAngles[num] = endAngle;
+      currentAngles[num] = anguloFinal;
+      dibujarRuleta(num, participantes, anguloFinal);
       spinning[num] = false;
       mostrarResultado(num, resultado);
       playGanador();
@@ -278,14 +228,12 @@ function animarRuleta(num, participantes, resultado, duracion) {
   animFrames[num] = requestAnimationFrame(frame);
 }
 
-// ── Mostrar resultado ──
 function mostrarResultado(num, resultado) {
   const el = document.getElementById(`resultado-nombre-${num}`);
   if (!el) return;
   el.textContent = resultado;
   el.classList.add("visible");
 }
-
 function ocultarResultado(num) {
   const el = document.getElementById(`resultado-nombre-${num}`);
   if (!el) return;
@@ -296,34 +244,28 @@ function ocultarResultado(num) {
 // ── Actualizar UI de una ruleta ──
 function actualizarRuleta(num, data) {
   if (!data || !data.participantes) return;
-
   ruletaState[num] = data;
 
   const participantes = data.participantes || [];
   const historial = data.historial || [];
   const terminada = data.eliminarSalidos && participantes.length === 0 && historial.length > 0;
 
-  // Nombre
   const nombreEl = document.getElementById(`nombre-${num}`);
   if (nombreEl) nombreEl.textContent = data.nombre || `Ruleta ${num}`;
 
-  // Terminada
   const terminadaEl = document.getElementById(`terminada-${num}`);
   if (terminadaEl) terminadaEl.classList.toggle("visible", terminada);
 
-  // Dibujar (si no está girando)
   if (!spinning[num]) {
     dibujarRuleta(num, participantes, currentAngles[num]);
   }
 
-  // Resultado último
   if (data.ultimoResultado && !spinning[num]) {
     mostrarResultado(num, data.ultimoResultado);
   } else if (!data.ultimoResultado && !spinning[num]) {
     ocultarResultado(num);
   }
 
-  // Restantes
   const restantesEl = document.getElementById(`restantes-${num}`);
   const restantesNumEl = document.getElementById(`restantes-num-${num}`);
   if (restantesEl && restantesNumEl) {
@@ -332,72 +274,75 @@ function actualizarRuleta(num, data) {
     restantesNumEl.textContent = participantes.length;
   }
 
-  // Historial
   const historialSection = document.getElementById(`historial-section-${num}`);
   const historialList = document.getElementById(`historial-list-${num}`);
   if (historialSection && historialList) {
-    const tienHistorial = historial.length > 0 && data.eliminarSalidos;
-    historialSection.classList.toggle("hidden", !tienHistorial);
-    if (tienHistorial) {
+    const tieneHistorial = historial.length > 0 && data.eliminarSalidos;
+    historialSection.classList.toggle("hidden", !tieneHistorial);
+    if (tieneHistorial) {
       historialList.innerHTML = historial.map(h =>
         `<span class="rul-historial-chip">${h}</span>`
       ).join("");
     }
   }
 
-  // Detectar giro nuevo
+  // ── Detectar giro nuevo ──
   const giro = data.giro;
   if (giro && giro.id && giro.id !== giroIds[num] && !spinning[num]) {
     giroIds[num] = giro.id;
+
     // Solo animar si el giro es reciente (menos de 15s)
     if (Date.now() - giro.timestamp < 15000) {
-      ocultarResultado(num);
-      animarRuleta(num, participantes, giro.resultado, giro.duracion || 5000);
+      // Verificar que venga el anguloFinal de Firebase
+      if (typeof giro.anguloFinal === "number") {
+        ocultarResultado(num);
+        // Reset del ángulo visual a 0 antes de animar
+        currentAngles[num] = 0;
+        dibujarRuleta(num, participantes, 0);
+        animarRuleta(num, participantes, giro.anguloFinal, giro.resultado, giro.duracion || 5000);
+      } else {
+        // Fallback: mostrar resultado directo si no hay anguloFinal
+        mostrarResultado(num, giro.resultado);
+      }
     } else {
-      // Giro viejo: mostrar resultado directo
+      // Giro viejo al reconectar: dibujar en la posición final y mostrar resultado
+      if (typeof giro.anguloFinal === "number") {
+        currentAngles[num] = giro.anguloFinal;
+        dibujarRuleta(num, participantes, giro.anguloFinal);
+      }
       mostrarResultado(num, giro.resultado);
     }
   }
 }
 
 // ── Listeners Firebase ──
-let unsubConfig = null;
-let unsubR1 = null, unsubR2 = null, unsubParejas = null;
-
 function iniciar() {
-  unsubConfig = onRuletaConfig(config => {
+  onRuletaConfig(config => {
     modo = config.modo || "1";
-
     const badge = document.getElementById("modo-badge");
     if (badge) badge.textContent = modo === "2" ? "MODO 2 RULETAS" : "MODO 1 RULETA";
-
-    const block2 = document.getElementById("block-2");
-    if (block2) block2.classList.toggle("hidden", modo !== "2");
-
-    const parejasSection = document.getElementById("parejas-section");
-    if (parejasSection) parejasSection.classList.toggle("hidden", modo !== "2");
+    document.getElementById("block-2")?.classList.toggle("hidden", modo !== "2");
+    document.getElementById("parejas-section")?.classList.toggle("hidden", modo !== "2");
   });
 
-  unsubR1 = onRuletaData(1, data => {
+  onRuletaData(1, data => {
     const waiting = document.getElementById("estado-waiting");
     const stage = document.getElementById("rul-stage");
-
-    if (!data || !data.participantes || data.participantes.length === 0 && !data.historial?.length) {
+    if (!data || (!data.participantes?.length && !data.historial?.length)) {
       waiting.classList.remove("hidden");
       stage.classList.add("hidden");
       return;
     }
-
     waiting.classList.add("hidden");
     stage.classList.remove("hidden");
     actualizarRuleta(1, data);
   });
 
-  unsubR2 = onRuletaData(2, data => {
+  onRuletaData(2, data => {
     if (data && data.participantes) actualizarRuleta(2, data);
   });
 
-  unsubParejas = onParejas(parejas => {
+  onParejas(parejas => {
     const lista = document.getElementById("parejas-list");
     if (!lista) return;
     lista.innerHTML = "";
