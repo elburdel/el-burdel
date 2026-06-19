@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Ruleta — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/ruleta.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <style>
+
+    /* ── Override layout para admin ── */
+    .rul-main { padding: 0 20px 60px; }
+    .rul-stage { max-width: 100%; }
+
+    /* ── Panel de control ── */
+    .adm-rul-wrap {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ── Card ── */
+    .adm-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 12px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .adm-card-title {
+      font-family: var(--font-title);
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    /* ── Modo selector ── */
+    .modo-grid {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modo-btn {
+      flex: 1;
+      padding: 14px 10px;
+      background: var(--negro-3);
+      border: 2px solid rgba(200,150,0,0.15);
+      border-radius: 8px;
+      color: var(--crema-3);
+      font-family: var(--font-title);
+      font-size: 20px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .modo-btn:hover { border-color: rgba(200,150,0,0.4); color: var(--crema); }
+    .modo-btn.active {
+      background: rgba(200,150,0,0.1);
+      border-color: var(--dorado);
+      color: var(--dorado);
+    }
+
+    /* ── Ruleta config block ── */
+    .adm-rul-blocks {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .adm-rul-blocks.dos { grid-template-columns: 1fr 1fr; }
+
+    @media (max-width: 650px) {
+      .adm-rul-blocks.dos { grid-template-columns: 1fr; }
+      .modo-grid { flex-direction: column; }
+    }
+
+    .adm-rul-config {
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .adm-rul-config-title {
+      font-family: var(--font-title);
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--crema-2);
+    }
+
+    /* ── Inputs ── */
+    .adm-input {
+      width: 100%;
+      background: var(--negro-2);
+      color: var(--crema);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .adm-input:focus { border-color: rgba(200,150,0,0.5); }
+
+    textarea.adm-input {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .adm-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+    }
+
+    /* ── Toggle switch ── */
+    .adm-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .adm-toggle-label {
+      font-size: 12px;
+      color: var(--crema-2);
+      letter-spacing: 0.5px;
+    }
+
+    .adm-toggle {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .adm-toggle input { opacity: 0; width: 0; height: 0; }
+
+    .adm-toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .adm-toggle-slider::before {
+      content: "";
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: var(--crema-3);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .adm-toggle input:checked + .adm-toggle-slider { background: rgba(200,150,0,0.35); }
+    .adm-toggle input:checked + .adm-toggle-slider::before {
+      transform: translateX(20px);
+      background: var(--dorado);
+    }
+
+    /* ── Botones ── */
+    .adm-btn {
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.18s;
+    }
+
+    .adm-btn.primary {
+      background: var(--rojo);
+      color: var(--crema);
+      border-color: var(--rojo-claro);
+    }
+    .adm-btn.primary:hover { background: var(--rojo-claro); }
+
+    .adm-btn.secondary {
+      background: transparent;
+      color: var(--crema-2);
+      border-color: rgba(200,150,0,0.3);
+    }
+    .adm-btn.secondary:hover { background: rgba(200,150,0,0.08); color: var(--dorado); }
+
+    .adm-btn.gold {
+      background: rgba(200,150,0,0.12);
+      color: var(--dorado);
+      border-color: rgba(200,150,0,0.4);
+      font-size: 14px;
+      padding: 12px 20px;
+      letter-spacing: 2px;
+    }
+    .adm-btn.gold:hover { background: rgba(200,150,0,0.22); }
+    .adm-btn.gold:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .adm-btn.danger {
+      background: transparent;
+      color: #c84040;
+      border-color: rgba(200,64,64,0.3);
+    }
+    .adm-btn.danger:hover { background: rgba(200,64,64,0.08); }
+
+    .adm-btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Forzado ── */
+    .forzado-section {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(139,26,26,0.08);
+      border: 1px solid rgba(139,26,26,0.2);
+      border-radius: 8px;
+    }
+
+    .forzado-section.visible { display: flex; }
+
+    .forzado-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #c84040;
+    }
+
+    .forzado-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .forzado-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      background: rgba(200,64,64,0.08);
+      border: 1px solid rgba(200,64,64,0.2);
+      color: var(--crema-3);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .forzado-chip.selected {
+      background: rgba(200,64,64,0.2);
+      border-color: #c84040;
+      color: #ff8080;
+    }
+
+    /* ── Vista previa de participantes ── */
+    .preview-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 28px;
+    }
+
+    .preview-chip {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(200,150,0,0.08);
+      border: 1px solid rgba(200,150,0,0.18);
+      color: var(--crema-2);
+    }
+
+    /* ── Configs guardadas ── */
+    .config-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .config-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .config-item-nombre {
+      flex: 1;
+      font-size: 13px;
+      color: var(--crema-2);
+    }
+
+    .config-item-count {
+      font-size: 11px;
+      color: var(--crema-3);
+    }
+
+    /* ── Control de giro ── */
+    .giro-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .giro-btns-dos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .giro-btn-ambas {
+      grid-column: 1 / -1;
+    }
+
+    /* ── Preview mini ruleta en admin ── */
+    .adm-canvas-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 200px;
+      aspect-ratio: 1;
+      margin: 0 auto;
+    }
+
+    .adm-canvas-wrap .rul-pointer {
+      top: -10px;
+      border-left-width: 10px;
+      border-right-width: 10px;
+      border-top-width: 20px;
+    }
+
+    /* ── Resultado actual ── */
+    .adm-resultado-actual {
+      text-align: center;
+      min-height: 44px;
+    }
+
+    .adm-resultado-valor {
+      font-family: var(--font-title);
+      font-size: 28px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .adm-resultado-valor.visible { opacity: 1; }
+
+    /* ── Separador ── */
+    .adm-divider {
+      height: 1px;
+      background: rgba(200,150,0,0.1);
+      margin: 4px 0;
+    }
+
+    /* ── Notif ── */
+    .adm-notif {
+      font-size: 11px;
+      color: var(--crema-3);
+      letter-spacing: 1px;
+      min-height: 18px;
+      text-align: center;
+    }
+
+    .adm-notif.ok { color: #6c6; }
+    .adm-notif.err { color: #c84040; }
+
+  </style>
+</head>
+<body>
+
+<main class="rul-main">
+  <div class="rul-header">
+    <span class="rul-title">🎡 ADMIN RULETA</span>
+    <a href="ruleta.html" target="_blank" class="adm-btn secondary" style="text-decoration:none;font-size:11px;">
+      👁 Ver pública →
+    </a>
+  </div>
+
+  <div class="adm-rul-wrap">
+
+    <!-- 1. Modo -->
+    <div class="adm-card">
+      <div class="adm-card-title">MODO</div>
+      <div class="modo-grid">
+        <button class="modo-btn active" id="modo-btn-1" type="button" onclick="seleccionarModo('1')">
+          🎡 1 Ruleta
+        </button>
+        <button class="modo-btn" id="modo-btn-2" type="button" onclick="seleccionarModo('2')">
+          🎡🎡 2 Ruletas
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Configuración de ruletas -->
+    <div class="adm-card">
+      <div class="adm-card-title">PARTICIPANTES</div>
+
+      <div class="adm-rul-blocks" id="config-blocks">
+
+        <!-- Ruleta 1 -->
+        <div class="adm-rul-config" id="cfg-1">
+          <div class="adm-rul-config-title" id="cfg-title-1">RULETA 1</div>
+
+          <div>
+            <div class="adm-label" style="margin-bottom:6px;">Nombre de la ruleta</div>
+            <input type="text" class="adm-input" id="nombre-cfg-1" placeholder="Ej: Participantes" maxlength="30" />
+          </div>
+
+          <div>
+            <div class="adm-label" style="margin-bottom:6px;">Participantes (uno por línea)</div>
+            <textarea class="adm-input" id="lista-cfg-1" placeholder="Juan&#10;Pedro&#10;Luis&#10;María"></textarea>
+          </div>
+
+          <div class="preview-chips" id="preview-cfg-1"></div>
+
+          <div class="adm-toggle-row">
+            <span class="adm-toggle-label">Eliminar participante al salir</span>
+            <label class="adm-toggle">
+              <input type="checkbox" id="eliminar-cfg-1" checked />
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Configs guardadas -->
+          <div class="adm-divider"></div>
+          <div class="adm-label" style="margin-bottom:4px;">Listas guardadas</div>
+          <div class="config-list" id="configs-list-1"></div>
+          <div class="adm-btn-row">
+            <input type="text" class="adm-input" id="nombre-save-1" placeholder="Nombre para guardar..." style="flex:1;" />
+            <button class="adm-btn secondary" type="button" onclick="guardarListaActual(1)">💾 Guardar</button>
+          </div>
+
+          <div class="adm-divider"></div>
+          <div class="adm-btn-row">
+            <button class="adm-btn primary" type="button" onclick="aplicarConfig(1)">✅ Aplicar ruleta 1</button>
+            <button class="adm-btn danger" type="button" onclick="resetearRuleta(1)">🗑 Reset</button>
+          </div>
+          <div class="adm-notif" id="notif-cfg-1"></div>
+        </div>
+
+        <!-- Ruleta 2 (oculta en modo 1) -->
+        <div class="adm-rul-config hidden" id="cfg-2">
+          <div class="adm-rul-config-title" id="cfg-title-2">RULETA 2</div>
+
+          <div>
+            <div class="adm-label" style="margin-bottom:6px;">Nombre de la ruleta</div>
+            <input type="text" class="adm-input" id="nombre-cfg-2" placeholder="Ej: Retos" maxlength="30" />
+          </div>
+
+          <div>
+            <div class="adm-label" style="margin-bottom:6px;">Participantes (uno por línea)</div>
+            <textarea class="adm-input" id="lista-cfg-2" placeholder="Reto 1&#10;Reto 2&#10;Reto 3"></textarea>
+          </div>
+
+          <div class="preview-chips" id="preview-cfg-2"></div>
+
+          <div class="adm-toggle-row">
+            <span class="adm-toggle-label">Eliminar participante al salir</span>
+            <label class="adm-toggle">
+              <input type="checkbox" id="eliminar-cfg-2" checked />
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Configs guardadas -->
+          <div class="adm-divider"></div>
+          <div class="adm-label" style="margin-bottom:4px;">Listas guardadas</div>
+          <div class="config-list" id="configs-list-2"></div>
+          <div class="adm-btn-row">
+            <input type="text" class="adm-input" id="nombre-save-2" placeholder="Nombre para guardar..." style="flex:1;" />
+            <button class="adm-btn secondary" type="button" onclick="guardarListaActual(2)">💾 Guardar</button>
+          </div>
+
+          <div class="adm-divider"></div>
+          <div class="adm-btn-row">
+            <button class="adm-btn primary" type="button" onclick="aplicarConfig(2)">✅ Aplicar ruleta 2</button>
+            <button class="adm-btn danger" type="button" onclick="resetearRuleta(2)">🗑 Reset</button>
+          </div>
+          <div class="adm-notif" id="notif-cfg-2"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. Control de giro -->
+    <div class="adm-card">
+      <div class="adm-card-title">CONTROL DE GIRO</div>
+
+      <div class="giro-section">
+
+        <!-- Ruleta 1 -->
+        <div id="ctrl-1-wrap">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <span style="font-family:var(--font-title);font-size:16px;letter-spacing:2px;color:var(--crema-2);" id="ctrl-nombre-1">RULETA 1</span>
+            <span class="adm-label" id="ctrl-restantes-1">— participantes</span>
+          </div>
+
+          <!-- Mini preview canvas -->
+          <div class="adm-canvas-wrap" style="max-width:160px;margin-bottom:12px;">
+            <div class="rul-pointer"></div>
+            <canvas id="admin-canvas-1" width="300" height="300" class="rul-canvas"></canvas>
+          </div>
+
+          <div class="adm-resultado-actual">
+            <div class="adm-resultado-valor" id="admin-resultado-1"></div>
+          </div>
+
+          <!-- Resultado forzado -->
+          <div class="adm-toggle-row" style="margin:10px 0 6px;">
+            <span class="adm-toggle-label">🎯 Resultado forzado</span>
+            <label class="adm-toggle">
+              <input type="checkbox" id="forzado-toggle-1" onchange="toggleForzado(1)" />
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </div>
+          <div class="forzado-section" id="forzado-section-1">
+            <div class="forzado-title">SELECCIONÁ LOS ELEGIBLES (aleatorio entre ellos)</div>
+            <div class="forzado-chips" id="forzado-chips-1"></div>
+          </div>
+
+          <div class="adm-btn-row" style="margin-top:12px;">
+            <button class="adm-btn gold" type="button" id="btn-girar-1" onclick="girarUna(1)">
+              🎡 GIRAR RULETA 1
+            </button>
+            <button class="adm-btn secondary" type="button" id="btn-eliminar-1" onclick="eliminarActual(1)" style="display:none;">
+              ❌ Eliminar resultado
+            </button>
+          </div>
+        </div>
+
+        <!-- Ruleta 2 (modo 2) -->
+        <div id="ctrl-2-wrap" class="hidden">
+          <div class="adm-divider"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0;flex-wrap:wrap;gap:8px;">
+            <span style="font-family:var(--font-title);font-size:16px;letter-spacing:2px;color:var(--crema-2);" id="ctrl-nombre-2">RULETA 2</span>
+            <span class="adm-label" id="ctrl-restantes-2">— participantes</span>
+          </div>
+
+          <div class="adm-canvas-wrap" style="max-width:160px;margin-bottom:12px;">
+            <div class="rul-pointer"></div>
+            <canvas id="admin-canvas-2" width="300" height="300" class="rul-canvas"></canvas>
+          </div>
+
+          <div class="adm-resultado-actual">
+            <div class="adm-resultado-valor" id="admin-resultado-2"></div>
+          </div>
+
+          <div class="adm-toggle-row" style="margin:10px 0 6px;">
+            <span class="adm-toggle-label">🎯 Resultado forzado</span>
+            <label class="adm-toggle">
+              <input type="checkbox" id="forzado-toggle-2" onchange="toggleForzado(2)" />
+              <span class="adm-toggle-slider"></span>
+            </label>
+          </div>
+          <div class="forzado-section" id="forzado-section-2">
+            <div class="forzado-title">SELECCIONÁ LOS ELEGIBLES (aleatorio entre ellos)</div>
+            <div class="forzado-chips" id="forzado-chips-2"></div>
+          </div>
+
+          <div class="adm-btn-row" style="margin-top:12px;">
+            <button class="adm-btn gold" type="button" id="btn-girar-2" onclick="girarUna(2)">
+              🎡 GIRAR RULETA 2
+            </button>
+            <button class="adm-btn secondary" type="button" id="btn-eliminar-2" onclick="eliminarActual(2)" style="display:none;">
+              ❌ Eliminar resultado
+            </button>
+          </div>
+        </div>
+
+        <!-- Botón girar ambas (modo 2) -->
+        <div id="ctrl-ambas-wrap" class="hidden" style="margin-top:4px;">
+          <div class="adm-divider"></div>
+          <button class="adm-btn gold" type="button" id="btn-ambas" onclick="girarAmbas()" style="width:100%;margin-top:12px;">
+            🎡🎡 GIRAR AMBAS
+          </button>
+          <button class="adm-btn secondary" type="button" id="btn-pareja" onclick="registrarPareja()" style="width:100%;margin-top:8px;display:none;">
+            ✦ CONFIRMAR PAREJA
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 4. Historial / Parejas -->
+    <div class="adm-card" id="historial-card">
+      <div class="adm-card-title" id="historial-titulo">HISTORIAL</div>
+      <div id="historial-admin-content"></div>
+      <button class="adm-btn danger" type="button" onclick="resetearHistorial()" style="align-self:flex-start;">
+        🗑 Limpiar historial
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script type="module">
+import { auth, db } from "./js/firebase-init.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  setModo, setRuletaParticipantes, girarRuleta as fbGirarRuleta, girarAmbas as fbGirarAmbas,
+  eliminarResultado as fbEliminarResultado, registrarPareja as fbRegistrarPareja,
+  resetRuleta, resetParejas,
+  onRuletaConfig, onRuletaData, onParejas, onConfigsGuardadas,
+  guardarConfig, eliminarConfig
+} from "./games/ruleta.js";
+
+const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+
+// ── Verificar admin ──
+onAuthStateChanged(auth, async user => {
+  if (!user || user.uid !== ADMIN_UID) {
+    window.location.href = "/login.html";
+  }
+});
+
+// ── Paleta ──
+const PALETA = [
+  "#c89600","#8b1a1a","#3a6b3a","#1a3a6b","#6b1a5a",
+  "#6b4f1a","#1a5a6b","#5a6b1a","#6b1a1a","#1a6b5a",
+  "#c84040","#40c880","#4080c8","#c840c8","#c8a040",
+  "#40c8c8","#8040c8","#c88040","#40c840","#c84080"
+];
+
+// ── Estado local ──
+let modo = "1";
+let ruletaState = { 1: {}, 2: {} };
+let configsGuardadas = [];
+let spinning = { 1: false, 2: false };
+let currentAngles = { 1: 0, 2: 0 };
+let giroIds = { 1: null, 2: null };
+let forzadoSeleccionado = { 1: [], 2: [] };
+let pendientePareja = false;
+
+// ── Exponer funciones globalmente para los onclick ──
+window.seleccionarModo = seleccionarModo;
+window.aplicarConfig = aplicarConfig;
+window.resetearRuleta = resetearRuleta_fn;
+window.girarUna = girarUna;
+window.girarAmbas = girarAmbas;
+window.eliminarActual = eliminarActual;
+window.registrarPareja = registrarPareja_fn;
+window.guardarListaActual = guardarListaActual;
+window.resetearHistorial = resetearHistorial;
+window.toggleForzado = toggleForzado;
+
+// ── Dibujar ruleta ──
+function dibujarRuleta(canvasId, participantes, angulo) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, r = W/2 - 4;
+  const n = participantes.length;
+  ctx.clearRect(0, 0, W, H);
+
+  if (n === 0) {
+    ctx.fillStyle = "rgba(200,150,0,0.06)";
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "rgba(200,150,0,0.15)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+    return;
+  }
+
+  const slice = (Math.PI*2)/n;
+  for (let i = 0; i < n; i++) {
+    const sA = angulo + i*slice, eA = sA + slice;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,sA,eA); ctx.closePath();
+    ctx.fillStyle = PALETA[i % PALETA.length]; ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 1; ctx.stroke();
+
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(sA+slice/2);
+    ctx.textAlign = "right"; ctx.fillStyle = "#fff";
+    const fs = Math.max(8, Math.min(14, Math.floor(r*0.12)));
+    ctx.font = `bold ${fs}px DM Sans,sans-serif`;
+    ctx.shadowColor = "rgba(0,0,0,0.7)"; ctx.shadowBlur = 3;
+    const lbl = participantes[i].length > 12 ? participantes[i].slice(0,11)+"…" : participantes[i];
+    ctx.fillText(lbl, r-8, fs/3); ctx.restore();
+  }
+
+  ctx.beginPath(); ctx.arc(cx,cy,16,0,Math.PI*2);
+  ctx.fillStyle = "#0d0d0d"; ctx.fill();
+  ctx.strokeStyle = "rgba(200,150,0,0.4)"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle = "rgba(200,150,0,0.35)"; ctx.lineWidth = 3; ctx.stroke();
+}
+
+// ── Preview participantes al escribir ──
+[1, 2].forEach(num => {
+  const ta = document.getElementById(`lista-cfg-${num}`);
+  if (!ta) return;
+  ta.addEventListener("input", () => actualizarPreview(num));
+});
+
+function actualizarPreview(num) {
+  const ta = document.getElementById(`lista-cfg-${num}`);
+  const preview = document.getElementById(`preview-cfg-${num}`);
+  if (!ta || !preview) return;
+  const lista = parsearLista(ta.value);
+  preview.innerHTML = lista.slice(0, 20).map(n =>
+    `<span class="preview-chip">${n}</span>`
+  ).join("") + (lista.length > 20 ? `<span class="preview-chip">+${lista.length-20} más</span>` : "");
+}
+
+function parsearLista(texto) {
+  return texto.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+}
+
+// ── Modo ──
+async function seleccionarModo(m) {
+  modo = m;
+  document.getElementById("modo-btn-1").classList.toggle("active", m === "1");
+  document.getElementById("modo-btn-2").classList.toggle("active", m === "2");
+  document.getElementById("cfg-2").classList.toggle("hidden", m !== "2");
+  document.getElementById("ctrl-2-wrap").classList.toggle("hidden", m !== "2");
+  document.getElementById("ctrl-ambas-wrap").classList.toggle("hidden", m !== "2");
+  document.getElementById("config-blocks").classList.toggle("dos", m === "2");
+  await setModo(m);
+}
+
+// ── Aplicar config ──
+async function aplicarConfig(num) {
+  const nombre = document.getElementById(`nombre-cfg-${num}`).value.trim() || `Ruleta ${num}`;
+  const lista = parsearLista(document.getElementById(`lista-cfg-${num}`).value);
+  const eliminar = document.getElementById(`eliminar-cfg-${num}`).checked;
+
+  if (lista.length < 2) {
+    notif(num, "Necesitás al menos 2 participantes.", "err"); return;
+  }
+
+  await setRuletaParticipantes(num, { nombre, participantes: lista, eliminarSalidos: eliminar });
+  notif(num, `✅ Ruleta ${num} configurada con ${lista.length} participantes.`, "ok");
+}
+
+// ── Reset ruleta ──
+async function resetearRuleta_fn(num) {
+  if (!confirm(`¿Resetear Ruleta ${num}? Se borrará todo.`)) return;
+  await resetRuleta(num);
+  document.getElementById(`lista-cfg-${num}`).value = "";
+  document.getElementById(`nombre-cfg-${num}`).value = "";
+  actualizarPreview(num);
+  notif(num, "Ruleta reseteada.", "ok");
+}
+
+// ── Configs guardadas ──
+async function guardarListaActual(num) {
+  const nombre = document.getElementById(`nombre-save-${num}`).value.trim();
+  const lista = parsearLista(document.getElementById(`lista-cfg-${num}`).value);
+  if (!nombre) { notif(num, "Ponele un nombre a la lista.", "err"); return; }
+  if (lista.length === 0) { notif(num, "La lista está vacía.", "err"); return; }
+  await guardarConfig(nombre, lista);
+  document.getElementById(`nombre-save-${num}`).value = "";
+  notif(num, `Lista "${nombre}" guardada.`, "ok");
+}
+
+function renderConfigsGuardadas(configs) {
+  configsGuardadas = configs;
+  [1, 2].forEach(num => {
+    const cont = document.getElementById(`configs-list-${num}`);
+    if (!cont) return;
+    if (configs.length === 0) {
+      cont.innerHTML = `<span style="font-size:11px;color:var(--crema-3);">Sin listas guardadas aún.</span>`;
+      return;
+    }
+    cont.innerHTML = configs.map(c => `
+      <div class="config-item">
+        <div class="config-item-nombre">${c.nombre}</div>
+        <div class="config-item-count">${c.lista.length} items</div>
+        <button class="adm-btn secondary" style="padding:5px 10px;font-size:10px;" type="button"
+          onclick="cargarConfig(${num},'${c.id}')">Cargar</button>
+        <button class="adm-btn danger" style="padding:5px 8px;font-size:10px;" type="button"
+          onclick="borrarConfig('${c.id}')">✕</button>
+      </div>
+    `).join("");
+  });
+}
+
+window.cargarConfig = function(num, id) {
+  const cfg = configsGuardadas.find(c => c.id === id);
+  if (!cfg) return;
+  document.getElementById(`lista-cfg-${num}`).value = cfg.lista.join("\n");
+  document.getElementById(`nombre-cfg-${num}`).value = cfg.nombre;
+  actualizarPreview(num);
+};
+
+window.borrarConfig = async function(id) {
+  await eliminarConfig(id);
+};
+
+// ── Forzado ──
+function toggleForzado(num) {
+  const activo = document.getElementById(`forzado-toggle-${num}`).checked;
+  document.getElementById(`forzado-section-${num}`).classList.toggle("visible", activo);
+  if (!activo) forzadoSeleccionado[num] = [];
+}
+
+function renderForzadoChips(num, participantes) {
+  const cont = document.getElementById(`forzado-chips-${num}`);
+  if (!cont) return;
+  cont.innerHTML = participantes.map(p => {
+    const sel = forzadoSeleccionado[num].includes(p);
+    return `<span class="forzado-chip${sel ? " selected" : ""}" onclick="toggleChip(${num},'${p.replace(/'/g, "\\'")}')">${p}</span>`;
+  }).join("");
+}
+
+window.toggleChip = function(num, nombre) {
+  const arr = forzadoSeleccionado[num];
+  const idx = arr.indexOf(nombre);
+  if (idx === -1) arr.push(nombre); else arr.splice(idx, 1);
+  renderForzadoChips(num, ruletaState[num].participantes || []);
+};
+
+// ── Girar ──
+async function girarUna(num) {
+  const state = ruletaState[num];
+  if (!state.participantes || state.participantes.length === 0) {
+    notif(num, "No hay participantes.", "err"); return;
+  }
+  const forzadoActivo = document.getElementById(`forzado-toggle-${num}`).checked;
+  const forzados = forzadoActivo && forzadoSeleccionado[num].length > 0 ? forzadoSeleccionado[num] : null;
+  document.getElementById(`btn-girar-${num}`).disabled = true;
+  document.getElementById(`btn-eliminar-${num}`).style.display = "none";
+  const adminRes = document.getElementById(`admin-resultado-${num}`);
+  if (adminRes) { adminRes.textContent = ""; adminRes.classList.remove("visible"); }
+  await fbGirarRuleta(num, forzados);
+}
+
+async function girarAmbas() {
+  const f1 = document.getElementById("forzado-toggle-1").checked && forzadoSeleccionado[1].length > 0 ? forzadoSeleccionado[1] : null;
+  const f2 = document.getElementById("forzado-toggle-2").checked && forzadoSeleccionado[2].length > 0 ? forzadoSeleccionado[2] : null;
+  document.getElementById("btn-ambas").disabled = true;
+  document.getElementById("btn-pareja").style.display = "none";
+  pendientePareja = false;
+  const adminRes1 = document.getElementById("admin-resultado-1");
+  const adminRes2 = document.getElementById("admin-resultado-2");
+  if (adminRes1) { adminRes1.textContent = ""; adminRes1.classList.remove("visible"); }
+  if (adminRes2) { adminRes2.textContent = ""; adminRes2.classList.remove("visible"); }
+  await fbGirarAmbas(f1, f2);
+}
+
+async function eliminarActual(num) {
+  const remaining = await fbEliminarResultado(num);
+  document.getElementById(`btn-eliminar-${num}`).style.display = "none";
+  const adminRes = document.getElementById(`admin-resultado-${num}`);
+  if (adminRes) { adminRes.textContent = ""; adminRes.classList.remove("visible"); }
+  if (remaining === 0) {
+    notif(num, "🏁 Ruleta terminada.", "ok");
+  }
+}
+
+async function registrarPareja_fn() {
+  const r1 = ruletaState[1].ultimoResultado;
+  const r2 = ruletaState[2].ultimoResultado;
+  if (!r1 || !r2) return;
+  await fbRegistrarPareja(r1, r2);
+  document.getElementById("btn-pareja").style.display = "none";
+  pendientePareja = false;
+  const adminRes1 = document.getElementById("admin-resultado-1");
+  const adminRes2 = document.getElementById("admin-resultado-2");
+  if (adminRes1) { adminRes1.textContent = ""; adminRes1.classList.remove("visible"); }
+  if (adminRes2) { adminRes2.textContent = ""; adminRes2.classList.remove("visible"); }
+}
+
+async function resetearHistorial() {
+  if (!confirm("¿Limpiar historial/parejas?")) return;
+  await resetParejas();
+  // Limpiar historial de cada ruleta en Firebase
+  const { ref: dbRef, update: dbUpdate } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+  const { db: database } = await import("./js/firebase-init.js");
+  await dbUpdate(dbRef(database, "ruleta/ruleta1"), { historial: [] });
+  await dbUpdate(dbRef(database, "ruleta/ruleta2"), { historial: [] });
+}
+
+function notif(num, msg, tipo) {
+  const el = document.getElementById(`notif-cfg-${num}`);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `adm-notif ${tipo}`;
+  setTimeout(() => { el.textContent = ""; el.className = "adm-notif"; }, 3500);
+}
+
+// ── Actualizar UI admin desde Firebase ──
+function actualizarAdmin(num, data) {
+  if (!data) return;
+  ruletaState[num] = data;
+
+  const participantes = data.participantes || [];
+  const historial = data.historial || [];
+
+  // Nombre en control
+  const nombreEl = document.getElementById(`ctrl-nombre-${num}`);
+  if (nombreEl) nombreEl.textContent = data.nombre || `RULETA ${num}`;
+
+  // Restantes
+  const restEl = document.getElementById(`ctrl-restantes-${num}`);
+  if (restEl) {
+    restEl.textContent = data.eliminarSalidos
+      ? `${participantes.length} restantes`
+      : `${participantes.length} participantes`;
+  }
+
+  // Canvas mini
+  dibujarRuleta(`admin-canvas-${num}`, participantes, currentAngles[num]);
+
+  // Chips forzado
+  renderForzadoChips(num, participantes);
+
+  // Resultado
+  const giro = data.giro;
+  if (giro && giro.id && giro.id !== giroIds[num]) {
+    giroIds[num] = giro.id;
+    // Mostrar resultado en admin después de la duración
+    const delay = giro.timestamp ? Math.max(0, (giro.timestamp + (giro.duracion || 5000)) - Date.now()) : 5000;
+    setTimeout(() => {
+      const adminRes = document.getElementById(`admin-resultado-${num}`);
+      if (adminRes) { adminRes.textContent = giro.resultado; adminRes.classList.add("visible"); }
+      document.getElementById(`btn-girar-${num}`).disabled = false;
+      // Mostrar botón eliminar solo si hay eliminación activa
+      if (data.eliminarSalidos) {
+        document.getElementById(`btn-eliminar-${num}`).style.display = "";
+      }
+      // Modo 2: detectar si ambas terminaron para mostrar botón pareja
+      if (modo === "2") {
+        const otroNum = num === 1 ? 2 : 1;
+        const otroRes = document.getElementById(`admin-resultado-${otroNum}`);
+        if (otroRes && otroRes.textContent) {
+          document.getElementById("btn-pareja").style.display = "";
+          document.getElementById("btn-ambas").disabled = false;
+        }
+      } else {
+        document.getElementById(`btn-girar-${num}`).disabled = false;
+      }
+    }, delay + 200);
+  }
+
+  // Historial admin
+  renderHistorialAdmin();
+}
+
+function renderHistorialAdmin() {
+  const cont = document.getElementById("historial-admin-content");
+  const titulo = document.getElementById("historial-titulo");
+  if (!cont) return;
+
+  if (modo === "2") {
+    // Se maneja por onParejas
+    if (titulo) titulo.textContent = "PAREJAS FORMADAS";
+    return;
+  }
+
+  if (titulo) titulo.textContent = "HISTORIAL DE GIROS";
+  const historial = ruletaState[1].historial || [];
+  if (historial.length === 0) {
+    cont.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">Sin resultados aún.</span>`;
+    return;
+  }
+  cont.innerHTML = historial.map((h, i) =>
+    `<div style="font-size:13px;color:var(--crema-3);padding:4px 0;border-bottom:1px solid rgba(200,150,0,0.06);">
+      ${i+1}. <strong style="color:var(--crema-2);">${h}</strong>
+    </div>`
+  ).join("");
+}
+
+// ── Firebase listeners ──
+onRuletaConfig(config => {
+  modo = config.modo || "1";
+  // Actualizar UI sin llamar setModo (evitar loop)
+  document.getElementById("modo-btn-1").classList.toggle("active", modo === "1");
+  document.getElementById("modo-btn-2").classList.toggle("active", modo === "2");
+  document.getElementById("cfg-2").classList.toggle("hidden", modo !== "2");
+  document.getElementById("ctrl-2-wrap").classList.toggle("hidden", modo !== "2");
+  document.getElementById("ctrl-ambas-wrap").classList.toggle("hidden", modo !== "2");
+  document.getElementById("config-blocks").classList.toggle("dos", modo === "2");
+  renderHistorialAdmin();
+});
+
+onRuletaData(1, data => actualizarAdmin(1, data));
+onRuletaData(2, data => actualizarAdmin(2, data));
+onConfigsGuardadas(renderConfigsGuardadas);
+
+onParejas(parejas => {
+  if (modo !== "2") return;
+  const cont = document.getElementById("historial-admin-content");
+  if (!cont) return;
+  const titulo = document.getElementById("historial-titulo");
+  if (titulo) titulo.textContent = "PAREJAS FORMADAS";
+  if (parejas.length === 0) {
+    cont.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">Sin parejas aún.</span>`;
+    return;
+  }
+  cont.innerHTML = parejas
+    .sort((a,b) => a.timestamp - b.timestamp)
+    .map((p, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(200,150,0,0.06);">
+        <span style="font-size:11px;color:var(--crema-3);min-width:20px;">${i+1}</span>
+        <strong style="color:var(--crema-2);">${p.r1}</strong>
+        <span style="color:var(--dorado);">✦</span>
+        <strong style="color:var(--crema-2);">${p.r2}</strong>
+      </div>
+    `).join("");
+});
+</script>
+</body>
+</html>
