@@ -1,0 +1,328 @@
+/* ─── RULETA CSS ─── */
+
+/* ── Layout general ── */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.rul-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 60px;
+}
+
+/* ── Header ── */
+.rul-header {
+  width: 100%;
+  max-width: 900px;
+  padding: 28px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(200,150,0,0.1);
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rul-title {
+  font-family: var(--font-title);
+  font-size: 36px;
+  color: var(--dorado);
+  letter-spacing: 3px;
+}
+
+.rul-modo-badge {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  background: rgba(200,150,0,0.07);
+  border: 1px solid rgba(200,150,0,0.18);
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+
+/* ── Contenedor de ruletas ── */
+.rul-stage {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ── Bloque de cada ruleta ── */
+.rul-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 260px;
+  max-width: 400px;
+}
+
+.rul-nombre {
+  font-family: var(--font-title);
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--crema-2);
+  text-align: center;
+}
+
+/* ── Canvas wrapper ── */
+.rul-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 360px;
+}
+
+.rul-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Puntero */
+.rul-pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 28px solid var(--dorado);
+  filter: drop-shadow(0 2px 6px rgba(200,150,0,0.7));
+  z-index: 10;
+}
+
+/* ── Resultado ── */
+.rul-resultado {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.rul-resultado-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+}
+
+.rul-resultado-nombre {
+  font-family: var(--font-title);
+  font-size: 40px;
+  letter-spacing: 3px;
+  color: var(--dorado);
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.rul-resultado-nombre.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Parejas (modo 2) ── */
+.rul-parejas-section {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 40px;
+}
+
+.rul-parejas-title {
+  font-family: var(--font-title);
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--crema-3);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.rul-parejas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rul-pareja-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(200,150,0,0.06);
+  border: 1px solid rgba(200,150,0,0.15);
+  border-radius: 12px;
+  padding: 14px 24px;
+}
+
+.rul-pareja-num {
+  font-size: 11px;
+  color: var(--crema-3);
+  letter-spacing: 1px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.rul-pareja-nombre {
+  font-family: var(--font-title);
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--crema);
+  flex: 1;
+  text-align: center;
+}
+
+.rul-pareja-sep {
+  font-size: 18px;
+  color: var(--dorado);
+}
+
+/* ── Historial modo 1 ── */
+.rul-historial-section {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 20px;
+}
+
+.rul-historial-title {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.rul-historial-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.rul-historial-chip {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--crema-3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,150,0,0.1);
+  border-radius: 20px;
+  padding: 4px 12px;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* ── Terminada ── */
+.rul-terminada {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.rul-terminada.visible {
+  display: flex;
+}
+
+.rul-terminada-icon {
+  font-size: 56px;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.7; }
+}
+
+.rul-terminada-title {
+  font-family: var(--font-title);
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--dorado);
+}
+
+.rul-terminada-sub {
+  font-size: 13px;
+  color: var(--crema-3);
+  line-height: 1.6;
+}
+
+/* ── Esperando ── */
+.rul-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.rul-waiting-icon {
+  font-size: 56px;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.rul-waiting-title {
+  font-family: var(--font-title);
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--crema-2);
+}
+
+.rul-waiting-sub {
+  font-size: 13px;
+  color: var(--crema-3);
+}
+
+/* ── Participantes restantes ── */
+.rul-restantes {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  text-align: center;
+}
+
+.rul-restantes span {
+  color: var(--dorado);
+  font-size: 15px;
+}
+
+/* ── Animación de entrada ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rul-pareja-item {
+  animation: fadeInUp 0.3s ease;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .rul-title { font-size: 28px; }
+  .rul-canvas-wrap { max-width: 280px; }
+  .rul-resultado-nombre { font-size: 30px; }
+  .rul-pareja-nombre { font-size: 17px; }
+  .rul-stage { gap: 20px; }
+}
