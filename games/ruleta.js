@@ -1,10 +1,4 @@
 // ruleta.js — Lógica Firebase para La Ruleta de El Burdel
-// Estructura Firebase:
-//   ruleta/config        → { modo: "1"|"2" }
-//   ruleta/ruleta1       → { nombre, participantes:[], eliminarSalidos: bool, giro:{id,resultado,timestamp,duracion}, ultimoResultado, historial:[] }
-//   ruleta/ruleta2       → (misma estructura)
-//   ruleta/parejas       → [] (historial de parejas en modo 2)
-//   ruleta/configs       → { $pushId: { nombre, lista:[] } } (listas guardadas)
 
 import { db } from "../js/firebase-init.js";
 import {
@@ -56,8 +50,23 @@ export async function setRuletaParticipantes(num, { nombre, participantes, elimi
   });
 }
 
-export async function setEliminarSalidos(num, value) {
-  await update(ref(db, `ruleta/ruleta${num}`), { eliminarSalidos: value });
+// ── Calcular ángulo absoluto final para un resultado ──
+// El puntero está arriba (−π/2). Necesitamos que el CENTRO del segmento ganador quede ahí.
+// Usamos un ángulo de BASE fijo (0) + vueltas completas para que gire bastante.
+// Este cálculo es DETERMINISTA: mismo resultado + misma lista = mismo ángulo siempre.
+export function calcAnguloFinal(participantes, resultado, vueltas = 8) {
+  const n = participantes.length;
+  const idx = participantes.indexOf(resultado);
+  if (idx === -1 || n === 0) return Math.PI * 2 * vueltas;
+  const slice = (Math.PI * 2) / n;
+  // Ángulo del centro del segmento idx, partiendo desde 0
+  const centroSegmento = idx * slice + slice / 2;
+  // Para que el centro quede arriba (−π/2), el ángulo de rotación del canvas tiene que ser:
+  const anguloBase = -Math.PI / 2 - centroSegmento;
+  // Normalizamos a positivo para que siempre gire hacia adelante
+  const normalizado = ((anguloBase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  // Sumamos vueltas completas (siempre parte desde 0, va a normalizado + N vueltas)
+  return normalizado + Math.PI * 2 * vueltas;
 }
 
 // ── Admin: girar ruleta ──
@@ -72,12 +81,21 @@ export async function girarRuleta(num, forzados = null) {
   const resultado = pool[Math.floor(Math.random() * pool.length)];
   const giroId = Date.now().toString();
 
+  // Calcular ángulo final aquí, en el admin, y guardarlo en Firebase
+  const anguloFinal = calcAnguloFinal(data.participantes, resultado);
+
   await update(ref(db, `ruleta/ruleta${num}`), {
-    giro: { id: giroId, resultado, timestamp: Date.now(), duracion: 5000 },
+    giro: {
+      id: giroId,
+      resultado,
+      anguloFinal,           // ← todos los clientes usan este valor exacto
+      timestamp: Date.now(),
+      duracion: 5000
+    },
     ultimoResultado: resultado
   });
 
-  return { giroId, resultado };
+  return { giroId, resultado, anguloFinal };
 }
 
 export async function girarAmbas(forzados1 = null, forzados2 = null) {
@@ -98,11 +116,9 @@ export async function eliminarResultado(num) {
   const ultimo = data.ultimoResultado;
   if (!ultimo) return;
 
-  // Agregar al historial
   const historial = data.historial || [];
   historial.push(ultimo);
 
-  // Eliminar de participantes si la opción está activa
   let participantes = data.participantes || [];
   if (data.eliminarSalidos) {
     const idx = participantes.indexOf(ultimo);
@@ -127,8 +143,6 @@ export async function registrarPareja(resultado1, resultado2) {
     r2: resultado2,
     timestamp: Date.now()
   });
-
-  // Eliminar de cada ruleta si corresponde
   await eliminarResultado(1);
   await eliminarResultado(2);
 }
