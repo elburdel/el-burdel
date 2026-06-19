@@ -246,7 +246,7 @@
           <button type="button" class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
           <button type="button" class="active-section juego" data-section="mundial">⚽ Mundial</button>
           <button type="button" class="active-section juego" data-section="millon">💰 El Millón</button>
-          <button type="button" class="active-section juego" data-section="ruleta">🎰 Ruleta</button>
+          <button type="button" class="active-section juego" data-section="ruleta">🎡 Ruleta</button>
         </div>
       </div>
     </div>
@@ -1136,29 +1136,6 @@
       </div>
     </section>
 
-    <!-- SECCIÓN: RULETA -->
-    <section class="admin-section" id="section-ruleta">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🎰 Ruleta</h2>
-        </div>
-        <p style="font-size:13px;color:var(--crema-3);margin-bottom:20px;line-height:1.7;">
-          El panel de la Ruleta tiene su propia página dedicada con configuración de listas,
-          modo de emparejamiento y control del sorteo en tiempo real.
-        </p>
-        <a href="admin-ruleta.html" style="
-          display:inline-flex;align-items:center;gap:12px;
-          background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.35);
-          border-radius:12px;padding:16px 24px;text-decoration:none;
-          font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:#f5c842;
-          transition:background .2s;
-        " onmouseover="this.style.background='rgba(200,150,0,0.18)'"
-           onmouseout="this.style.background='rgba(200,150,0,0.1)'">
-          🎰 Ir al panel de la Ruleta →
-        </a>
-      </div>
-    </section>
-
     <!-- Modal galería: crear/editar álbum + subir fotos -->
     <div class="noticia-modal-overlay" id="galeria-modal-overlay" style="display:none" onclick="galeriaOnOverlayClick(event)">
       <div class="noticia-modal" style="max-width:640px;">
@@ -1250,6 +1227,47 @@
         </div>
       </div>
     </div>
+
+    <!-- SECCIÓN: RULETA -->
+    <section class="admin-section" id="section-ruleta">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🎡 Ruleta</h2>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Cómo funciona</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.8;">
+            <div>1️⃣ &nbsp;Abrí el <strong>panel de admin de la ruleta</strong> (botón abajo)</div>
+            <div>2️⃣ &nbsp;Elegís modo <strong>1 ruleta</strong> o <strong>2 ruletas</strong> e ingresás los participantes</div>
+            <div>3️⃣ &nbsp;Girás desde el panel — todos los usuarios ven la misma animación en tiempo real</div>
+            <div>4️⃣ &nbsp;Podés forzar resultados, eliminar salidos y guardar listas para reutilizar</div>
+            <div style="margin-top:8px;padding:10px 12px;background:rgba(200,150,0,0.06);border-radius:8px;border:1px solid rgba(200,150,0,0.15);font-size:12px;color:var(--crema-3);">
+              El resultado siempre se calcula en el admin. Los viewers solo ven la animación sincronizada.
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="admin-ruleta.html"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background=\'rgba(200,150,0,0.15)\'"
+               onmouseout="this.style.background=\'rgba(200,150,0,0.08)\'">
+              ⚙️ Panel admin ruleta
+            </a>
+            <a href="ruleta.html" target="_blank"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.04);border:1px solid rgba(200,150,0,0.15);border-radius:10px;color:var(--crema-3);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background=\'rgba(200,150,0,0.1)\'"
+               onmouseout="this.style.background=\'rgba(200,150,0,0.04)\'">
+              👁 Ver ruleta pública ↗
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- MODAL EDITAR USUARIO -->
   <div id="edit-user-modal" class="modal-overlay hidden">
@@ -3665,8 +3683,19 @@
     }
 
     // ══════════════════════════════════════════════════════════
-    // ── EL MILLÓN — panel completo en admin-millon.html ──
-    function initMillonAdmin() { /* noop */ }
+    // ── EL MILLÓN — Admin Logic ──
+    // ══════════════════════════════════════════════════════════
+
+    let milState   = null;
+    let milPlayers = {};   // uid → { nick, alive, immune, votesExtra, missionType }
+    let milVotes   = {};   // uid → { voted }
+    let milTimerInterval = null;
+
+    function initMillonAdmin() {
+      milListenState(s => { milState = s; milRenderAll(); });
+      milListenPlayers(p => { milPlayers = p || {}; milRenderAll(); milPopulateSelects(); });
+      milListenVotes(v => { milVotes = v || {}; milRenderTally(); milRenderStat(); });
+    }
 
 
   </script>
