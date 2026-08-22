@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Tests — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+
+    .att-main { padding: 24px 20px 60px; max-width: 900px; margin: 0 auto; }
+
+    .att-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .att-title {
+      font-family: var(--font-title);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .att-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .att-input, .att-textarea {
+      width: 100%;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--crema);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .att-input:focus, .att-textarea:focus { border-color: rgba(200,150,0,0.5); }
+    .att-textarea { min-height: 70px; resize: vertical; }
+
+    .att-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--crema-3);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .att-field { margin-bottom: 14px; }
+
+    .att-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .att-row > * { flex: 1; min-width: 100px; }
+
+    /* ── Lista de tests ── */
+    .att-test-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--negro-3);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .att-test-info { flex: 1; min-width: 180px; }
+
+    .att-test-titulo {
+      font-size: 15px;
+      color: var(--crema);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .att-test-meta {
+      font-size: 12px;
+      color: var(--crema-3);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .att-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .att-badge.preparado { background: rgba(60,160,60,0.15); color: #7fd97f; }
+    .att-badge.archivado { background: rgba(150,150,150,0.15); color: #aaa; }
+
+    .att-test-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .att-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(200,150,0,0.2);
+      background: transparent;
+      color: var(--crema-3);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .att-btn:hover { color: var(--dorado); border-color: rgba(200,150,0,0.4); }
+    .att-btn.primary { background: var(--rojo); color: var(--crema); border: none; }
+    .att-btn.primary:hover { background: var(--rojo-claro); color: var(--crema); }
+    .att-btn.danger { color: #e08080; border-color: rgba(200,60,60,0.3); }
+    .att-btn.danger:hover { color: #ff9a9a; border-color: rgba(200,60,60,0.6); }
+
+    .att-empty {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--crema-3);
+      font-size: 13px;
+    }
+
+    /* ── Editor de test ── */
+    .att-editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .att-pregunta-card {
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .att-pregunta-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .att-pregunta-num {
+      font-family: var(--font-title);
+      font-size: 13px;
+      color: var(--dorado);
+      letter-spacing: 1px;
+    }
+
+    .att-opcion-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .att-opcion-letra {
+      font-family: var(--font-title);
+      font-size: 14px;
+      color: var(--dorado);
+      min-width: 18px;
+    }
+
+    .att-opcion-row .att-input { flex: 1; }
+    .att-opcion-row .att-input.puntos { flex: 0 0 70px; }
+
+    .att-resultado-card {
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    .att-warning {
+      font-size: 12px;
+      color: #e0b060;
+      background: rgba(200,150,0,0.08);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+
+    .att-section-title {
+      font-family: var(--font-title);
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      color: var(--crema-2);
+      margin: 22px 0 12px;
+    }
+
+  </style>
+</head>
+<body>
+
+<main class="att-main">
+
+  <!-- ═══ VISTA: LISTA DE TESTS ═══ -->
+  <div id="att-vista-lista">
+    <div class="att-topbar">
+      <div class="att-title">📋 Gestión de Tests</div>
+      <div style="display:flex; gap:8px;">
+        <a href="admin.html" class="att-btn">← Volver al admin</a>
+        <button type="button" class="att-btn primary" onclick="abrirNuevoTest()">+ Nuevo test</button>
+      </div>
+    </div>
+
+    <div class="att-card">
+      <div id="att-lista-tests">
+        <div class="att-empty">Cargando tests...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ VISTA: EDITOR DE TEST ═══ -->
+  <div id="att-vista-editor" class="hidden">
+    <div class="att-topbar">
+      <div class="att-title" id="att-editor-titulo-header">✏️ Editar test</div>
+      <button type="button" class="att-btn" onclick="volverALista()">← Volver a la lista</button>
+    </div>
+
+    <!-- Datos generales -->
+    <div class="att-card">
+      <div class="att-field">
+        <label class="att-label">Título del test</label>
+        <input type="text" class="att-input" id="att-edit-titulo" placeholder="Ej: ¿Qué tan atrevida sos?" />
+      </div>
+      <div class="att-field">
+        <label class="att-label">Descripción (opcional)</label>
+        <textarea class="att-textarea" id="att-edit-descripcion" placeholder="Descripción breve del test..."></textarea>
+      </div>
+      <button type="button" class="att-btn primary" onclick="guardarMeta()">💾 Guardar datos generales</button>
+    </div>
+
+    <!-- Preguntas -->
+    <div class="att-section-title">Preguntas</div>
+    <div id="att-lista-preguntas"></div>
+
+    <div class="att-card">
+      <label class="att-label">Nueva pregunta</label>
+      <div class="att-row">
+        <input type="text" class="att-input" id="att-nueva-pregunta-texto" placeholder="Escribí la pregunta..." />
+        <button type="button" class="att-btn primary" onclick="agregarPreguntaNueva()" style="flex:0 0 auto;">+ Agregar</button>
+      </div>
+    </div>
+
+    <!-- Resultados / perfiles -->
+    <div class="att-section-title">Resultados / Perfiles</div>
+    <div class="att-warning">
+      Definí rangos de puntaje que no se superpongan entre sí. Cuando finalices un test en vivo, el puntaje total de cada participante se compara contra estos rangos para asignarle un resultado.
+    </div>
+    <div id="att-lista-resultados"></div>
+
+    <div class="att-card">
+      <label class="att-label">Nuevo resultado</label>
+      <div class="att-row" style="margin-bottom:10px;">
+        <input type="number" class="att-input" id="att-nuevo-res-min" placeholder="Mín." />
+        <input type="number" class="att-input" id="att-nuevo-res-max" placeholder="Máx." />
+      </div>
+      <div class="att-field">
+        <input type="text" class="att-input" id="att-nuevo-res-titulo" placeholder="Nombre del resultado (ej: La atrevida)" />
+      </div>
+      <div class="att-field">
+        <textarea class="att-textarea" id="att-nuevo-res-desc" placeholder="Descripción/explicación del resultado..."></textarea>
+      </div>
+      <button type="button" class="att-btn primary" onclick="agregarResultadoNuevo()">+ Agregar resultado</button>
+    </div>
+
+  </div>
+
+</main>
+
+<script type="module">
+import { auth } from "./js/firebase-init.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  onTestsList, onTest, crearTest, actualizarMeta, toggleEstado, eliminarTest, duplicarTest,
+  agregarPregunta, actualizarPregunta, eliminarPregunta,
+  agregarOpcion, actualizarOpcion, eliminarOpcion, proximaLetra,
+  agregarResultado, actualizarResultado, eliminarResultado
+} from "./games/tests-admin.js";
+
+const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+
+onAuthStateChanged(auth, (user) => {
+  if (!user || user.uid !== ADMIN_UID) {
+    window.location.href = "/login.html";
+  }
+});
+
+// ── Estado local ──
+let listaTests = [];
+let testActualId = null;
+let testActualData = null;
+let unsubEditor = null;
+
+const els = {
+  vistaLista: document.getElementById("att-vista-lista"),
+  vistaEditor: document.getElementById("att-vista-editor"),
+  listaTests: document.getElementById("att-lista-tests"),
+  editorTituloHeader: document.getElementById("att-editor-titulo-header"),
+  editTitulo: document.getElementById("att-edit-titulo"),
+  editDescripcion: document.getElementById("att-edit-descripcion"),
+  listaPreguntas: document.getElementById("att-lista-preguntas"),
+  nuevaPreguntaTexto: document.getElementById("att-nueva-pregunta-texto"),
+  listaResultados: document.getElementById("att-lista-resultados"),
+  nuevoResMin: document.getElementById("att-nuevo-res-min"),
+  nuevoResMax: document.getElementById("att-nuevo-res-max"),
+  nuevoResTitulo: document.getElementById("att-nuevo-res-titulo"),
+  nuevoResDesc: document.getElementById("att-nuevo-res-desc"),
+};
+
+// ── Vista: lista de tests ──
+
+onTestsList((lista) => {
+  listaTests = lista;
+  renderLista();
+});
+
+function renderLista() {
+  if (!listaTests.length) {
+    els.listaTests.innerHTML = `<div class="att-empty">Todavía no creaste ningún test. Usá "+ Nuevo test" para arrancar.</div>`;
+    return;
+  }
+  els.listaTests.innerHTML = listaTests.map(t => {
+    const estado = t.meta.estado || "preparado";
+    const badgeClass = estado === "archivado" ? "archivado" : "preparado";
+    const badgeTxt = estado === "archivado" ? "Archivado" : "Preparado";
+    return `
+      <div class="att-test-item">
+        <div class="att-test-info">
+          <div class="att-test-titulo">${escapeHtml(t.meta.titulo || "Sin título")}</div>
+          <div class="att-test-meta">
+            <span class="att-badge ${badgeClass}">${badgeTxt}</span>
+            <span>${t.cantidadPreguntas} pregunta${t.cantidadPreguntas === 1 ? "" : "s"}</span>
+            <span>${t.cantidadResultados} resultado${t.cantidadResultados === 1 ? "" : "s"}</span>
+            ${t.tieneSesiones ? '<span>· tiene historial jugado</span>' : ''}
+          </div>
+        </div>
+        <div class="att-test-actions">
+          <button type="button" class="att-btn" onclick="abrirEditor('${t.id}')">✏️ Editar</button>
+          <button type="button" class="att-btn" onclick="duplicar('${t.id}')">⧉ Duplicar</button>
+          <button type="button" class="att-btn" onclick="toggleArchivar('${t.id}','${estado}')">${estado === "archivado" ? "↩️ Reactivar" : "🗄️ Archivar"}</button>
+          <button type="button" class="att-btn danger" onclick="confirmarEliminar('${t.id}')">🗑️ Eliminar</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.abrirNuevoTest = async () => {
+  const titulo = prompt("Título del nuevo test:");
+  if (titulo === null) return;
+  const id = await crearTest(titulo.trim() || "Test sin título", "");
+  window.abrirEditor(id);
+};
+
+window.duplicar = async (testId) => {
+  const nuevoId = await duplicarTest(testId);
+  alert("Test duplicado. Ahora podés editarlo por separado.");
+};
+
+window.toggleArchivar = async (testId, estadoActual) => {
+  const nuevo = estadoActual === "archivado" ? "preparado" : "archivado";
+  await toggleEstado(testId, nuevo);
+};
+
+window.confirmarEliminar = (testId) => {
+  const t = listaTests.find(x => x.id === testId);
+  const avisoSesiones = t && t.tieneSesiones
+    ? "\n\nOJO: este test tiene historial de sesiones ya jugadas. Si lo eliminás, ese historial completo se borra para siempre y no se puede recuperar."
+    : "\n\nEsta acción no se puede deshacer.";
+  if (confirm(`¿Eliminar definitivamente "${t?.meta.titulo || 'este test'}"?${avisoSesiones}`)) {
+    eliminarTest(testId);
+  }
+};
+
+// ── Vista: editor de test ──
+
+window.abrirEditor = (testId) => {
+  testActualId = testId;
+  els.vistaLista.classList.add("hidden");
+  els.vistaEditor.classList.remove("hidden");
+
+  if (unsubEditor) unsubEditor();
+  unsubEditor = onTest(testId, (data) => {
+    testActualData = data || { meta: {}, preguntas: {}, resultados: {} };
+    els.editorTituloHeader.textContent = `✏️ ${testActualData.meta?.titulo || "Editar test"}`;
+    els.editTitulo.value = testActualData.meta?.titulo || "";
+    els.editDescripcion.value = testActualData.meta?.descripcion || "";
+    renderPreguntas();
+    renderResultados();
+  });
+};
+
+window.volverALista = () => {
+  if (unsubEditor) { unsubEditor(); unsubEditor = null; }
+  testActualId = null;
+  testActualData = null;
+  els.vistaEditor.classList.add("hidden");
+  els.vistaLista.classList.remove("hidden");
+};
+
+window.guardarMeta = async () => {
+  if (!testActualId) return;
+  await actualizarMeta(testActualId, {
+    titulo: els.editTitulo.value.trim() || "Test sin título",
+    descripcion: els.editDescripcion.value.trim(),
+  });
+};
+
+// ── Preguntas ──
+
+function renderPreguntas() {
+  const preguntas = testActualData?.preguntas || {};
+  const entradas = Object.entries(preguntas).sort((a, b) => (a[1].orden || 0) - (b[1].orden || 0));
+
+  if (!entradas.length) {
+    els.listaPreguntas.innerHTML = `<div class="att-empty">Todavía no agregaste preguntas.</div>`;
+    return;
+  }
+
+  els.listaPreguntas.innerHTML = entradas.map(([qId, p], idx) => {
+    const opciones = p.opciones || {};
+    const letras = Object.keys(opciones).sort();
+    const opcionesHtml = letras.map(letra => `
+      <div class="att-opcion-row">
+        <span class="att-opcion-letra">${letra}</span>
+        <input type="text" class="att-input" value="${escapeAttr(opciones[letra].texto || "")}"
+               onchange="actualizarOpcionTexto('${qId}','${letra}', this.value)" placeholder="Texto de la opción" />
+        <input type="number" class="att-input puntos" value="${opciones[letra].puntos ?? 0}"
+               onchange="actualizarOpcionPuntos('${qId}','${letra}', this.value)" placeholder="Pts" />
+        <button type="button" class="att-btn danger" onclick="borrarOpcion('${qId}','${letra}')">✕</button>
+      </div>
+    `).join("");
+
+    return `
+      <div class="att-pregunta-card">
+        <div class="att-pregunta-header">
+          <span class="att-pregunta-num">PREGUNTA ${idx + 1}</span>
+          <button type="button" class="att-btn danger" onclick="borrarPregunta('${qId}')">🗑️ Eliminar pregunta</button>
+        </div>
+        <div class="att-field">
+          <input type="text" class="att-input" value="${escapeAttr(p.texto || "")}"
+                 onchange="actualizarPreguntaTexto('${qId}', this.value)" placeholder="Texto de la pregunta" />
+        </div>
+        <label class="att-label">Opciones</label>
+        ${opcionesHtml}
+        <button type="button" class="att-btn" onclick="agregarOpcionNueva('${qId}')" style="margin-top:6px;">+ Agregar opción</button>
+      </div>
+    `;
+  }).join("");
+}
+
+window.agregarPreguntaNueva = async () => {
+  const texto = els.nuevaPreguntaTexto.value.trim();
+  if (!texto) return;
+  const preguntas = testActualData?.preguntas || {};
+  const ordenSiguiente = Object.keys(preguntas).length + 1;
+  await agregarPregunta(testActualId, texto, ordenSiguiente);
+  els.nuevaPreguntaTexto.value = "";
+};
+
+window.actualizarPreguntaTexto = async (qId, texto) => {
+  await actualizarPregunta(testActualId, qId, texto.trim());
+};
+
+window.borrarPregunta = async (qId) => {
+  if (confirm("¿Eliminar esta pregunta y todas sus opciones?")) {
+    await eliminarPregunta(testActualId, qId);
+  }
+};
+
+window.agregarOpcionNueva = async (qId) => {
+  const pregunta = testActualData?.preguntas?.[qId];
+  const letra = proximaLetra(pregunta?.opciones);
+  if (!letra) { alert("Ya llegaste al máximo de opciones para esta pregunta."); return; }
+  await agregarOpcion(testActualId, qId, letra, "Nueva opción", 0);
+};
+
+window.actualizarOpcionTexto = async (qId, letra, texto) => {
+  const puntosActuales = testActualData?.preguntas?.[qId]?.opciones?.[letra]?.puntos ?? 0;
+  await actualizarOpcion(testActualId, qId, letra, texto.trim(), puntosActuales);
+};
+
+window.actualizarOpcionPuntos = async (qId, letra, puntos) => {
+  const textoActual = testActualData?.preguntas?.[qId]?.opciones?.[letra]?.texto || "";
+  await actualizarOpcion(testActualId, qId, letra, textoActual, puntos);
+};
+
+window.borrarOpcion = async (qId, letra) => {
+  if (confirm(`¿Eliminar la opción ${letra}?`)) {
+    await eliminarOpcion(testActualId, qId, letra);
+  }
+};
+
+// ── Resultados / perfiles ──
+
+function renderResultados() {
+  const resultados = testActualData?.resultados || {};
+  const entradas = Object.entries(resultados).sort((a, b) => (a[1].min || 0) - (b[1].min || 0));
+
+  if (!entradas.length) {
+    els.listaResultados.innerHTML = `<div class="att-empty">Todavía no definiste resultados/perfiles.</div>`;
+    return;
+  }
+
+  els.listaResultados.innerHTML = entradas.map(([resId, r]) => `
+    <div class="att-resultado-card">
+      <div class="att-row" style="margin-bottom:10px;">
+        <input type="number" class="att-input" value="${r.min ?? 0}" placeholder="Mín."
+               onchange="actualizarResultadoCampo('${resId}','min', this.value)" />
+        <input type="number" class="att-input" value="${r.max ?? 0}" placeholder="Máx."
+               onchange="actualizarResultadoCampo('${resId}','max', this.value)" />
+        <button type="button" class="att-btn danger" onclick="borrarResultado('${resId}')" style="flex:0 0 auto;">✕</button>
+      </div>
+      <div class="att-field">
+        <input type="text" class="att-input" value="${escapeAttr(r.titulo || "")}" placeholder="Nombre del resultado"
+               onchange="actualizarResultadoCampo('${resId}','titulo', this.value)" />
+      </div>
+      <div class="att-field">
+        <textarea class="att-textarea" placeholder="Descripción/explicación"
+                  onchange="actualizarResultadoCampo('${resId}','descripcion', this.value)">${escapeHtml(r.descripcion || "")}</textarea>
+      </div>
+    </div>
+  `).join("");
+}
+
+window.agregarResultadoNuevo = async () => {
+  const min = els.nuevoResMin.value;
+  const max = els.nuevoResMax.value;
+  const titulo = els.nuevoResTitulo.value.trim();
+  const descripcion = els.nuevoResDesc.value.trim();
+  if (!titulo) { alert("Ponele un nombre al resultado."); return; }
+  await agregarResultado(testActualId, { min, max, titulo, descripcion });
+  els.nuevoResMin.value = "";
+  els.nuevoResMax.value = "";
+  els.nuevoResTitulo.value = "";
+  els.nuevoResDesc.value = "";
+};
+
+window.actualizarResultadoCampo = async (resId, campo, valor) => {
+  const actual = testActualData?.resultados?.[resId] || {};
+  const actualizado = { ...actual, [campo]: valor };
+  await actualizarResultado(testActualId, resId, actualizado);
+};
+
+window.borrarResultado = async (resId) => {
+  if (confirm("¿Eliminar este resultado/perfil?")) {
+    await eliminarResultado(testActualId, resId);
+  }
+};
+
+// ── Helpers ──
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
+</script>
+
+</body>
+</html>
