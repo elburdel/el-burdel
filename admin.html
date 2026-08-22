@@ -246,6 +246,7 @@
           <button type="button" class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
           <button type="button" class="active-section juego" data-section="millon">💰 El Millón</button>
           <button type="button" class="active-section juego" data-section="ruleta">🎡 Ruleta</button>
+          <button type="button" class="active-section juego" data-section="tests">🧠 Tests</button>
         </div>
       </div>
     </div>
@@ -1220,6 +1221,43 @@
                onmouseout="this.style.background=\'rgba(200,150,0,0.04)\'">
               👁 Ver ruleta pública ↗
             </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECCIÓN: TESTS -->
+    <section class="admin-section" id="section-tests">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🧠 Tests</h2>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:16px;">
+          <div class="admin-card-label">Cómo funciona</div>
+          <div style="font-size:13px;color:var(--crema-2);line-height:1.8;">
+            <div>1️⃣ &nbsp;En <strong>Gestión de tests</strong> creás y editás todos los tests que quieras (preguntas, opciones, puntos, resultados)</div>
+            <div>2️⃣ &nbsp;Quedan guardados como "Preparados" hasta que decidas usarlos en un vivo</div>
+            <div>3️⃣ &nbsp;El control del vivo (activar, revelar opciones, puntuar, revelar resultados) se maneja desde otra pantalla — todavía no está lista</div>
+            <div style="margin-top:8px;padding:10px 12px;background:rgba(200,150,0,0.06);border-radius:8px;border:1px solid rgba(200,150,0,0.15);font-size:12px;color:var(--crema-3);">
+              Un test guardado nunca se activa solo. Vos elegís cuál usar cada vivo.
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="admin-tests.html"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background=\'rgba(200,150,0,0.15)\'"
+               onmouseout="this.style.background=\'rgba(200,150,0,0.08)\'">
+              📋 Gestión de tests
+            </a>
+          </div>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
+            El control en vivo (Tests → En vivo) se agrega en la próxima etapa.
           </div>
         </div>
 
@@ -2407,7 +2445,7 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "millon", "ruleta"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "millon", "ruleta", "tests"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
