@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tests — El Burdel</title>
+  <meta name="description" content="Tests en vivo de El Burdel" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="Tests — El Burdel" />
+  <meta property="og:url" content="https://elburdel.com.ar/tests.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/tests.css" />
+</head>
+<body>
+
+<main class="tst-main">
+  <div class="tst-header">
+    <div class="tst-title">🧠 TESTS</div>
+    <div class="tst-subtitle" id="tst-subtitle">Cargando...</div>
+  </div>
+
+  <!-- ESTADO: sin test activo -->
+  <div class="tst-waiting" id="tst-waiting">
+    <div class="tst-waiting-icon">🕯️</div>
+    <div class="tst-waiting-title">ESPERANDO AL ADMIN</div>
+    <div class="tst-waiting-sub">Todavía no hay un test activo. Cuando arranque uno en vivo, aparece acá automáticamente.</div>
+  </div>
+
+  <!-- ESTADO: pregunta en curso -->
+  <div class="tst-card hidden" id="tst-card-pregunta">
+    <div class="tst-pregunta-texto" id="tst-pregunta-texto">—</div>
+    <div class="tst-opciones" id="tst-opciones"></div>
+  </div>
+
+  <!-- ESTADO: ya respondí, esperando puntaje -->
+  <div class="tst-card hidden" id="tst-card-respuesta">
+    <div class="tst-respuesta-estado" id="tst-respuesta-estado">
+      <div class="tst-respuesta-icon">✅</div>
+      <div class="tst-respuesta-msg" id="tst-respuesta-msg">Respuesta registrada</div>
+      <div class="tst-respuesta-puntos hidden" id="tst-respuesta-puntos"></div>
+    </div>
+  </div>
+
+  <!-- ESTADO: resultado final revelado -->
+  <div class="tst-card hidden" id="tst-card-final">
+    <div class="tst-resultado-final">
+      <div class="tst-resultado-puntaje" id="tst-final-puntaje">—</div>
+      <div class="tst-resultado-perfil" id="tst-final-perfil">—</div>
+      <div class="tst-resultado-desc" id="tst-final-desc">—</div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="tst-historial">
+    <div class="tst-historial-title">Mis Tests</div>
+    <div id="tst-historial-lista">
+      <div class="tst-historial-vacio">Todavía no participaste de ningún test.</div>
+    </div>
+  </div>
+</main>
+
+<!-- NAV BOTTOM -->
+<footer class="nav-bottom">
+  <div class="nav-bottom-inner">
+    <div class="nav-bottom-links">
+      <a href="index.html" class="nav-bottom-link">Inicio</a>
+      <a href="noticias.html" class="nav-bottom-link">Noticias</a>
+      <a href="galeria.html" class="nav-bottom-link">Galería</a>
+      <a href="musica.html" class="nav-bottom-link">Música</a>
+      <a href="ranking.html" class="nav-bottom-link">Ranking</a>
+    </div>
+    <div class="nav-bottom-divider"></div>
+    <div class="nav-bottom-links">
+      <a href="terminos.html" class="nav-bottom-link">Términos</a>
+      <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+    </div>
+    <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
+  </div>
+</footer>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  import { onSession, getUserData } from "./js/auth.js";
+  import {
+    onTestLiveState, onPreguntaPublica, onMiRespuesta, enviarRespuesta,
+    onMiResultado, onResultadoFinal, registrarParticipante, onHistorial
+  } from "./games/tests.js";
+
+  initNavbar();
+
+  const els = {
+    subtitle: document.getElementById("tst-subtitle"),
+    waiting: document.getElementById("tst-waiting"),
+    cardPregunta: document.getElementById("tst-card-pregunta"),
+    preguntaTexto: document.getElementById("tst-pregunta-texto"),
+    opciones: document.getElementById("tst-opciones"),
+    cardRespuesta: document.getElementById("tst-card-respuesta"),
+    respuestaMsg: document.getElementById("tst-respuesta-msg"),
+    respuestaPuntos: document.getElementById("tst-respuesta-puntos"),
+    cardFinal: document.getElementById("tst-card-final"),
+    finalPuntaje: document.getElementById("tst-final-puntaje"),
+    finalPerfil: document.getElementById("tst-final-perfil"),
+    finalDesc: document.getElementById("tst-final-desc"),
+    historialLista: document.getElementById("tst-historial-lista"),
+  };
+
+  function showOnly(idsToShow) {
+    const all = [els.waiting, els.cardPregunta, els.cardRespuesta, els.cardFinal];
+    all.forEach(el => el.classList.add("hidden"));
+    idsToShow.forEach(el => el.classList.remove("hidden"));
+  }
+
+  let currentUid = null;
+  let unsubPregunta = null;
+  let unsubMiRespuesta = null;
+  let unsubMiResultado = null;
+  let respuestaEnviada = false;
+
+  function limpiarListenersPregunta() {
+    if (unsubPregunta) { unsubPregunta(); unsubPregunta = null; }
+    if (unsubMiRespuesta) { unsubMiRespuesta(); unsubMiRespuesta = null; }
+    if (unsubMiResultado) { unsubMiResultado(); unsubMiResultado = null; }
+  }
+
+  function renderOpciones(pregunta, qId, yaRespondida) {
+    els.opciones.innerHTML = "";
+    const opciones = pregunta.opciones || {};
+    const letras = Object.keys(opciones).sort();
+
+    letras.forEach((letra) => {
+      const btn = document.createElement("button");
+      btn.className = "tst-opcion-btn";
+      btn.innerHTML = `<span class="tst-opcion-letra">${letra}</span><span>${opciones[letra].texto}</span>`;
+      btn.disabled = yaRespondida;
+      btn.addEventListener("click", async () => {
+        if (respuestaEnviada) return;
+        respuestaEnviada = true;
+        [...els.opciones.children].forEach(b => b.disabled = true);
+        const res = await enviarRespuesta(qId, currentUid, letra);
+        if (!res.ok) {
+          respuestaEnviada = false;
+          [...els.opciones.children].forEach(b => b.disabled = false);
+          return;
+        }
+        mostrarEsperandoResultado(qId);
+      });
+      els.opciones.appendChild(btn);
+    });
+  }
+
+  function mostrarEsperandoResultado(qId) {
+    showOnly([els.cardRespuesta]);
+    els.respuestaMsg.textContent = "Respuesta registrada";
+    els.respuestaPuntos.classList.add("hidden");
+    els.respuestaPuntos.textContent = "";
+
+    if (unsubMiResultado) unsubMiResultado();
+    unsubMiResultado = onMiResultado(currentUid, (resultado) => {
+      if (resultado && resultado.qId === qId) {
+        els.respuestaMsg.textContent = "¡Anotado!";
+        els.respuestaPuntos.textContent = `+${resultado.puntos} puntos`;
+        els.respuestaPuntos.classList.remove("hidden");
+      }
+    });
+  }
+
+  function cargarPreguntaActual(qId) {
+    limpiarListenersPregunta();
+    respuestaEnviada = false;
+
+    unsubPregunta = onPreguntaPublica(qId, (pregunta) => {
+      if (!pregunta) {
+        // el admin todavía no publicó nada de esta pregunta
+        showOnly([els.waiting]);
+        els.subtitle.textContent = "Preparando la próxima pregunta...";
+        return;
+      }
+
+      // Ya sabemos que hay pregunta pública — chequeamos si ya respondí
+      if (unsubMiRespuesta) unsubMiRespuesta();
+      unsubMiRespuesta = onMiRespuesta(qId, currentUid, (miRespuesta) => {
+        if (miRespuesta) {
+          respuestaEnviada = true;
+          mostrarEsperandoResultado(qId);
+        } else {
+          respuestaEnviada = false;
+          showOnly([els.cardPregunta]);
+          els.subtitle.textContent = "Test en vivo";
+          els.preguntaTexto.textContent = pregunta.texto;
+          renderOpciones(pregunta, qId, false);
+        }
+      });
+    });
+  }
+
+  function renderHistorial(lista) {
+    if (!lista.length) {
+      els.historialLista.innerHTML = `<div class="tst-historial-vacio">Todavía no participaste de ningún test.</div>`;
+      return;
+    }
+    els.historialLista.innerHTML = lista.map(item => {
+      const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString("es-AR") : "";
+      return `
+        <div class="tst-historial-item">
+          <div class="tst-historial-nombre">${item.tituloTest || "Test"}</div>
+          <div class="tst-historial-meta">
+            <span>${fecha}</span>
+            <span>${item.puntajeFinal ?? "—"} pts</span>
+            <span>${item.resultado || ""}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  onSession(async (user) => {
+    if (!user) {
+      window.location.href = "/login.html";
+      return;
+    }
+    const data = await getUserData(user.uid);
+    if (!data) { window.location.href = "/login.html"; return; }
+
+    currentUid = user.uid;
+    await registrarParticipante(currentUid, data.nick || "Jugador");
+
+    onHistorial(currentUid, renderHistorial);
+
+    onTestLiveState((estado) => {
+      if (estado.estado === "idle" || !estado.testId) {
+        limpiarListenersPregunta();
+        showOnly([els.waiting]);
+        els.subtitle.textContent = "Sin test activo";
+        return;
+      }
+
+      if (estado.estado === "activo" && estado.preguntaActualId) {
+        cargarPreguntaActual(estado.preguntaActualId);
+        return;
+      }
+
+      if (estado.estado === "finalizado") {
+        limpiarListenersPregunta();
+        if (unsubMiResultado) unsubMiResultado();
+        unsubMiResultado = onResultadoFinal(currentUid, (resultado) => {
+          if (!resultado) {
+            showOnly([els.waiting]);
+            els.subtitle.textContent = "Test terminado — esperando resultados...";
+            return;
+          }
+          showOnly([els.cardFinal]);
+          els.subtitle.textContent = "Resultado final";
+          els.finalPuntaje.textContent = `${resultado.puntajeFinal} pts`;
+          els.finalPerfil.textContent = resultado.perfil || "";
+          els.finalDesc.textContent = resultado.descripcion || "";
+        });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
