@@ -21,17 +21,37 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ── Estado general del vivo ──
+// IMPORTANTE: no se puede leer el nodo "testLive" completo de una sola vez
+// porque las reglas de Firebase solo dan permiso de lectura a hijos puntuales
+// (testLive/estado, testLive/testId, etc.), no al nodo padre. Por eso se pide
+// cada campo por separado.
 
 export function onTestLiveState(callback) {
-  return onValue(ref(db, "testLive"), (snap) => {
-    const val = snap.val() || {};
-    callback({
-      testId: val.testId || null,
-      estado: val.estado || "idle",
-      preguntaActualId: val.preguntaActualId || null,
-      revelado: !!val.revelado,
-    });
-  });
+  const state = { testId: null, estado: "idle", preguntaActualId: null, revelado: false };
+
+  const errLog = (campo) => (err) => console.error(`[tests] error leyendo testLive/${campo}:`, err.message);
+
+  const unsub1 = onValue(ref(db, "testLive/testId"), (snap) => {
+    state.testId = snap.val() || null;
+    callback({ ...state });
+  }, errLog("testId"));
+
+  const unsub2 = onValue(ref(db, "testLive/estado"), (snap) => {
+    state.estado = snap.val() || "idle";
+    callback({ ...state });
+  }, errLog("estado"));
+
+  const unsub3 = onValue(ref(db, "testLive/preguntaActualId"), (snap) => {
+    state.preguntaActualId = snap.val() || null;
+    callback({ ...state });
+  }, errLog("preguntaActualId"));
+
+  const unsub4 = onValue(ref(db, "testLive/revelado"), (snap) => {
+    state.revelado = !!snap.val();
+    callback({ ...state });
+  }, errLog("revelado"));
+
+  return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
 }
 
 // ── Pregunta pública actual (solo lo revelado) ──
