@@ -41,6 +41,7 @@
       <div class="tst-respuesta-icon">✅</div>
       <div class="tst-respuesta-msg" id="tst-respuesta-msg">Respuesta registrada</div>
       <div class="tst-respuesta-puntos hidden" id="tst-respuesta-puntos"></div>
+      <div class="tst-waiting-sub" id="tst-respuesta-sub" style="margin-top:10px;">Esperando que el admin cierre la pregunta...</div>
     </div>
   </div>
 
@@ -100,6 +101,7 @@
     cardRespuesta: document.getElementById("tst-card-respuesta"),
     respuestaMsg: document.getElementById("tst-respuesta-msg"),
     respuestaPuntos: document.getElementById("tst-respuesta-puntos"),
+    respuestaSub: document.getElementById("tst-respuesta-sub"),
     cardFinal: document.getElementById("tst-card-final"),
     finalPuntaje: document.getElementById("tst-final-puntaje"),
     finalPerfil: document.getElementById("tst-final-perfil"),
@@ -153,9 +155,10 @@
 
   function mostrarEsperandoResultado(qId) {
     showOnly([els.cardRespuesta]);
-    els.respuestaMsg.textContent = "Respuesta registrada";
+    els.respuestaMsg.textContent = "Respuesta enviada";
     els.respuestaPuntos.classList.add("hidden");
     els.respuestaPuntos.textContent = "";
+    els.respuestaSub.textContent = "Esperando que el admin cierre la pregunta...";
 
     if (unsubMiResultado) unsubMiResultado();
     unsubMiResultado = onMiResultado(currentUid, (resultado) => {
@@ -163,6 +166,7 @@
         els.respuestaMsg.textContent = "¡Anotado!";
         els.respuestaPuntos.textContent = `+${resultado.puntos} puntos`;
         els.respuestaPuntos.classList.remove("hidden");
+        els.respuestaSub.textContent = "Esperando la próxima pregunta...";
       }
     });
   }
@@ -225,11 +229,21 @@
     if (!data) { window.location.href = "/login.html"; return; }
 
     currentUid = user.uid;
-    await registrarParticipante(currentUid, data.nick || "Jugador");
+    const nick = data.nick || "Jugador";
+    await registrarParticipante(currentUid, nick);
 
     onHistorial(currentUid, renderHistorial);
 
+    let ultimoTestIdVisto = null;
     onTestLiveState((estado) => {
+      // Cada vez que arranca una sesión nueva (testId distinto), nos re-registramos
+      // como participante conectado — así el admin ve bien quién está presente,
+      // incluso si ya estábamos con la página abierta desde antes.
+      if (estado.testId && estado.testId !== ultimoTestIdVisto) {
+        ultimoTestIdVisto = estado.testId;
+        registrarParticipante(currentUid, nick);
+      }
+
       if (estado.estado === "idle" || !estado.testId) {
         limpiarListenersPregunta();
         showOnly([els.waiting]);
