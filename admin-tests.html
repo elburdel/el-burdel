@@ -211,6 +211,124 @@
       margin: 22px 0 12px;
     }
 
+    /* ── Control en vivo ── */
+    .att-btn.live {
+      border-color: rgba(220,60,60,0.4);
+      color: #ff8a8a;
+    }
+    .att-btn.live:hover { border-color: rgba(220,60,60,0.7); color: #ffb0b0; }
+
+    .atv-pulse {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ff4d4d;
+      margin-right: 6px;
+      animation: atv-pulse 1.4s infinite;
+    }
+    @keyframes atv-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .atv-selector-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--negro-3);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .atv-pregunta-box {
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .atv-pregunta-num {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--crema-3);
+      margin-bottom: 6px;
+    }
+
+    .atv-pregunta-texto {
+      font-family: var(--font-title);
+      font-size: 18px;
+      color: var(--crema);
+      margin-bottom: 14px;
+    }
+
+    .atv-opcion-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--negro-2);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .atv-opcion-control .atv-op-texto { flex: 1; font-size: 14px; color: var(--crema-2); }
+    .atv-opcion-control .atv-op-puntos { font-size: 12px; color: var(--crema-3); margin-right: 6px; }
+    .atv-opcion-control.revelada { border: 1px solid rgba(60,160,60,0.3); }
+
+    .atv-columns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .atv-columns > * { flex: 1; min-width: 240px; }
+
+    .atv-participante-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: var(--crema-2);
+      border-bottom: 1px solid rgba(200,150,0,0.08);
+    }
+    .atv-participante-row:last-child { border-bottom: none; }
+
+    .atv-estado-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .atv-estado-dot.conectado { background: #7fd97f; }
+    .atv-estado-dot.desconectado { background: #777; }
+
+    .atv-badge-resp { font-size: 11px; color: var(--dorado); }
+
+    .atv-actions-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .atv-final-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--negro-3);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
   </style>
 </head>
 <body>
@@ -221,8 +339,9 @@
   <div id="att-vista-lista">
     <div class="att-topbar">
       <div class="att-title">📋 Gestión de Tests</div>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <a href="admin.html" class="att-btn">← Volver al admin</a>
+        <button type="button" class="att-btn live" onclick="abrirVivo()">🔴 Control en vivo</button>
         <button type="button" class="att-btn primary" onclick="abrirNuevoTest()">+ Nuevo test</button>
       </div>
     </div>
@@ -290,6 +409,70 @@
 
   </div>
 
+  <!-- ═══ VISTA: CONTROL EN VIVO ═══ -->
+  <div id="att-vista-vivo" class="hidden">
+    <div class="att-topbar">
+      <div class="att-title"><span class="atv-pulse" id="atv-pulse-dot" style="display:none;"></span>🔴 Control en Vivo</div>
+      <button type="button" class="att-btn" onclick="volverALista()">← Volver a la lista</button>
+    </div>
+
+    <!-- SUB-VISTA: elegir test para arrancar -->
+    <div id="atv-selector" class="att-card">
+      <div class="att-label" style="margin-bottom:10px;">Elegí un test preparado para arrancar en vivo</div>
+      <div id="atv-selector-lista"><div class="att-empty">Cargando...</div></div>
+    </div>
+
+    <!-- SUB-VISTA: sesión activa -->
+    <div id="atv-sesion" class="hidden">
+      <div class="att-card">
+        <div class="att-test-titulo" id="atv-titulo-test" style="font-size:17px; margin-bottom:4px;">—</div>
+        <div class="att-warning" style="margin-top:10px; margin-bottom:0;">No edites este test en la otra pestaña mientras esté en vivo — puede desincronizar la sesión.</div>
+      </div>
+
+      <!-- Pregunta en curso -->
+      <div id="atv-pregunta-wrap" class="atv-pregunta-box hidden">
+        <div class="atv-pregunta-num" id="atv-pregunta-num">Pregunta 1</div>
+        <div class="atv-pregunta-texto" id="atv-pregunta-texto">—</div>
+        <div id="atv-opciones-control"></div>
+        <div class="atv-actions-row">
+          <button type="button" class="att-btn" id="atv-btn-revelar-todas" onclick="revelarTodas()">👁️ Revelar todas las opciones</button>
+        </div>
+        <div class="atv-actions-row">
+          <button type="button" class="att-btn primary" id="atv-btn-cerrar-puntuar" onclick="cerrarPregunta()">🔒 Cerrar pregunta y puntuar</button>
+          <button type="button" class="att-btn hidden" id="atv-btn-siguiente" onclick="irSiguientePregunta()">Siguiente pregunta →</button>
+          <button type="button" class="att-btn primary hidden" id="atv-btn-finalizar" onclick="finalizarSesion()">🏁 Finalizar test</button>
+        </div>
+      </div>
+
+      <div class="atv-columns">
+        <!-- Participantes -->
+        <div class="att-card">
+          <div class="att-section-title" style="margin-top:0;">Participantes</div>
+          <div id="atv-lista-participantes"><div class="att-empty">Nadie conectado todavía.</div></div>
+        </div>
+
+        <!-- Respuestas en vivo -->
+        <div class="att-card">
+          <div class="att-section-title" style="margin-top:0;">Respuestas — pregunta actual</div>
+          <div id="atv-lista-respuestas"><div class="att-empty">Esperando respuestas...</div></div>
+        </div>
+      </div>
+
+      <!-- Resultados finales -->
+      <div id="atv-finales-wrap" class="att-card hidden">
+        <div class="att-section-title" style="margin-top:0;">Resultados finales</div>
+        <div id="atv-lista-finales"></div>
+        <div class="atv-actions-row">
+          <button type="button" class="att-btn primary" onclick="cerrarSesion()">📦 Archivar y cerrar sesión</button>
+        </div>
+      </div>
+
+      <div class="atv-actions-row">
+        <button type="button" class="att-btn danger" onclick="cancelarSesion()">✕ Cancelar sesión (sin guardar)</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script type="module">
@@ -301,6 +484,12 @@ import {
   agregarOpcion, actualizarOpcion, eliminarOpcion, proximaLetra,
   agregarResultado, actualizarResultado, eliminarResultado
 } from "./games/tests-admin.js";
+import {
+  onEstadoVivoAdmin, onParticipantesVivo, onRespuestasPregunta, onPuntajesVivo,
+  activarTestVivo, revelarOpcion, revelarTodasLasOpciones,
+  cerrarPreguntaYPuntuar, siguientePregunta, esUltimaPregunta,
+  finalizarTest, cerrarSesionVivo, cancelarSesionVivo
+} from "./games/tests-live-admin.js";
 
 const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
 
@@ -337,6 +526,9 @@ const els = {
 onTestsList((lista) => {
   listaTests = lista;
   renderLista();
+  if (!elsV.vistaVivo.classList.contains("hidden") && !elsV.selector.classList.contains("hidden")) {
+    renderSelector();
+  }
 });
 
 function renderLista() {
@@ -571,6 +763,271 @@ window.borrarResultado = async (resId) => {
   if (confirm("¿Eliminar este resultado/perfil?")) {
     await eliminarResultado(testActualId, resId);
   }
+};
+
+// ── Control en vivo ──
+
+const elsV = {
+  vistaVivo: document.getElementById("att-vista-vivo"),
+  pulseDot: document.getElementById("atv-pulse-dot"),
+  selector: document.getElementById("atv-selector"),
+  selectorLista: document.getElementById("atv-selector-lista"),
+  sesion: document.getElementById("atv-sesion"),
+  tituloTest: document.getElementById("atv-titulo-test"),
+  preguntaWrap: document.getElementById("atv-pregunta-wrap"),
+  preguntaNum: document.getElementById("atv-pregunta-num"),
+  preguntaTexto: document.getElementById("atv-pregunta-texto"),
+  opcionesControl: document.getElementById("atv-opciones-control"),
+  btnRevelarTodas: document.getElementById("atv-btn-revelar-todas"),
+  btnCerrarPuntuar: document.getElementById("atv-btn-cerrar-puntuar"),
+  btnSiguiente: document.getElementById("atv-btn-siguiente"),
+  btnFinalizar: document.getElementById("atv-btn-finalizar"),
+  listaParticipantes: document.getElementById("atv-lista-participantes"),
+  listaRespuestas: document.getElementById("atv-lista-respuestas"),
+  finalesWrap: document.getElementById("atv-finales-wrap"),
+  listaFinales: document.getElementById("atv-lista-finales"),
+};
+
+let unsubVivoEstado = null;
+let unsubVivoParticipantes = null;
+let unsubVivoRespuestas = null;
+let unsubVivoTest = null;
+let vivoTestData = null;   // banco completo del test que está en vivo (con puntos)
+let vivoState = null;      // último estado de testLive completo
+let vivoParticipantes = [];
+let preguntaCongelada = false; // true entre "cerrar y puntuar" y "siguiente pregunta"
+
+window.abrirVivo = () => {
+  els.vistaLista.classList.add("hidden");
+  elsV.vistaVivo.classList.remove("hidden");
+  cargarEstadoVivoInicial();
+};
+
+// Al volver a la lista desde CUALQUIER vista, limpiamos también los listeners de vivo
+const volverAListaOriginal = window.volverALista;
+window.volverALista = () => {
+  limpiarListenersVivo();
+  elsV.vistaVivo.classList.add("hidden");
+  volverAListaOriginal();
+};
+
+function limpiarListenersVivo() {
+  if (unsubVivoEstado) { unsubVivoEstado(); unsubVivoEstado = null; }
+  if (unsubVivoParticipantes) { unsubVivoParticipantes(); unsubVivoParticipantes = null; }
+  if (unsubVivoRespuestas) { unsubVivoRespuestas(); unsubVivoRespuestas = null; }
+  if (unsubVivoTest) { unsubVivoTest(); unsubVivoTest = null; }
+}
+
+function cargarEstadoVivoInicial() {
+  limpiarListenersVivo();
+  unsubVivoEstado = onEstadoVivoAdmin((estado) => {
+    vivoState = estado;
+    renderVivo();
+  });
+  unsubVivoParticipantes = onParticipantesVivo((lista) => {
+    vivoParticipantes = lista;
+    renderParticipantes();
+  });
+}
+
+function renderVivo() {
+  const hayTestId = vivoState && vivoState.testId;
+  elsV.pulseDot.style.display = (hayTestId && vivoState.estado !== "idle") ? "inline-block" : "none";
+
+  if (!hayTestId || vivoState.estado === "idle") {
+    elsV.selector.classList.remove("hidden");
+    elsV.sesion.classList.add("hidden");
+    renderSelector();
+    return;
+  }
+
+  elsV.selector.classList.add("hidden");
+  elsV.sesion.classList.remove("hidden");
+
+  // Cargar el banco del test en vivo (para textos/puntos) si cambió
+  if (!vivoTestData || vivoTestData._id !== vivoState.testId) {
+    if (unsubVivoTest) unsubVivoTest();
+    unsubVivoTest = onTest(vivoState.testId, (data) => {
+      vivoTestData = { ...(data || {}), _id: vivoState.testId };
+      elsV.tituloTest.textContent = vivoTestData.meta?.titulo || "Test en vivo";
+      renderPreguntaVivo();
+    });
+  } else {
+    renderPreguntaVivo();
+  }
+
+  // Respuestas de la pregunta actual
+  if (vivoState.preguntaActualId) {
+    if (unsubVivoRespuestas) unsubVivoRespuestas();
+    unsubVivoRespuestas = onRespuestasPregunta(vivoState.preguntaActualId, (respuestas) => {
+      renderRespuestas(respuestas);
+    });
+  }
+
+  if (vivoState.estado === "finalizado") {
+    renderFinales();
+  } else {
+    elsV.finalesWrap.classList.add("hidden");
+  }
+}
+
+function renderSelector() {
+  const preparados = listaTests.filter(t => (t.meta.estado || "preparado") !== "archivado" && t.cantidadPreguntas > 0);
+  if (!preparados.length) {
+    elsV.selectorLista.innerHTML = `<div class="att-empty">No hay tests preparados con preguntas cargadas. Armá uno primero desde la lista.</div>`;
+    return;
+  }
+  elsV.selectorLista.innerHTML = preparados.map(t => `
+    <div class="atv-selector-item">
+      <div>
+        <div class="att-test-titulo">${escapeHtml(t.meta.titulo || "Sin título")}</div>
+        <div class="att-test-meta"><span>${t.cantidadPreguntas} preguntas</span><span>${t.cantidadResultados} resultados</span></div>
+      </div>
+      <button type="button" class="att-btn primary" onclick="arrancarVivo('${t.id}')">▶️ Iniciar vivo</button>
+    </div>
+  `).join("");
+}
+
+window.arrancarVivo = async (testId) => {
+  const t = listaTests.find(x => x.id === testId);
+  if (!t || !t.cantidadResultados) {
+    if (!confirm("Este test no tiene resultados/perfiles definidos. Los participantes van a terminar sin un perfil asignado. ¿Arrancar igual?")) return;
+  }
+  try {
+    await activarTestVivo(testId);
+  } catch (err) {
+    alert(err.message || "No se pudo arrancar el test en vivo.");
+  }
+};
+
+function ordenPreguntas(preguntas) {
+  return Object.entries(preguntas || {}).sort((a, b) => (a[1].orden || 0) - (b[1].orden || 0));
+}
+
+function renderPreguntaVivo() {
+  if (!vivoTestData || !vivoState.preguntaActualId) {
+    elsV.preguntaWrap.classList.add("hidden");
+    return;
+  }
+  const preguntas = ordenPreguntas(vivoTestData.preguntas);
+  const idx = preguntas.findIndex(([qId]) => qId === vivoState.preguntaActualId);
+  const pregunta = vivoTestData.preguntas?.[vivoState.preguntaActualId];
+  if (!pregunta) { elsV.preguntaWrap.classList.add("hidden"); return; }
+
+  elsV.preguntaWrap.classList.remove("hidden");
+  elsV.preguntaNum.textContent = `Pregunta ${idx + 1} de ${preguntas.length}`;
+  elsV.preguntaTexto.textContent = pregunta.texto;
+
+  const opciones = pregunta.opciones || {};
+  const publicadas = vivoState.preguntasPublicas?.[vivoState.preguntaActualId]?.opciones || {};
+  const letras = Object.keys(opciones).sort();
+
+  elsV.opcionesControl.innerHTML = letras.map(letra => {
+    const revelada = !!publicadas[letra];
+    return `
+      <div class="atv-opcion-control ${revelada ? "revelada" : ""}">
+        <span class="atv-op-texto"><b>${letra}.</b> ${escapeHtml(opciones[letra].texto || "")}</span>
+        <span class="atv-op-puntos">${opciones[letra].puntos ?? 0} pts</span>
+        ${revelada
+          ? `<span class="att-badge preparado">Revelada</span>`
+          : `<button type="button" class="att-btn" ${preguntaCongelada ? "disabled" : ""} onclick="revelarUnaOpcion('${letra}')">Revelar</button>`}
+      </div>
+    `;
+  }).join("");
+
+  // Estado de los botones según si la pregunta ya está "cerrada y puntuada"
+  const esUltima = idx >= preguntas.length - 1;
+  elsV.btnCerrarPuntuar.classList.toggle("hidden", preguntaCongelada);
+  elsV.btnSiguiente.classList.toggle("hidden", !preguntaCongelada || esUltima);
+  elsV.btnFinalizar.classList.toggle("hidden", !preguntaCongelada || !esUltima);
+  elsV.btnRevelarTodas.disabled = preguntaCongelada;
+}
+
+window.revelarUnaOpcion = async (letra) => {
+  await revelarOpcion(vivoState.testId, vivoState.preguntaActualId, letra);
+};
+
+window.revelarTodas = async () => {
+  await revelarTodasLasOpciones(vivoState.testId, vivoState.preguntaActualId);
+};
+
+window.cerrarPregunta = async () => {
+  if (!confirm("¿Cerrar esta pregunta? Ya no se van a poder registrar más respuestas.")) return;
+  preguntaCongelada = true;
+  await cerrarPreguntaYPuntuar(vivoState.testId, vivoState.preguntaActualId);
+  renderPreguntaVivo();
+};
+
+window.irSiguientePregunta = async () => {
+  const res = await siguientePregunta(vivoState.testId);
+  preguntaCongelada = false;
+  if (!res.ok) {
+    alert("No hay más preguntas — usá 'Finalizar test'.");
+  }
+};
+
+window.finalizarSesion = async () => {
+  if (!confirm("¿Finalizar el test y calcular los resultados de todos los participantes?")) return;
+  await finalizarTest(vivoState.testId);
+  preguntaCongelada = false;
+};
+
+function renderParticipantes() {
+  if (!vivoParticipantes.length) {
+    elsV.listaParticipantes.innerHTML = `<div class="att-empty">Nadie conectado todavía.</div>`;
+    return;
+  }
+  elsV.listaParticipantes.innerHTML = vivoParticipantes.map(p => `
+    <div class="atv-participante-row">
+      <span><span class="atv-estado-dot ${p.conectado ? "conectado" : "desconectado"}"></span>${escapeHtml(p.nick || "Jugador")}</span>
+    </div>
+  `).join("");
+}
+
+function renderRespuestas(respuestas) {
+  const entradas = Object.entries(respuestas || {});
+  if (!entradas.length) {
+    elsV.listaRespuestas.innerHTML = `<div class="att-empty">Esperando respuestas...</div>`;
+    return;
+  }
+  elsV.listaRespuestas.innerHTML = `
+    <div style="font-size:12px; color:var(--crema-3); margin-bottom:8px;">${entradas.length} de ${vivoParticipantes.length} respondieron</div>
+    ${entradas.map(([uid, r]) => {
+      const nick = vivoParticipantes.find(p => p.uid === uid)?.nick || uid.slice(0, 6);
+      return `<div class="atv-participante-row"><span>${escapeHtml(nick)}</span><span class="atv-badge-resp">${r.opcionId}</span></div>`;
+    }).join("")}
+  `;
+}
+
+function renderFinales() {
+  const resultadoFinal = vivoState.resultadoFinal || {};
+  const entradas = Object.entries(resultadoFinal).sort((a, b) => (b[1].puntajeFinal || 0) - (a[1].puntajeFinal || 0));
+  elsV.finalesWrap.classList.remove("hidden");
+  if (!entradas.length) {
+    elsV.listaFinales.innerHTML = `<div class="att-empty">Nadie respondió ninguna pregunta.</div>`;
+    return;
+  }
+  elsV.listaFinales.innerHTML = entradas.map(([uid, r]) => {
+    const nick = vivoParticipantes.find(p => p.uid === uid)?.nick || uid.slice(0, 6);
+    return `
+      <div class="atv-final-item">
+        <span>${escapeHtml(nick)}</span>
+        <span>${r.puntajeFinal} pts</span>
+        <span style="color:var(--dorado);">${escapeHtml(r.perfil || "")}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+window.cerrarSesion = async () => {
+  await cerrarSesionVivo(vivoState.testId);
+  preguntaCongelada = false;
+};
+
+window.cancelarSesion = async () => {
+  if (!confirm("¿Cancelar la sesión en vivo sin guardar nada en el historial de nadie?")) return;
+  await cancelarSesionVivo();
+  preguntaCongelada = false;
 };
 
 // ── Helpers ──
