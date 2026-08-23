@@ -214,6 +214,12 @@ body {
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.tst-historial-item:hover {
+  border-color: rgba(200,150,0,0.3);
 }
 
 .tst-historial-nombre {
@@ -221,6 +227,20 @@ body {
   color: var(--crema);
   font-weight: 500;
   margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.tst-historial-flecha {
+  font-size: 11px;
+  color: var(--crema-3);
+  transition: transform 0.2s;
+}
+
+.tst-historial-item.abierto .tst-historial-flecha {
+  transform: rotate(180deg);
 }
 
 .tst-historial-meta {
@@ -229,6 +249,15 @@ body {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.tst-historial-desc {
+  font-size: 13px;
+  color: var(--crema-2);
+  line-height: 1.6;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(200,150,0,0.1);
 }
 
 .tst-historial-vacio {
