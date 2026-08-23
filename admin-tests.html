@@ -341,6 +341,7 @@
       <div class="att-title">📋 Gestión de Tests</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <a href="admin.html" class="att-btn">← Volver al admin</a>
+        <button type="button" class="att-btn" onclick="abrirHistorialAdmin()">🗑️ Historial</button>
         <button type="button" class="att-btn live" onclick="abrirVivo()">🔴 Control en vivo</button>
         <button type="button" class="att-btn primary" onclick="abrirNuevoTest()">+ Nuevo test</button>
       </div>
@@ -473,6 +474,21 @@
     </div>
   </div>
 
+  <!-- ═══ VISTA: HISTORIAL DE USUARIOS ═══ -->
+  <div id="att-vista-historial" class="hidden">
+    <div class="att-topbar">
+      <div class="att-title">🗑️ Historial de Tests</div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="att-btn danger" onclick="vaciarTodosHistorial()">Vaciar el de TODOS</button>
+        <button type="button" class="att-btn" onclick="volverALista()">← Volver a la lista</button>
+      </div>
+    </div>
+    <div class="att-card">
+      <div class="att-warning">Esto borra los resultados guardados en "Mis Tests" de cada usuario. No afecta al banco de preguntas ni a los tests en sí.</div>
+    </div>
+    <div id="ath-lista-usuarios"><div class="att-empty">Cargando usuarios...</div></div>
+  </div>
+
 </main>
 
 <script type="module">
@@ -492,6 +508,10 @@ import {
   cerrarPreguntaYPuntuar, siguientePregunta,
   finalizarTest, cerrarSesionVivo, cancelarSesionVivo
 } from "./games/tests-live-admin.js";
+import {
+  onHistorialAdmin, contarHistorial, eliminarEntradaHistorial,
+  vaciarHistorialUsuario, vaciarHistorialDeTodos
+} from "./games/historial-admin.js";
 
 const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
 
@@ -1078,6 +1098,106 @@ window.cerrarSesion = async () => {
 window.cancelarSesion = async () => {
   if (!confirm("¿Cancelar la sesión en vivo sin guardar nada en el historial de nadie?")) return;
   await cancelarSesionVivo();
+};
+
+// ── Historial de usuarios (limpieza) ──
+
+let unsubsHistorial = [];
+
+function limpiarListenersHistorial() {
+  unsubsHistorial.forEach(u => u());
+  unsubsHistorial = [];
+}
+
+window.abrirHistorialAdmin = async () => {
+  els.vistaLista.classList.add("hidden");
+  document.getElementById("att-vista-historial").classList.remove("hidden");
+
+  const cont = document.getElementById("ath-lista-usuarios");
+  cont.innerHTML = `<div class="att-empty">Cargando usuarios...</div>`;
+
+  if (!roster.length) {
+    try {
+      roster = await obtenerRoster();
+    } catch (err) {
+      cont.innerHTML = `<div class="att-empty">No se pudo cargar la lista de usuarios (${escapeHtml(err.message || "error")}).</div>`;
+      return;
+    }
+  }
+
+  limpiarListenersHistorial();
+  cont.innerHTML = roster.map(({ uid, nick }) => `
+    <div class="att-card" id="ath-user-${uid}">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="att-test-titulo">${escapeHtml(nick)}</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="ath-count-${uid}" class="att-badge preparado">...</span>
+          <button type="button" class="att-btn" onclick="toggleHistorialUsuario('${uid}')">Ver</button>
+          <button type="button" class="att-btn danger" onclick="vaciarHistorialDeUno('${uid}', '${escapeAttr(nick)}')">Vaciar</button>
+        </div>
+      </div>
+      <div id="ath-detalle-${uid}" class="hidden" style="margin-top:12px;"></div>
+    </div>
+  `).join("");
+
+  roster.forEach(({ uid }) => {
+    const unsub = onHistorialAdmin(uid, (lista) => {
+      const badge = document.getElementById(`ath-count-${uid}`);
+      if (!badge) return;
+      if (lista === null) {
+        badge.textContent = "sin acceso";
+      } else {
+        badge.textContent = `${lista.length} ${lista.length === 1 ? "entrada" : "entradas"}`;
+        renderDetalleHistorial(uid, lista);
+      }
+    });
+    unsubsHistorial.push(unsub);
+  });
+};
+
+const volverAListaOriginal2 = window.volverALista;
+window.volverALista = () => {
+  limpiarListenersHistorial();
+  document.getElementById("att-vista-historial").classList.add("hidden");
+  volverAListaOriginal2();
+};
+
+window.toggleHistorialUsuario = (uid) => {
+  document.getElementById(`ath-detalle-${uid}`).classList.toggle("hidden");
+};
+
+function renderDetalleHistorial(uid, lista) {
+  const el = document.getElementById(`ath-detalle-${uid}`);
+  if (!el) return;
+  if (!lista.length) {
+    el.innerHTML = `<div class="att-empty">Sin entradas.</div>`;
+    return;
+  }
+  el.innerHTML = lista.map(item => {
+    const fecha = item.fecha ? new Date(item.fecha).toLocaleString("es-AR") : "";
+    return `
+      <div class="atv-participante-row">
+        <span>${escapeHtml(item.tituloTest || "Test")} — ${item.puntajeFinal ?? "—"} pts — ${escapeHtml(item.resultado || "")} <span style="color:var(--crema-3); font-size:11px;">(${fecha})</span></span>
+        <button type="button" class="att-btn danger" onclick="borrarEntradaHistorial('${uid}', '${item.id}')">✕</button>
+      </div>
+    `;
+  }).join("");
+}
+
+window.borrarEntradaHistorial = async (uid, entryId) => {
+  await eliminarEntradaHistorial(uid, entryId);
+};
+
+window.vaciarHistorialDeUno = async (uid, nick) => {
+  if (!confirm(`¿Vaciar todo el historial de tests de ${nick}?`)) return;
+  await vaciarHistorialUsuario(uid);
+};
+
+window.vaciarTodosHistorial = async () => {
+  if (!confirm("¿Vaciar el historial de tests de TODOS los usuarios? Esto no se puede deshacer.")) return;
+  if (!roster.length) roster = await obtenerRoster();
+  await vaciarHistorialDeTodos(roster);
+  alert("Listo, se vació el historial de todos.");
 };
 
 // ── Helpers ──
