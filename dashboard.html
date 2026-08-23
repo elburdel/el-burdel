@@ -169,6 +169,11 @@
             <div class="dash-game-name">Ruleta</div>
             <div class="dash-game-status" id="status-ruleta">Ver ruleta</div>
           </a>
+          <a class="dash-game-card" id="game-card-tests" href="tests.html" style="text-decoration:none;">
+            <span class="dash-game-icon">🧠</span>
+            <div class="dash-game-name">Tests</div>
+            <div class="dash-game-status" id="status-tests">Jugar</div>
+          </a>
         </div>
       </div>
     </div>
@@ -308,6 +313,7 @@
     function initDashboard() {
       listenTablon();
       listenActiveGame();
+      listenTestsLive();
       initPresence();
     }
 
@@ -399,6 +405,62 @@
       banner.style.display = "flex";
 
       // Auto-ocultar a los 6 segundos
+      clearTimeout(banner._timeout);
+      banner._timeout = setTimeout(() => {
+        banner.style.animation = "slideUp 0.3s ease forwards";
+        setTimeout(() => { banner.style.display = "none"; }, 280);
+      }, 6000);
+    }
+
+    // ── Test en vivo ──
+    function listenTestsLive() {
+      let prevEstado = null;
+
+      onValue(ref(db, "testLive/estado"), (snap) => {
+        const estado = snap.val() || "idle";
+        const activo = estado === "activo";
+
+        if (prevEstado !== null && activo && estado !== prevEstado) {
+          if (!document.hidden && navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          showTestsNotif();
+        }
+        prevEstado = estado;
+
+        const el = document.getElementById("status-tests");
+        const card = document.getElementById("game-card-tests");
+        if (el) {
+          el.textContent = activo ? "Activo ahora" : "Jugar";
+          el.className = activo ? "dash-game-status active" : "dash-game-status";
+        }
+        if (card) card.classList.toggle("active", activo);
+      });
+    }
+
+    function showTestsNotif() {
+      let banner = document.getElementById("game-notif-banner");
+      if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "game-notif-banner";
+        banner.style.cssText = `
+          position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:999;
+          background:var(--negro-2);border:1px solid rgba(200,150,0,0.4);border-radius:12px;
+          padding:14px 20px;display:flex;align-items:center;gap:12px;
+          box-shadow:0 8px 32px rgba(0,0,0,0.6);
+          animation:slideDown 0.3s ease;max-width:320px;width:90%;
+        `;
+        document.body.appendChild(banner);
+      }
+
+      banner.innerHTML = `
+        <span style="font-size:24px;">🧠</span>
+        <div style="flex:1;">
+          <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);">¡Test en vivo!</div>
+          <div style="font-family:var(--font-title);font-size:18px;color:var(--dorado);letter-spacing:1px;">Arrancó un test</div>
+        </div>
+        <a href="tests.html" style="background:var(--dorado);color:var(--negro);border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;letter-spacing:1px;text-decoration:none;text-transform:uppercase;cursor:pointer;">IR →</a>
+      `;
+      banner.style.display = "flex";
+
       clearTimeout(banner._timeout);
       banner._timeout = setTimeout(() => {
         banner.style.animation = "slideUp 0.3s ease forwards";
