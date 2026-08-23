@@ -1,20 +1,24 @@
 // tests-live-admin.js — Control en vivo de un Test — SOLO ADMIN
 // ============================================================
-// Convive con testLive/ (el mismo árbol que lee la vista pública en games/tests.js)
-// y con tests/{testId} (el banco de preguntas, gestionado en games/tests-admin.js).
+// MISMA REGLA QUE EN games/tests.js: no se puede leer ni escribir un nodo
+// padre completo de testLive de una sola vez (las reglas de Firebase solo dan
+// permiso campo por campo / uid por uid, no al padre). Por eso acá:
 //
-// Flujo típico de una sesión en vivo:
-//   1. activarTestVivo(testId)        → arranca la sesión con la primera pregunta publicada
-//   2. revelarOpcion / revelarTodas   → el admin va mostrando las opciones a los participantes
-//   3. cerrarPreguntaYPuntuar()       → congela las respuestas de la pregunta actual y reparte puntos
-//   4. siguientePregunta()            → publica la próxima pregunta (repetir 2-3-4 hasta la última)
-//   5. finalizarTest()                → calcula el resultado/perfil final de cada participante
-//   6. cerrarSesionVivo()             → archiva la sesión completa en tests/{testId}/sesiones
-//                                        y limpia testLive para poder jugar este test de nuevo
+//   - El estado general (testId/estado/preguntaActualId/revelado) se lee
+//     reusando onTestLiveState() de games/tests.js (ya probado y andando).
+//   - Para "quién está conectado" y "quién respondió qué" NO hay forma de
+//     pedirle a Firebase "dame todos los hijos de testLive/participantes"
+//     sin permiso en el padre — así que en vez de eso pedimos la lista de
+//     usuarios registrados ("users", que el admin ya lee entera en otras
+//     pantallas) y consultamos UNO POR UNO cada uid puntual
+//     (testLive/participantes/{uid}, testLive/respuestas/{qId}/{uid}, etc.),
+//     que sí están permitidos.
+//   - Todas las escrituras van con update() a rutas puntuales, nunca con un
+//     set() sobre "testLive" completo.
 //
-// Nada de esto se puede hacer desde el cliente de un participante: las reglas de
-// Firebase solo permiten estas escrituras (tests/*, testLive/preguntasPublicas,
-// testLive/miResultado, testLive/resultadoFinal, testLive/puntajes) al UID admin.
+// Si en algún momento algo de esto tira "permission_denied" en la consola,
+// es porque falta un permiso puntual para el admin en esa ruta específica —
+// fijate el path exacto del error y se agrega esa única regla puntual.
 
 import { db } from "../js/firebase-init.js";
 import {
@@ -22,51 +26,22 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getTest } from "./tests-admin.js";
 
-const liveRef = () => ref(db, "testLive");
-
 // ── Helper interno: preguntas del banco ordenadas por "orden" ──
 
 function ordenarPreguntas(preguntas) {
   return Object.entries(preguntas || {}).sort((a, b) => (a[1].orden || 0) - (b[1].orden || 0));
 }
 
-async function actualizarRevelado(testId, qId) {
-  const [bancoSnap, publicasSnap] = await Promise.all([
-    get(ref(db, `tests/${testId}/preguntas/${qId}/opciones`)),
-    get(ref(db, `testLive/preguntasPublicas/${qId}/opciones`)),
-  ]);
-  const totalBanco = Object.keys(bancoSnap.val() || {}).length;
-  const totalPublicas = Object.keys(publicasSnap.val() || {}).length;
-  await update(liveRef(), { revelado: totalBanco > 0 && totalBanco === totalPublicas });
-}
+// ── Roster de participantes posibles (para poder consultar uid por uid) ──
+// "users" es un nodo que el admin YA lee entero en otras pantallas (admin.html),
+// así que esta lectura es segura.
 
-// ── Listeners para el panel admin ──
-
-// Estado completo de testLive (el admin sí puede leer el nodo entero).
-export function onEstadoVivoAdmin(callback) {
-  return onValue(liveRef(), (snap) => {
-    callback(snap.val() || null);
-  });
-}
-
-export function onParticipantesVivo(callback) {
-  return onValue(ref(db, "testLive/participantes"), (snap) => {
-    const val = snap.val() || {};
-    callback(Object.entries(val).map(([uid, data]) => ({ uid, ...data })));
-  });
-}
-
-export function onRespuestasPregunta(qId, callback) {
-  if (!qId) return () => {};
-  return onValue(ref(db, `testLive/respuestas/${qId}`), (snap) => {
-    callback(snap.val() || {});
-  });
-}
-
-export function onPuntajesVivo(callback) {
-  return onValue(ref(db, "testLive/puntajes"), (snap) => {
-    callback(snap.val() || {});
-  });
+export async function obtenerRoster() {
+  const snap = await get(ref(db, "users"));
+  const val = snap.val() || {};
+  return Object.entries(val)
+    .filter(([, u]) => u.role !== "admin")
+    .map(([uid, u]) => ({ uid, nick: u.nick || "Jugador" }));
 }
 
 // ── 1. Arrancar sesión en vivo ──
@@ -81,17 +56,16 @@ export async function activarTestVivo(testId) {
 
   const [primeraQId, primeraPregunta] = preguntas[0];
 
-  await set(liveRef(), {
-    testId,
-    estado: "activo",
-    preguntaActualId: primeraQId,
-    revelado: false,
-    preguntasPublicas: {
-      [primeraQId]: {
-        texto: primeraPregunta.texto,
-        orden: primeraPregunta.orden,
-        opciones: {},
-      },
+  // update() con rutas puntuales — nunca set() sobre "testLive" entero.
+  await update(ref(db), {
+    "testLive/testId": testId,
+    "testLive/estado": "activo",
+    "testLive/preguntaActualId": primeraQId,
+    "testLive/revelado": false,
+    [`testLive/preguntasPublicas/${primeraQId}`]: {
+      texto: primeraPregunta.texto,
+      orden: primeraPregunta.orden,
+      opciones: {},
     },
   });
 
@@ -100,13 +74,19 @@ export async function activarTestVivo(testId) {
 
 // ── 2. Revelar opciones de la pregunta actual ──
 
+async function actualizarRevelado(testId, qId) {
+  const bancoSnap = await get(ref(db, `tests/${testId}/preguntas/${qId}/opciones`));
+  const publicasSnap = await get(ref(db, `testLive/preguntasPublicas/${qId}/opciones`));
+  const totalBanco = Object.keys(bancoSnap.val() || {}).length;
+  const totalPublicas = Object.keys(publicasSnap.val() || {}).length;
+  await update(ref(db), { "testLive/revelado": totalBanco > 0 && totalBanco === totalPublicas });
+}
+
 export async function revelarOpcion(testId, qId, letra) {
   const snap = await get(ref(db, `tests/${testId}/preguntas/${qId}/opciones/${letra}`));
   const opcion = snap.val();
   if (!opcion) return;
-  await set(ref(db, `testLive/preguntasPublicas/${qId}/opciones/${letra}`), {
-    texto: opcion.texto,
-  });
+  await set(ref(db, `testLive/preguntasPublicas/${qId}/opciones/${letra}`), { texto: opcion.texto });
   await actualizarRevelado(testId, qId);
 }
 
@@ -115,57 +95,127 @@ export async function revelarTodasLasOpciones(testId, qId) {
   const opciones = snap.val() || {};
   const updates = {};
   Object.entries(opciones).forEach(([letra, o]) => {
-    updates[`preguntasPublicas/${qId}/opciones/${letra}`] = { texto: o.texto };
+    updates[`testLive/preguntasPublicas/${qId}/opciones/${letra}`] = { texto: o.texto };
   });
-  if (Object.keys(updates).length) await update(liveRef(), updates);
+  if (Object.keys(updates).length) await update(ref(db), updates);
   await actualizarRevelado(testId, qId);
 }
 
-// ── 3. Cerrar la pregunta actual y repartir puntos ──
+// ── 3. Participantes conectados y respuestas en vivo (uid por uid) ──
 
-export async function cerrarPreguntaYPuntuar(testId, qId) {
-  const [respSnap, opcSnap, puntajesSnap] = await Promise.all([
-    get(ref(db, `testLive/respuestas/${qId}`)),
-    get(ref(db, `tests/${testId}/preguntas/${qId}/opciones`)),
-    get(ref(db, "testLive/puntajes")),
-  ]);
+// Devuelve una función para cancelar todos los listeners.
+export function onParticipantesVivo(roster, callback) {
+  const estado = {};
+  const unsubs = roster.map(({ uid, nick }) =>
+    onValue(
+      ref(db, `testLive/participantes/${uid}`),
+      (snap) => {
+        const val = snap.val();
+        if (val) estado[uid] = { uid, nick, ...val };
+        else delete estado[uid];
+        callback(Object.values(estado));
+      },
+      () => { /* sin permiso sobre este uid puntual — lo ignoramos, no rompe al resto */ }
+    )
+  );
+  return () => unsubs.forEach((u) => u());
+}
 
-  const respuestas = respSnap.val() || {};
+export function onRespuestasPregunta(qId, roster, callback) {
+  if (!qId) return () => {};
+  const estado = {};
+  const unsubs = roster.map(({ uid }) =>
+    onValue(
+      ref(db, `testLive/respuestas/${qId}/${uid}`),
+      (snap) => {
+        const val = snap.val();
+        if (val) estado[uid] = val;
+        else delete estado[uid];
+        callback({ ...estado });
+      },
+      () => {}
+    )
+  );
+  return () => unsubs.forEach((u) => u());
+}
+
+export function onResultadosFinalesVivo(roster, callback) {
+  const estado = {};
+  const unsubs = roster.map(({ uid, nick }) =>
+    onValue(
+      ref(db, `testLive/resultadoFinal/${uid}`),
+      (snap) => {
+        const val = snap.val();
+        if (val) estado[uid] = { uid, nick, ...val };
+        else delete estado[uid];
+        callback(Object.values(estado));
+      },
+      () => {}
+    )
+  );
+  return () => unsubs.forEach((u) => u());
+}
+
+// ── 4. Cerrar la pregunta actual y repartir puntos ──
+// El puntaje acumulado vive en testLive/miResultado/{uid}.puntajeTotal
+// (no hay un nodo aparte "puntajes" — así reusamos un campo que el admin
+// ya tiene permiso de escribir según el diseño original).
+
+export async function cerrarPreguntaYPuntuar(testId, qId, roster) {
+  const opcSnap = await get(ref(db, `tests/${testId}/preguntas/${qId}/opciones`));
   const opciones = opcSnap.val() || {};
-  const puntajes = puntajesSnap.val() || {};
 
   const resumen = [];
-  const updates = {};
 
-  Object.entries(respuestas).forEach(([uid, r]) => {
-    const puntos = Number(opciones[r.opcionId]?.puntos) || 0;
-    const nuevoTotal = (puntajes[uid] || 0) + puntos;
-    updates[`puntajes/${uid}`] = nuevoTotal;
-    updates[`miResultado/${uid}`] = { qId, opcionId: r.opcionId, puntos, puntajeTotal: nuevoTotal };
-    resumen.push({ uid, opcionId: r.opcionId, puntos, puntajeTotal: nuevoTotal });
-  });
+  for (const { uid, nick } of roster) {
+    let respuesta = null;
+    let anterior = null;
+    try {
+      const [rSnap, mSnap] = await Promise.all([
+        get(ref(db, `testLive/respuestas/${qId}/${uid}`)),
+        get(ref(db, `testLive/miResultado/${uid}`)),
+      ]);
+      respuesta = rSnap.val();
+      anterior = mSnap.val();
+    } catch (err) {
+      console.error(`[tests-live-admin] no pude leer la respuesta de ${nick}:`, err.message);
+      continue;
+    }
+    if (!respuesta) continue; // no contestó esta pregunta
 
-  if (Object.keys(updates).length) await update(liveRef(), updates);
+    const puntos = Number(opciones[respuesta.opcionId]?.puntos) || 0;
+    const puntajeTotal = (anterior?.puntajeTotal || 0) + puntos;
+
+    try {
+      await set(ref(db, `testLive/miResultado/${uid}`), {
+        qId, opcionId: respuesta.opcionId, puntos, puntajeTotal,
+      });
+      resumen.push({ uid, nick, opcionId: respuesta.opcionId, puntos, puntajeTotal });
+    } catch (err) {
+      console.error(`[tests-live-admin] no pude guardar el puntaje de ${nick}:`, err.message);
+    }
+  }
+
   return resumen;
 }
 
-// ── 4. Avanzar a la siguiente pregunta ──
+// ── 5. Avanzar a la siguiente pregunta ──
 
 export async function siguientePregunta(testId) {
   const test = await getTest(testId);
   const preguntas = ordenarPreguntas(test?.preguntas);
-  const liveSnap = await get(ref(db, "testLive/preguntaActualId"));
-  const actualId = liveSnap.val();
+  const actualSnap = await get(ref(db, "testLive/preguntaActualId"));
+  const actualId = actualSnap.val();
 
   const idxActual = preguntas.findIndex(([qId]) => qId === actualId);
   const siguiente = preguntas[idxActual + 1];
   if (!siguiente) return { ok: false, ultima: true };
 
   const [qId, pregunta] = siguiente;
-  await update(liveRef(), {
-    preguntaActualId: qId,
-    revelado: false,
-    [`preguntasPublicas/${qId}`]: {
+  await update(ref(db), {
+    "testLive/preguntaActualId": qId,
+    "testLive/revelado": false,
+    [`testLive/preguntasPublicas/${qId}`]: {
       texto: pregunta.texto,
       orden: pregunta.orden,
       opciones: {},
@@ -181,62 +231,117 @@ export async function esUltimaPregunta(testId, qIdActual) {
   return idx === -1 || idx >= preguntas.length - 1;
 }
 
-// ── 5. Finalizar test: calcular resultado/perfil final de cada participante ──
+// ── 6. Finalizar test: calcular resultado/perfil final de cada participante ──
 
-export async function finalizarTest(testId) {
-  const [test, puntajesSnap] = await Promise.all([
-    getTest(testId),
-    get(ref(db, "testLive/puntajes")),
-  ]);
-
-  const puntajes = puntajesSnap.val() || {};
+export async function finalizarTest(testId, roster) {
+  const test = await getTest(testId);
   const resultados = Object.values(test?.resultados || {});
   const tituloTest = test?.meta?.titulo || "Test";
 
-  const resultadosFinales = {};
+  const resultadosFinales = [];
 
-  for (const [uid, puntaje] of Object.entries(puntajes)) {
+  for (const { uid, nick } of roster) {
+    let miResultado = null;
+    try {
+      const snap = await get(ref(db, `testLive/miResultado/${uid}`));
+      miResultado = snap.val();
+    } catch (err) {
+      console.error(`[tests-live-admin] no pude leer el puntaje final de ${nick}:`, err.message);
+      continue;
+    }
+    if (!miResultado) continue; // no contestó nada en todo el test
+
+    const puntaje = miResultado.puntajeTotal || 0;
     const perfil = resultados.find(r => puntaje >= (r.min ?? 0) && puntaje <= (r.max ?? 0));
     const resultadoFinal = {
       puntajeFinal: puntaje,
       perfil: perfil?.titulo || "Sin resultado asignado",
       descripcion: perfil?.descripcion || "",
     };
-    resultadosFinales[uid] = resultadoFinal;
 
-    await set(ref(db, `testLive/resultadoFinal/${uid}`), resultadoFinal);
-    await push(ref(db, `historial/${uid}`), {
-      tituloTest,
-      puntajeFinal: puntaje,
-      resultado: resultadoFinal.perfil,
-      fecha: Date.now(),
-    });
+    try {
+      await set(ref(db, `testLive/resultadoFinal/${uid}`), resultadoFinal);
+      await push(ref(db, `historial/${uid}`), {
+        tituloTest,
+        puntajeFinal: puntaje,
+        resultado: resultadoFinal.perfil,
+        fecha: Date.now(),
+      });
+      resultadosFinales.push({ uid, nick, ...resultadoFinal });
+    } catch (err) {
+      console.error(`[tests-live-admin] no pude guardar el resultado final de ${nick}:`, err.message);
+    }
   }
 
-  await update(liveRef(), { estado: "finalizado" });
-
-  return { ok: true, resultadosFinales, totalParticipantes: Object.keys(puntajes).length };
+  await update(ref(db), { "testLive/estado": "finalizado" });
+  return { ok: true, resultadosFinales };
 }
 
-// ── 6. Cerrar la sesión en vivo: archivar y limpiar testLive ──
+// ── 7. Cerrar la sesión en vivo: archivar y resetear ──
 
-export async function cerrarSesionVivo(testId) {
-  const liveSnap = await get(liveRef());
-  const liveData = liveSnap.val();
-  if (liveData) {
-    await push(ref(db, `tests/${testId}/sesiones`), {
-      fecha: Date.now(),
-      respuestas: liveData.respuestas || {},
-      puntajes: liveData.puntajes || {},
-      resultadoFinal: liveData.resultadoFinal || {},
-      participantes: liveData.participantes || {},
-    });
+export async function cerrarSesionVivo(testId, roster) {
+  const test = await getTest(testId);
+  const preguntas = ordenarPreguntas(test?.preguntas);
+
+  const respuestasArchivo = {};
+  const resultadoFinalArchivo = {};
+
+  for (const [qId] of preguntas) {
+    for (const { uid } of roster) {
+      try {
+        const snap = await get(ref(db, `testLive/respuestas/${qId}/${uid}`));
+        if (snap.val()) {
+          respuestasArchivo[qId] = respuestasArchivo[qId] || {};
+          respuestasArchivo[qId][uid] = snap.val();
+        }
+      } catch { /* sin dato o sin permiso — se ignora */ }
+    }
   }
-  await set(liveRef(), null);
+
+  for (const { uid } of roster) {
+    try {
+      const snap = await get(ref(db, `testLive/resultadoFinal/${uid}`));
+      if (snap.val()) resultadoFinalArchivo[uid] = snap.val();
+    } catch { /* sin dato o sin permiso — se ignora */ }
+  }
+
+  await push(ref(db, `tests/${testId}/sesiones`), {
+    fecha: Date.now(),
+    respuestas: respuestasArchivo,
+    resultadoFinal: resultadoFinalArchivo,
+  });
+
+  // Reseteamos los 4 campos de estado conocidos — nunca set(testLive, null).
+  await update(ref(db), {
+    "testLive/testId": null,
+    "testLive/estado": "idle",
+    "testLive/preguntaActualId": null,
+    "testLive/revelado": false,
+  });
+
+  // Best-effort: intentamos limpiar también los datos de cada participante,
+  // uid por uid. Si tu configuración de reglas no le da permiso de escritura
+  // al admin sobre alguna de estas rutas puntuales, esto puede fallar en
+  // silencio — no pasa nada salvo que vuelvas a arrancar ESTE MISMO test más
+  // adelante, en cuyo caso algún participante podría ver "ya respondiste" de
+  // la sesión anterior en esa pregunta puntual.
+  for (const { uid } of roster) {
+    try { await set(ref(db, `testLive/miResultado/${uid}`), null); } catch {}
+    try { await set(ref(db, `testLive/resultadoFinal/${uid}`), null); } catch {}
+    for (const [qId] of preguntas) {
+      try { await set(ref(db, `testLive/respuestas/${qId}/${uid}`), null); } catch {}
+    }
+  }
+
   return { ok: true };
 }
 
-// Cancelar la sesión sin guardar nada en el historial (por si el admin se equivocó de test)
+// Cancelar la sesión sin guardar nada en el historial de nadie
 export async function cancelarSesionVivo() {
-  await set(liveRef(), null);
+  await update(ref(db), {
+    "testLive/testId": null,
+    "testLive/estado": "idle",
+    "testLive/preguntaActualId": null,
+    "testLive/revelado": false,
+  });
 }
