@@ -205,20 +205,32 @@
       els.historialLista.innerHTML = `<div class="tst-historial-vacio">Todavía no participaste de ningún test.</div>`;
       return;
     }
-    els.historialLista.innerHTML = lista.map(item => {
+    els.historialLista.innerHTML = lista.map((item, i) => {
       const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString("es-AR") : "";
       return `
-        <div class="tst-historial-item">
-          <div class="tst-historial-nombre">${item.tituloTest || "Test"}</div>
+        <div class="tst-historial-item" id="tst-hist-${i}" onclick="window.__toggleHistItem(${i})">
+          <div class="tst-historial-nombre">
+            <span>${item.tituloTest || "Test"}</span>
+            <span class="tst-historial-flecha">▾</span>
+          </div>
           <div class="tst-historial-meta">
             <span>${fecha}</span>
             <span>${item.puntajeFinal ?? "—"} pts</span>
             <span>${item.resultado || ""}</span>
           </div>
+          ${item.descripcion ? `<div class="tst-historial-desc hidden" id="tst-hist-desc-${i}">${item.descripcion}</div>` : ""}
         </div>
       `;
     }).join("");
   }
+
+  window.__toggleHistItem = (i) => {
+    const item = document.getElementById(`tst-hist-${i}`);
+    const desc = document.getElementById(`tst-hist-desc-${i}`);
+    if (!desc) return; // sin descripción guardada (entradas viejas), no hay nada para desplegar
+    desc.classList.toggle("hidden");
+    item.classList.toggle("abierto");
+  };
 
   onSession(async (user) => {
     if (!user) {
