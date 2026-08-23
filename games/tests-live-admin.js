@@ -265,6 +265,7 @@ export async function finalizarTest(testId, roster) {
         tituloTest,
         puntajeFinal: puntaje,
         resultado: resultadoFinal.perfil,
+        descripcion: resultadoFinal.descripcion,
         fecha: Date.now(),
       });
       resultadosFinales.push({ uid, nick, ...resultadoFinal });
