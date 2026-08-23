@@ -484,10 +484,12 @@ import {
   agregarOpcion, actualizarOpcion, eliminarOpcion, proximaLetra,
   agregarResultado, actualizarResultado, eliminarResultado
 } from "./games/tests-admin.js";
+import { onTestLiveState, onPreguntaPublica } from "./games/tests.js";
 import {
-  onEstadoVivoAdmin, onParticipantesVivo, onRespuestasPregunta, onPuntajesVivo,
+  obtenerRoster,
   activarTestVivo, revelarOpcion, revelarTodasLasOpciones,
-  cerrarPreguntaYPuntuar, siguientePregunta, esUltimaPregunta,
+  onParticipantesVivo, onRespuestasPregunta, onResultadosFinalesVivo,
+  cerrarPreguntaYPuntuar, siguientePregunta,
   finalizarTest, cerrarSesionVivo, cancelarSesionVivo
 } from "./games/tests-live-admin.js";
 
@@ -766,6 +768,13 @@ window.borrarResultado = async (resId) => {
 };
 
 // ── Control en vivo ──
+// IMPORTANTE (ver games/tests-live-admin.js): nunca se lee ni se escribe el
+// nodo "testLive" completo de una sola vez, ni "testLive/participantes" o
+// "testLive/respuestas/{qId}" completos — las reglas de Firebase solo dan
+// permiso campo por campo / uid por uid. Por eso el estado general se arma
+// reusando onTestLiveState() de tests.js, y las listas de participantes /
+// respuestas / resultados se arman consultando uno por uno a cada usuario
+// del roster (ver obtenerRoster() en tests-live-admin.js).
 
 const elsV = {
   vistaVivo: document.getElementById("att-vista-vivo"),
@@ -791,15 +800,30 @@ const elsV = {
 let unsubVivoEstado = null;
 let unsubVivoParticipantes = null;
 let unsubVivoRespuestas = null;
+let unsubVivoFinales = null;
+let unsubVivoPreguntaPublica = null;
 let unsubVivoTest = null;
+let roster = [];           // [{uid, nick}] de todos los usuarios registrados (no-admin)
 let vivoTestData = null;   // banco completo del test que está en vivo (con puntos)
-let vivoState = null;      // último estado de testLive completo
+let vivoState = { testId: null, estado: "idle", preguntaActualId: null, revelado: false };
+let preguntaPublicaActual = null; // testLive/preguntasPublicas/{qId} de la pregunta en curso
 let vivoParticipantes = [];
+let vivoRespuestasActuales = {};
 let preguntaCongelada = false; // true entre "cerrar y puntuar" y "siguiente pregunta"
+let estadoAnterior = "idle";
 
-window.abrirVivo = () => {
+window.abrirVivo = async () => {
   els.vistaLista.classList.add("hidden");
   elsV.vistaVivo.classList.remove("hidden");
+  if (!roster.length) {
+    elsV.selectorLista.innerHTML = `<div class="att-empty">Cargando usuarios...</div>`;
+    try {
+      roster = await obtenerRoster();
+    } catch (err) {
+      elsV.selectorLista.innerHTML = `<div class="att-empty">No se pudo cargar la lista de usuarios (${escapeHtml(err.message || "error")}).</div>`;
+      return;
+    }
+  }
   cargarEstadoVivoInicial();
 };
 
@@ -815,29 +839,36 @@ function limpiarListenersVivo() {
   if (unsubVivoEstado) { unsubVivoEstado(); unsubVivoEstado = null; }
   if (unsubVivoParticipantes) { unsubVivoParticipantes(); unsubVivoParticipantes = null; }
   if (unsubVivoRespuestas) { unsubVivoRespuestas(); unsubVivoRespuestas = null; }
+  if (unsubVivoFinales) { unsubVivoFinales(); unsubVivoFinales = null; }
+  if (unsubVivoPreguntaPublica) { unsubVivoPreguntaPublica(); unsubVivoPreguntaPublica = null; }
   if (unsubVivoTest) { unsubVivoTest(); unsubVivoTest = null; }
 }
 
 function cargarEstadoVivoInicial() {
   limpiarListenersVivo();
-  unsubVivoEstado = onEstadoVivoAdmin((estado) => {
+
+  unsubVivoEstado = onTestLiveState((estado) => {
     vivoState = estado;
     renderVivo();
   });
-  unsubVivoParticipantes = onParticipantesVivo((lista) => {
+
+  unsubVivoParticipantes = onParticipantesVivo(roster, (lista) => {
     vivoParticipantes = lista;
     renderParticipantes();
+    renderRespuestas(); // el conteo "X de Y respondieron" depende de esta lista
   });
 }
 
 function renderVivo() {
-  const hayTestId = vivoState && vivoState.testId;
+  const hayTestId = !!vivoState.testId;
   elsV.pulseDot.style.display = (hayTestId && vivoState.estado !== "idle") ? "inline-block" : "none";
 
   if (!hayTestId || vivoState.estado === "idle") {
     elsV.selector.classList.remove("hidden");
     elsV.sesion.classList.add("hidden");
+    if (unsubVivoFinales) { unsubVivoFinales(); unsubVivoFinales = null; }
     renderSelector();
+    estadoAnterior = "idle";
     return;
   }
 
@@ -856,20 +887,44 @@ function renderVivo() {
     renderPreguntaVivo();
   }
 
-  // Respuestas de la pregunta actual
+  // Pregunta pública (para saber qué opciones ya se revelaron)
+  if (unsubVivoPreguntaPublica) unsubVivoPreguntaPublica();
+  if (vivoState.preguntaActualId) {
+    unsubVivoPreguntaPublica = onPreguntaPublica(vivoState.preguntaActualId, (pub) => {
+      preguntaPublicaActual = pub;
+      renderPreguntaVivo();
+    });
+  }
+
+  // Cuando la pregunta actual cambia, arrancamos de nuevo "no congelada"
+  // (esto pasa también al entrar por primera vez a una sesión ya en curso)
+  if (vivoState.preguntaActualId !== preguntaVivoIdAnterior) {
+    preguntaVivoIdAnterior = vivoState.preguntaActualId;
+    preguntaCongelada = false;
+  }
+
+  // Respuestas de la pregunta actual (uid por uid, vía roster)
   if (vivoState.preguntaActualId) {
     if (unsubVivoRespuestas) unsubVivoRespuestas();
-    unsubVivoRespuestas = onRespuestasPregunta(vivoState.preguntaActualId, (respuestas) => {
-      renderRespuestas(respuestas);
+    unsubVivoRespuestas = onRespuestasPregunta(vivoState.preguntaActualId, roster, (respuestas) => {
+      vivoRespuestasActuales = respuestas;
+      renderRespuestas();
     });
   }
 
   if (vivoState.estado === "finalizado") {
-    renderFinales();
+    if (!unsubVivoFinales) {
+      unsubVivoFinales = onResultadosFinalesVivo(roster, (finales) => renderFinales(finales));
+    }
   } else {
+    if (unsubVivoFinales) { unsubVivoFinales(); unsubVivoFinales = null; }
     elsV.finalesWrap.classList.add("hidden");
   }
+
+  estadoAnterior = vivoState.estado;
 }
+
+let preguntaVivoIdAnterior = undefined;
 
 function renderSelector() {
   const preparados = listaTests.filter(t => (t.meta.estado || "preparado") !== "archivado" && t.cantidadPreguntas > 0);
@@ -919,7 +974,7 @@ function renderPreguntaVivo() {
   elsV.preguntaTexto.textContent = pregunta.texto;
 
   const opciones = pregunta.opciones || {};
-  const publicadas = vivoState.preguntasPublicas?.[vivoState.preguntaActualId]?.opciones || {};
+  const publicadas = preguntaPublicaActual?.opciones || {};
   const letras = Object.keys(opciones).sort();
 
   elsV.opcionesControl.innerHTML = letras.map(letra => {
@@ -954,13 +1009,12 @@ window.revelarTodas = async () => {
 window.cerrarPregunta = async () => {
   if (!confirm("¿Cerrar esta pregunta? Ya no se van a poder registrar más respuestas.")) return;
   preguntaCongelada = true;
-  await cerrarPreguntaYPuntuar(vivoState.testId, vivoState.preguntaActualId);
   renderPreguntaVivo();
+  await cerrarPreguntaYPuntuar(vivoState.testId, vivoState.preguntaActualId, roster);
 };
 
 window.irSiguientePregunta = async () => {
   const res = await siguientePregunta(vivoState.testId);
-  preguntaCongelada = false;
   if (!res.ok) {
     alert("No hay más preguntas — usá 'Finalizar test'.");
   }
@@ -968,8 +1022,7 @@ window.irSiguientePregunta = async () => {
 
 window.finalizarSesion = async () => {
   if (!confirm("¿Finalizar el test y calcular los resultados de todos los participantes?")) return;
-  await finalizarTest(vivoState.testId);
-  preguntaCongelada = false;
+  await finalizarTest(vivoState.testId, roster);
 };
 
 function renderParticipantes() {
@@ -984,50 +1037,44 @@ function renderParticipantes() {
   `).join("");
 }
 
-function renderRespuestas(respuestas) {
-  const entradas = Object.entries(respuestas || {});
+function renderRespuestas() {
+  const entradas = Object.entries(vivoRespuestasActuales || {});
   if (!entradas.length) {
     elsV.listaRespuestas.innerHTML = `<div class="att-empty">Esperando respuestas...</div>`;
     return;
   }
   elsV.listaRespuestas.innerHTML = `
-    <div style="font-size:12px; color:var(--crema-3); margin-bottom:8px;">${entradas.length} de ${vivoParticipantes.length} respondieron</div>
+    <div style="font-size:12px; color:var(--crema-3); margin-bottom:8px;">${entradas.length} de ${vivoParticipantes.length || "?"} respondieron</div>
     ${entradas.map(([uid, r]) => {
-      const nick = vivoParticipantes.find(p => p.uid === uid)?.nick || uid.slice(0, 6);
+      const nick = roster.find(p => p.uid === uid)?.nick || uid.slice(0, 6);
       return `<div class="atv-participante-row"><span>${escapeHtml(nick)}</span><span class="atv-badge-resp">${r.opcionId}</span></div>`;
     }).join("")}
   `;
 }
 
-function renderFinales() {
-  const resultadoFinal = vivoState.resultadoFinal || {};
-  const entradas = Object.entries(resultadoFinal).sort((a, b) => (b[1].puntajeFinal || 0) - (a[1].puntajeFinal || 0));
+function renderFinales(finales) {
+  const entradas = (finales || []).slice().sort((a, b) => (b.puntajeFinal || 0) - (a.puntajeFinal || 0));
   elsV.finalesWrap.classList.remove("hidden");
   if (!entradas.length) {
     elsV.listaFinales.innerHTML = `<div class="att-empty">Nadie respondió ninguna pregunta.</div>`;
     return;
   }
-  elsV.listaFinales.innerHTML = entradas.map(([uid, r]) => {
-    const nick = vivoParticipantes.find(p => p.uid === uid)?.nick || uid.slice(0, 6);
-    return `
-      <div class="atv-final-item">
-        <span>${escapeHtml(nick)}</span>
-        <span>${r.puntajeFinal} pts</span>
-        <span style="color:var(--dorado);">${escapeHtml(r.perfil || "")}</span>
-      </div>
-    `;
-  }).join("");
+  elsV.listaFinales.innerHTML = entradas.map(r => `
+    <div class="atv-final-item">
+      <span>${escapeHtml(r.nick || "")}</span>
+      <span>${r.puntajeFinal} pts</span>
+      <span style="color:var(--dorado);">${escapeHtml(r.perfil || "")}</span>
+    </div>
+  `).join("");
 }
 
 window.cerrarSesion = async () => {
-  await cerrarSesionVivo(vivoState.testId);
-  preguntaCongelada = false;
+  await cerrarSesionVivo(vivoState.testId, roster);
 };
 
 window.cancelarSesion = async () => {
   if (!confirm("¿Cancelar la sesión en vivo sin guardar nada en el historial de nadie?")) return;
   await cancelarSesionVivo();
-  preguntaCongelada = false;
 };
 
 // ── Helpers ──
