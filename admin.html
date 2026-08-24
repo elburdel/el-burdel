@@ -238,6 +238,7 @@
           <button type="button" class="active-section" data-section="tablon">📋 Tablón</button>
           <button type="button" class="active-section" data-section="noticias">📰 Noticias</button>
           <button type="button" class="active-section" data-section="galeria">🖼️ Galería</button>
+          <button type="button" class="active-section" data-section="horoscopo">🔮 Horóscopo</button>
         </div>
         <div class="admin-nav-tabs" id="nav-tabs-juegos">
           <button type="button" class="active-section juego" data-section="taboo">🃏 Taboo</button>
@@ -1258,6 +1259,30 @@
           </div>
           <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
             El control en vivo (Tests → En vivo) se agrega en la próxima etapa.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="admin-section" id="section-horoscopo">
+      <div class="admin-section-inner">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">🔮 Horóscopo</h2>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="admin-horoscopo.html"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
+               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
+              🔮 Cargar horóscopo
+            </a>
+          </div>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
+            Publicás el de hoy o el del mes — se guarda al instante, sin pasos intermedios.
           </div>
         </div>
 
@@ -2445,7 +2470,7 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "millon", "ruleta", "tests"];
+    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "millon", "ruleta", "tests", "horoscopo"];
 
     // Mapa: juego activo → sección del admin que corresponde
     const GAME_TO_SECTION = {
