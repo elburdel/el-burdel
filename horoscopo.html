@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horóscopo — El Burdel</title>
+  <meta name="description" content="Horóscopo diario y mensual de El Burdel" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="Horóscopo — El Burdel" />
+  <meta property="og:url" content="https://elburdel.com.ar/horoscopo.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/horoscopo.css" />
+</head>
+<body>
+
+<main class="hor-main">
+  <div class="hor-header">
+    <div class="hor-title">🔮 HORÓSCOPO</div>
+    <div class="hor-subtitle" id="hor-subtitle">Cargando...</div>
+  </div>
+
+  <div class="hor-tabs">
+    <button type="button" class="hor-tab active" data-tab="hoy">Hoy</button>
+    <button type="button" class="hor-tab" data-tab="mes">Este mes</button>
+  </div>
+
+  <!-- SELECTOR DE SIGNO (solo si todavía no eligió uno) -->
+  <div class="hor-selector hidden" id="hor-selector">
+    <div class="hor-selector-title">Elegí tu signo</div>
+    <div class="hor-signos-grid" id="hor-signos-grid"></div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div class="hor-content hidden" id="hor-content">
+    <div class="hor-signo-actual">
+      <div class="hor-signo-actual-info">
+        <span id="hor-signo-icono">♈</span>
+        <span id="hor-signo-nombre">—</span>
+      </div>
+      <button type="button" class="hor-cambiar-btn" id="hor-cambiar-btn">Cambiar signo</button>
+    </div>
+    <div class="hor-card">
+      <div class="hor-card-fecha" id="hor-card-fecha">—</div>
+      <div class="hor-card-texto" id="hor-card-texto">—</div>
+    </div>
+  </div>
+</main>
+
+<!-- NAV BOTTOM -->
+<footer class="nav-bottom">
+  <div class="nav-bottom-inner">
+    <div class="nav-bottom-links">
+      <a href="index.html" class="nav-bottom-link">Inicio</a>
+      <a href="noticias.html" class="nav-bottom-link">Noticias</a>
+      <a href="galeria.html" class="nav-bottom-link">Galería</a>
+      <a href="musica.html" class="nav-bottom-link">Música</a>
+      <a href="ranking.html" class="nav-bottom-link">Ranking</a>
+    </div>
+    <div class="nav-bottom-divider"></div>
+    <div class="nav-bottom-links">
+      <a href="terminos.html" class="nav-bottom-link">Términos</a>
+      <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+    </div>
+    <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
+  </div>
+</footer>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  import { onSession, getUserData } from "./js/auth.js";
+  import {
+    SIGNOS, onHoroscopoDiario, onHoroscopoMensual,
+    getSignoUsuario, guardarSignoUsuario, getSignoInfo
+  } from "./games/horoscopo.js";
+
+  initNavbar();
+
+  const els = {
+    subtitle: document.getElementById("hor-subtitle"),
+    tabs: document.querySelectorAll(".hor-tab"),
+    selector: document.getElementById("hor-selector"),
+    signosGrid: document.getElementById("hor-signos-grid"),
+    content: document.getElementById("hor-content"),
+    signoIcono: document.getElementById("hor-signo-icono"),
+    signoNombre: document.getElementById("hor-signo-nombre"),
+    cambiarBtn: document.getElementById("hor-cambiar-btn"),
+    cardFecha: document.getElementById("hor-card-fecha"),
+    cardTexto: document.getElementById("hor-card-texto"),
+  };
+
+  const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  function formatFechaLarga() {
+    const now = new Date();
+    return `${DIAS[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}`;
+  }
+
+  function formatMesLargo() {
+    const now = new Date();
+    return `${MESES[now.getMonth()]} ${now.getFullYear()}`;
+  }
+
+  function renderSignosGrid(onSelect) {
+    els.signosGrid.innerHTML = "";
+    SIGNOS.forEach(s => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hor-signo-btn";
+      btn.innerHTML = `<span class="hor-signo-icono">${s.icono}</span><span class="hor-signo-nombre-btn">${s.nombre}</span>`;
+      btn.addEventListener("click", () => onSelect(s.key));
+      els.signosGrid.appendChild(btn);
+    });
+  }
+
+  let currentUid = null;
+  let signoActual = null;
+  let tabActiva = "hoy";
+  let unsubContenido = null;
+
+  function mostrarSelector() {
+    if (unsubContenido) { unsubContenido(); unsubContenido = null; }
+    els.content.classList.add("hidden");
+    els.selector.classList.remove("hidden");
+    els.subtitle.textContent = "Elegí tu signo para empezar";
+  }
+
+  function mostrarContenido() {
+    els.selector.classList.add("hidden");
+    els.content.classList.remove("hidden");
+    els.subtitle.textContent = tabActiva === "hoy" ? "Horóscopo de hoy" : "Horóscopo del mes";
+
+    const info = getSignoInfo(signoActual);
+    els.signoIcono.textContent = info ? info.icono : "♈";
+    els.signoNombre.textContent = info ? info.nombre : signoActual;
+
+    if (unsubContenido) { unsubContenido(); unsubContenido = null; }
+
+    if (tabActiva === "hoy") {
+      els.cardFecha.textContent = formatFechaLarga();
+      unsubContenido = onHoroscopoDiario(signoActual, (texto) => {
+        if (texto) {
+          els.cardTexto.textContent = texto;
+          els.cardTexto.classList.remove("vacio");
+        } else {
+          els.cardTexto.textContent = "Todavía no se cargó el horóscopo de hoy. Volvé a mirar más tarde.";
+          els.cardTexto.classList.add("vacio");
+        }
+      });
+    } else {
+      els.cardFecha.textContent = formatMesLargo();
+      unsubContenido = onHoroscopoMensual(signoActual, (texto) => {
+        if (texto) {
+          els.cardTexto.textContent = texto;
+          els.cardTexto.classList.remove("vacio");
+        } else {
+          els.cardTexto.textContent = "Todavía no se cargó el horóscopo de este mes.";
+          els.cardTexto.classList.add("vacio");
+        }
+      });
+    }
+  }
+
+  async function elegirSigno(signoKey) {
+    signoActual = signoKey;
+    if (currentUid) await guardarSignoUsuario(currentUid, signoKey);
+    mostrarContenido();
+  }
+
+  els.tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) return;
+      els.tabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      tabActiva = btn.dataset.tab;
+      if (signoActual) mostrarContenido();
+    });
+  });
+
+  els.cambiarBtn.addEventListener("click", () => {
+    mostrarSelector();
+  });
+
+  renderSignosGrid(elegirSigno);
+
+  onSession(async (user) => {
+    if (!user) {
+      window.location.href = "/login.html";
+      return;
+    }
+    const data = await getUserData(user.uid);
+    if (!data) { window.location.href = "/login.html"; return; }
+
+    currentUid = user.uid;
+    const signoGuardado = await getSignoUsuario(currentUid);
+
+    if (signoGuardado) {
+      signoActual = signoGuardado;
+      mostrarContenido();
+    } else {
+      mostrarSelector();
+    }
+  });
+</script>
+
+</body>
+</html>
