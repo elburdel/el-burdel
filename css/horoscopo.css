@@ -1,0 +1,205 @@
+/* ─── HORÓSCOPO CSS (mobile-first) ─── */
+/* Este archivo va en la carpeta css/ del proyecto (css/horoscopo.css) */
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hor-main {
+  flex: 1;
+  width: 100%;
+  padding: 24px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hor-header {
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hor-title {
+  font-family: var(--font-title);
+  font-size: 32px;
+  letter-spacing: 3px;
+  color: var(--dorado);
+}
+
+.hor-subtitle {
+  font-size: 13px;
+  color: var(--crema-3);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Tabs Hoy / Este mes ── */
+.hor-tabs {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.hor-tab {
+  flex: 1;
+  padding: 10px;
+  background: rgba(200,150,0,0.06);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 10px;
+  color: var(--crema-3);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hor-tab.active {
+  background: rgba(200,150,0,0.16);
+  border-color: rgba(200,150,0,0.4);
+  color: var(--dorado-claro);
+}
+
+/* ── Selector de signo ── */
+.hor-selector {
+  width: 100%;
+  max-width: 520px;
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.12);
+  border-radius: 14px;
+  padding: 20px 16px;
+}
+
+.hor-selector-title {
+  font-family: var(--font-title);
+  font-size: 18px;
+  letter-spacing: 1.5px;
+  color: var(--crema-2);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.hor-signos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.hor-signo-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px;
+  background: rgba(200,150,0,0.06);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 10px;
+  color: var(--crema);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hor-signo-btn:active {
+  transform: scale(0.97);
+  background: rgba(200,150,0,0.14);
+}
+
+.hor-signo-icono {
+  font-size: 22px;
+}
+
+.hor-signo-nombre-btn {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Contenido (signo elegido) ── */
+.hor-content {
+  width: 100%;
+  max-width: 520px;
+}
+
+.hor-signo-actual {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(200,150,0,0.08);
+  border: 1px solid rgba(200,150,0,0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.hor-signo-actual-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--crema);
+  font-weight: 500;
+}
+
+.hor-cambiar-btn {
+  background: none;
+  border: none;
+  color: var(--dorado-claro);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hor-card {
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.15);
+  border-radius: 14px;
+  padding: 20px 18px;
+}
+
+.hor-card-fecha {
+  font-size: 12px;
+  color: var(--crema-3);
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.hor-card-texto {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--crema);
+  word-break: break-word;
+}
+
+.hor-card-texto.vacio {
+  color: var(--crema-3);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── Pantallas grandes: un poco más de aire, sin cambiar la lógica mobile ── */
+@media (min-width: 700px) {
+  .hor-main {
+    padding: 40px 16px 80px;
+  }
+  .hor-title {
+    font-size: 38px;
+  }
+  .hor-signos-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
