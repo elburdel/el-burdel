@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Horóscopo — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+
+    .adh-main { padding: 24px 20px 60px; max-width: 900px; margin: 0 auto; }
+
+    .adh-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .adh-title {
+      font-family: var(--font-title);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .adh-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(200,150,0,0.2);
+      background: transparent;
+      color: var(--crema-3);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .adh-btn:hover { color: var(--crema); background: rgba(200,150,0,0.06); }
+
+    .adh-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .adh-tab {
+      padding: 9px 16px;
+      background: rgba(200,150,0,0.06);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 8px;
+      color: var(--crema-3);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .adh-tab.active {
+      background: rgba(200,150,0,0.16);
+      border-color: rgba(200,150,0,0.4);
+      color: var(--dorado-claro);
+    }
+
+    .adh-subbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .adh-fecha-actual {
+      font-size: 13px;
+      color: var(--crema-2);
+    }
+
+    .adh-contador {
+      font-size: 12px;
+      color: var(--crema-3);
+      letter-spacing: 0.5px;
+    }
+
+    .adh-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .adh-card {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .adh-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .adh-signo-nombre {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--crema);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .adh-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+      flex-shrink: 0;
+    }
+    .adh-dot.publicado { background: #7fd97f; }
+
+    .adh-textarea {
+      width: 100%;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--crema);
+      font-family: var(--font-body);
+      font-size: 13px;
+      min-height: 64px;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .adh-textarea:focus { border-color: rgba(200,150,0,0.5); }
+
+    .adh-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .adh-save-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(200,150,0,0.3);
+      background: rgba(200,150,0,0.1);
+      color: var(--dorado-claro);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .adh-save-btn:hover { background: rgba(200,150,0,0.2); }
+    .adh-save-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .adh-feedback {
+      font-size: 11px;
+      color: #7fd97f;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .adh-feedback.show { opacity: 1; }
+
+    .hidden { display: none !important; }
+
+  </style>
+</head>
+<body>
+
+<main class="adh-main">
+
+  <div class="adh-topbar">
+    <div class="adh-title">🔮 Horóscopo</div>
+    <a href="admin.html" class="adh-btn">← Volver al admin</a>
+  </div>
+
+  <div class="adh-tabs">
+    <button type="button" class="adh-tab active" data-tab="diario">Hoy</button>
+    <button type="button" class="adh-tab" data-tab="mensual">Mensual</button>
+  </div>
+
+  <div class="adh-subbar">
+    <div class="adh-fecha-actual" id="adh-fecha-actual">—</div>
+    <div class="adh-contador" id="adh-contador">— de 12 publicados</div>
+  </div>
+
+  <div class="adh-grid" id="adh-grid">
+    <!-- Las 12 tarjetas se generan por JS -->
+  </div>
+
+</main>
+
+<script type="module">
+  import { auth } from "./js/firebase-init.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    SIGNOS, getFechaHoy, getMesActual,
+    getHoroscopoDiarioSigno, getHoroscopoMensualSigno,
+    guardarHoroscopoDiario, guardarHoroscopoMensual
+  } from "./games/horoscopo-admin.js";
+
+  const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user || user.uid !== ADMIN_UID) {
+      window.location.href = "/login.html";
+    }
+  });
+
+  const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  function formatFechaLarga() {
+    const now = new Date();
+    return `Hoy, ${DIAS[now.getDay()]} ${now.getDate()} de ${MESES[now.getMonth()]}`;
+  }
+
+  function formatMesLargo() {
+    const now = new Date();
+    return `${MESES[now.getMonth()][0].toUpperCase()}${MESES[now.getMonth()].slice(1)} ${now.getFullYear()}`;
+  }
+
+  const grid = document.getElementById("adh-grid");
+  const fechaEl = document.getElementById("adh-fecha-actual");
+  const contadorEl = document.getElementById("adh-contador");
+  const tabs = document.querySelectorAll(".adh-tab");
+
+  let tabActiva = "diario"; // "diario" | "mensual"
+
+  function claveActual() {
+    return tabActiva === "diario" ? getFechaHoy() : getMesActual();
+  }
+
+  function actualizarContador() {
+    const publicados = grid.querySelectorAll(".adh-dot.publicado").length;
+    contadorEl.textContent = `${publicados} de 12 publicados`;
+  }
+
+  function crearTarjeta(signo) {
+    const card = document.createElement("div");
+    card.className = "adh-card";
+    card.dataset.signo = signo.key;
+
+    card.innerHTML = `
+      <div class="adh-card-head">
+        <div class="adh-signo-nombre"><span>${signo.icono}</span><span>${signo.nombre}</span></div>
+        <span class="adh-dot"></span>
+      </div>
+      <textarea class="adh-textarea" placeholder="Sin publicar todavía..."></textarea>
+      <div class="adh-card-footer">
+        <button type="button" class="adh-save-btn">Publicar</button>
+        <span class="adh-feedback">Guardado ✓</span>
+      </div>
+    `;
+
+    const dot = card.querySelector(".adh-dot");
+    const textarea = card.querySelector(".adh-textarea");
+    const saveBtn = card.querySelector(".adh-save-btn");
+    const feedback = card.querySelector(".adh-feedback");
+
+    saveBtn.addEventListener("click", async () => {
+      saveBtn.disabled = true;
+      const texto = textarea.value;
+      const clave = claveActual();
+      const publicado = tabActiva === "diario"
+        ? await guardarHoroscopoDiario(clave, signo.key, texto)
+        : await guardarHoroscopoMensual(clave, signo.key, texto);
+
+      dot.classList.toggle("publicado", publicado);
+      saveBtn.textContent = publicado ? "Guardar" : "Publicar";
+      actualizarContador();
+
+      feedback.classList.add("show");
+      setTimeout(() => feedback.classList.remove("show"), 1500);
+      saveBtn.disabled = false;
+    });
+
+    return { card, dot, textarea, saveBtn };
+  }
+
+  const tarjetas = {}; // signoKey -> { card, dot, textarea, saveBtn }
+
+  SIGNOS.forEach(signo => {
+    const t = crearTarjeta(signo);
+    tarjetas[signo.key] = t;
+    grid.appendChild(t.card);
+  });
+
+  async function cargarPestana() {
+    fechaEl.textContent = tabActiva === "diario" ? formatFechaLarga() : formatMesLargo();
+    const clave = claveActual();
+
+    for (const signo of SIGNOS) {
+      const t = tarjetas[signo.key];
+      const texto = tabActiva === "diario"
+        ? await getHoroscopoDiarioSigno(clave, signo.key)
+        : await getHoroscopoMensualSigno(clave, signo.key);
+
+      t.textarea.value = texto || "";
+      const publicado = !!texto;
+      t.dot.classList.toggle("publicado", publicado);
+      t.saveBtn.textContent = publicado ? "Guardar" : "Publicar";
+    }
+    actualizarContador();
+  }
+
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) return;
+      tabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      tabActiva = btn.dataset.tab;
+      cargarPestana();
+    });
+  });
+
+  cargarPestana();
+</script>
+
+</body>
+</html>
