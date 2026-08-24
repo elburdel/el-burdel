@@ -21,7 +21,6 @@
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/taboo.css" />
-  <link rel="stylesheet" href="css/wordle.css" />
   <link rel="stylesheet" href="css/noticias.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -516,90 +515,19 @@
           <h2 class="admin-section-title">🔤 Wordle</h2>
         </div>
 
-        <!-- Selector de modo -->
-        <div class="wordle-mode-selector" style="max-width:320px;margin-bottom:20px;">
-          <button type="button" class="wordle-mode-btn active" id="admin-mode-btn-5" onclick="setWordleAdminMode('5')">5 letras</button>
-          <button type="button" class="wordle-mode-btn" id="admin-mode-btn-6" onclick="setWordleAdminMode('6')">6 letras</button>
-        </div>
-
-        <!-- Palabra del día actual -->
         <div class="admin-card">
-          <div class="admin-card-label">Palabra del día actual — modo <span id="admin-wordle-mode-label">5 letras</span></div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;">
-            <div id="admin-word-display" style="
-              font-family:var(--font-display);
-              font-size:28px;
-              font-weight:700;
-              color:var(--dorado);
-              letter-spacing:6px;
-              text-transform:uppercase;
-              min-height:40px;
-            ">—</div>
-            <span id="admin-word-source-badge" style="
-              font-size:10px;
-              letter-spacing:1.5px;
-              text-transform:uppercase;
-              color:var(--crema-3);
-              border:1px solid rgba(200,150,0,0.2);
-              border-radius:12px;
-              padding:3px 10px;
-            ">automática</span>
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="admin-wordle.html"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
+               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
+              🔤 Administrar Wordle
+            </a>
           </div>
-          <p style="font-size:12px;color:var(--crema-3);margin:0;line-height:1.5;">
-            Si no hay palabra forzada, se calcula automáticamente a partir de la fecha.
-          </p>
-        </div>
-
-        <!-- Forzar palabra -->
-        <div class="admin-card">
-          <div class="admin-card-label">Forzar palabra para hoy — <span id="admin-force-mode-label">5 letras</span></div>
-          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Reemplaza la palabra automática de hoy. Tiene que estar en la lista de palabras válidas.
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <input
-              type="text"
-              id="input-force-word"
-              placeholder="Escribí la palabra"
-              maxlength="6"
-              style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-family:var(--font-display);font-size:18px;letter-spacing:4px;text-transform:uppercase;outline:none;"
-              oninput="this.value=this.value.toUpperCase()"
-            />
-            <button type="button" class="admin-btn primary" onclick="handleForceWord()">Forzar</button>
-            <button type="button" class="admin-btn secondary" onclick="handleClearForced()">Quitar forzada</button>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
+            Palabra del día, forzar palabra, ranking y reseteos — ahora en su propia pantalla.
           </div>
-          <div id="admin-force-msg" style="margin-top:8px;font-size:12px;min-height:18px;"></div>
-        </div>
-
-        <!-- Ranking Wordle -->
-        <div class="admin-card">
-          <div class="admin-card-label">Ranking global — Wordle</div>
-          <div id="admin-wordle-ranking" style="margin-top:8px;">
-            <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
-          </div>
-        </div>
-
-        <!-- Reset stats de un usuario -->
-        <div class="admin-card">
-          <div class="admin-card-label">Resetear stats de un usuario</div>
-          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Borra los stats de Wordle (puntos, racha, historial) de un usuario.
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <select id="select-reset-user" style="flex:1;min-width:160px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;">
-              <option value="">— Elegir usuario —</option>
-            </select>
-            <button type="button" class="admin-btn secondary" onclick="handleResetUserWordle()">Resetear</button>
-          </div>
-        </div>
-
-        <!-- Reset stats de todos los usuarios -->
-        <div class="admin-card">
-          <div class="admin-card-label">Resetear TODO el ranking global</div>
-          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Borra los stats de Wordle (puntos, racha, historial) de TODOS los usuarios. ¡No se puede deshacer!
-          </p>
-          <button type="button" class="admin-btn secondary" style="background-color: var(--rojo); color: white; width: 100%; border: none;" onclick="handleResetAllWordle()">Resetear Ranking Global</button>
         </div>
 
       </div>
@@ -1346,9 +1274,6 @@
       onTabooState, onTabooScores, onTabooDeck
     } from "./games/taboo.js";
     import {
-      forceWordOfDay, isValidWord, onRanking
-    } from "./games/wordle.js";
-    import {
       WORD_BANK,
       startImpostorRound, revealImpostorResult, giveImpostorPoints,
       resetImpostor, onImpostorState, onImpostorPlayers
@@ -1419,13 +1344,11 @@
       initTablonCounter();
       initTaboo();
       listenTeamNames();
-      initWordleAdmin();
       listenPresence();
       initImpostorAdmin();
       initQuienSoyAdmin(adminUid);
       initMusicAdmin();
       initGaleria();
-      initMillonAdmin();
     }
 
     // ── NOMBRES DE EQUIPOS ──
@@ -2004,192 +1927,6 @@
 
 
 
-
-    // ══════════════════════════════════════
-    // ── WORDLE ADMIN ──
-    // ══════════════════════════════════════
-
-    let wordleAdminMode = "5"; // "5" | "6"
-
-    function initWordleAdmin() {
-      loadWordleAdminMode("5");
-      // Ranking en tiempo real
-      onRanking(renderWordleRanking);
-    }
-
-    async function loadWordleAdminMode(m) {
-      wordleAdminMode = m;
-
-      document.getElementById("admin-mode-btn-5").classList.toggle("active", m === "5");
-      document.getElementById("admin-mode-btn-6").classList.toggle("active", m === "6");
-      document.getElementById("admin-wordle-mode-label").textContent = `${m} letras`;
-      document.getElementById("admin-force-mode-label").textContent = `${m} letras`;
-
-      // Límite de input según modo
-      document.getElementById("input-force-word").maxLength = parseInt(m);
-      document.getElementById("input-force-word").value = "";
-      document.getElementById("admin-force-msg").textContent = "";
-
-      const display = document.getElementById("admin-word-display");
-      const badge = document.getElementById("admin-word-source-badge");
-      display.textContent = "...";
-
-      const today = getTodayKeyAdmin();
-
-      // Calcular la palabra automática (sin Firebase, siempre funciona)
-      const { WORDS_5, WORDS_6 } = await import("./games/words.js");
-      const list = m === "5" ? WORDS_5 : WORDS_6;
-      const encoder = new TextEncoder();
-      const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(today + m));
-      const hashArray = new Uint8Array(hashBuffer);
-      const autoWord = list[(hashArray[0] * 256 + hashArray[1]) % list.length];
-
-      // Intentar leer si hay palabra forzada (puede fallar si las reglas no lo permiten)
-      try {
-        const forcedSnap = await get(ref(db, `wordle/forced/${today}/${m}`));
-        if (forcedSnap.exists()) {
-          const forced = forcedSnap.val();
-          display.textContent = forced;
-          badge.textContent = "🔒 forzada";
-          badge.style.color = "var(--dorado)";
-          badge.style.borderColor = "rgba(200,150,0,0.5)";
-          return;
-        }
-      } catch (e) {
-        // Sin permiso para leer forced — mostramos la automática igual
-        console.warn("No se pudo leer wordle/forced (revisar reglas Firebase):", e.message);
-      }
-
-      display.textContent = autoWord;
-      badge.textContent = "automática";
-      badge.style.color = "var(--crema-3)";
-      badge.style.borderColor = "rgba(200,150,0,0.2)";
-    }
-
-    function getTodayKeyAdmin() {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    }
-
-    window.setWordleAdminMode = (m) => loadWordleAdminMode(m);
-
-    window.handleForceWord = async () => {
-      const word = document.getElementById("input-force-word").value.trim().toUpperCase();
-      const msg = document.getElementById("admin-force-msg");
-
-      if (!word) {
-        msg.textContent = "Ingresá una palabra.";
-        msg.style.color = "#f09090";
-        return;
-      }
-      if (word.length !== parseInt(wordleAdminMode)) {
-        msg.textContent = `La palabra debe tener exactamente ${wordleAdminMode} letras.`;
-        msg.style.color = "#f09090";
-        return;
-      }
-      if (!isValidWord(word, wordleAdminMode)) {
-        msg.textContent = `"${word}" no está en la lista de palabras válidas.`;
-        msg.style.color = "#f09090";
-        return;
-      }
-
-      try {
-        await forceWordOfDay(wordleAdminMode, word);
-        msg.textContent = `✓ Palabra forzada: ${word}`;
-        msg.style.color = "#81c784";
-        document.getElementById("input-force-word").value = "";
-        await loadWordleAdminMode(wordleAdminMode);
-        showToast(`Palabra del día (${wordleAdminMode} letras) forzada: ${word}`);
-      } catch (e) {
-        msg.textContent = e.message;
-        msg.style.color = "#f09090";
-      }
-    };
-
-    window.handleClearForced = async () => {
-      const today = getTodayKeyAdmin();
-      try {
-        await remove(ref(db, `wordle/forced/${today}/${wordleAdminMode}`));
-        showToast(`Palabra forzada (${wordleAdminMode} letras) eliminada`);
-        await loadWordleAdminMode(wordleAdminMode);
-      } catch (e) {
-        showToast("Error al quitar la palabra forzada.");
-      }
-    };
-
-    function renderWordleRanking(ranking) {
-      const el = document.getElementById("admin-wordle-ranking");
-      if (!el) return;
-
-      // Poblar select de reset
-      const sel = document.getElementById("select-reset-user");
-      if (sel) {
-        const prevVal = sel.value;
-        sel.innerHTML = `<option value="">— Elegir usuario —</option>` +
-          ranking.map(u => `<option value="${u.uid}">${u.nick}</option>`).join("");
-        if (prevVal) sel.value = prevVal;
-      }
-
-      if (ranking.length === 0) {
-        el.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Nadie jugó todavía.</p>`;
-        return;
-      }
-
-      el.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          ${ranking.map((u, i) => `
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--negro-3);border-radius:6px;border:1px solid rgba(200,150,0,0.1);">
-              <span style="width:22px;font-size:12px;color:var(--crema-3);font-weight:600;">${i+1}</span>
-              <span style="flex:1;font-size:13px;color:var(--crema);">${u.nick}</span>
-              <span style="font-size:11px;color:var(--crema-3);">${u.played}J / ${u.won}G</span>
-              <span style="font-size:13px;color:var(--dorado);font-weight:600;">${u.totalPoints} pts</span>
-              <span style="font-size:11px;color:var(--crema-3);" title="Racha actual">🔥${u.currentStreak}</span>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    window.handleResetUserWordle = () => {
-      const sel = document.getElementById("select-reset-user");
-      const uid = sel.value;
-      if (!uid) { showToast("Elegí un usuario."); return; }
-      const nick = sel.options[sel.selectedIndex].textContent;
-      showModal(`¿Resetear todos los stats de Wordle de ${nick}?`, async () => {
-        try {
-          await remove(ref(db, `users/${uid}/wordleStats`));
-          await remove(ref(db, `wordle/results/${uid}`));
-          closeModal();
-          showToast(`Stats de ${nick} reseteados`);
-        } catch (e) {
-          closeModal();
-          showToast("Error al resetear.");
-        }
-      });
-    };
-
-    window.handleResetAllWordle = () => {
-      showModal("¿Seguro que querés resetear TODO el ranking? Esta acción NO se puede deshacer.", async () => {
-        try {
-          const updates = {};
-          Object.keys(allUsers).forEach(uid => {
-            updates[`users/${uid}/wordleStats`]   = null;
-            updates[`wordle/results/${uid}`]       = null;
-            updates[`users/${uid}/points`]         = null;
-            updates[`users/${uid}/quienSoyPoints`] = null;
-            updates[`users/${uid}/tabooPoints`]    = null;
-          });
-          if (Object.keys(updates).length > 0) {
-            await update(ref(db), updates);
-          }
-          closeModal();
-          showToast("Ranking general reseteado ✅");
-        } catch (e) {
-          closeModal();
-          showToast("Error al resetear el ranking global.");
-        }
-      });
-    };
 
     // ══════════════════════════════════════
     // ── EL IMPOSTOR ADMIN ──
@@ -3701,22 +3438,6 @@
     async function cargarAdminGaleria() {
       renderGaleriaAlbums(_galAlbumsCache);
     }
-
-    // ══════════════════════════════════════════════════════════
-    // ── EL MILLÓN — Admin Logic ──
-    // ══════════════════════════════════════════════════════════
-
-    let milState   = null;
-    let milPlayers = {};   // uid → { nick, alive, immune, votesExtra, missionType }
-    let milVotes   = {};   // uid → { voted }
-    let milTimerInterval = null;
-
-    function initMillonAdmin() {
-      milListenState(s => { milState = s; milRenderAll(); });
-      milListenPlayers(p => { milPlayers = p || {}; milRenderAll(); milPopulateSelects(); });
-      milListenVotes(v => { milVotes = v || {}; milRenderTally(); milRenderStat(); });
-    }
-
 
   </script>
 
