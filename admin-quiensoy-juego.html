@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin ¿Quién Soy? — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+
+    .adq-main { padding: 24px 20px 60px; max-width: 700px; margin: 0 auto; }
+
+    .adq-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .adq-title {
+      font-family: var(--font-title);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .adq-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(200,150,0,0.2);
+      background: transparent;
+      color: var(--crema-3);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .adq-btn:hover { color: var(--crema); background: rgba(200,150,0,0.06); }
+
+    .hidden { display: none !important; }
+
+  </style>
+</head>
+<body>
+
+<main class="adq-main">
+
+  <div class="adq-topbar">
+    <div class="adq-title">🪪 ¿Quién Soy?</div>
+    <a href="admin.html" class="adq-btn">← Volver al admin</a>
+  </div>
+
+  <!-- ── Timer configurable ── -->
+  <div class="admin-card" style="margin-bottom:16px;">
+    <div class="admin-card-label">Configuración del turno</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Tiempo (segundos)</label>
+        <input type="number" id="qs-timer-input" value="60" min="10" max="300"
+          style="width:90px;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:15px;outline:none;text-align:center;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Selección de jugador y carta ── -->
+  <div class="admin-card" id="qs-config-card" style="margin-bottom:16px;">
+    <div class="admin-card-label">Nueva ronda</div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Jugador que adivina</label>
+        <select id="qs-guesser-select"
+          style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
+          <option value="">— Elegir jugador —</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
+        <select id="qs-cat-filter"
+          style="width:100%;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;"
+          onchange="qsOnCatFilterChange()">
+          <option value="">Todas las categorías</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Carta</label>
+        <div style="display:flex;gap:8px;">
+          <select id="qs-card-select"
+            style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:9px 10px;color:var(--crema);font-size:13px;outline:none;">
+            <option value="">— Elegir carta —</option>
+          </select>
+          <button type="button" class="admin-btn secondary" onclick="qsPickRandomCard()" title="Carta aleatoria"
+            style="padding:9px 14px;font-size:16px;">🎲</button>
+        </div>
+      </div>
+
+      <!-- Preview de carta seleccionada -->
+      <div id="qs-card-preview" style="display:none;border-radius:10px;overflow:hidden;border:1px solid rgba(200,150,0,0.2);max-width:200px;">
+        <img id="qs-card-preview-img" alt="Vista previa de la carta" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;" />
+        <div style="padding:8px 10px;font-size:11px;color:var(--crema-3);" id="qs-card-preview-label"></div>
+      </div>
+    </div>
+
+    <div class="admin-card-actions" style="margin-top:16px;">
+      <button type="button" class="admin-btn primary" onclick="qsStartRound()">▶ Iniciar turno</button>
+    </div>
+  </div>
+
+  <!-- ── Control de ronda activa ── -->
+  <div class="admin-card hidden" id="qs-playing-card" style="margin-bottom:16px;">
+    <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Ronda activa</span>
+      <span style="font-size:11px;color:var(--crema-3);">Jugador: <strong id="qs-active-guesser" style="color:var(--crema);">—</strong></span>
+    </div>
+
+    <!-- Timer admin -->
+    <div style="text-align:center;padding:16px 0 8px;">
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:6px;">Tiempo restante</div>
+      <div id="qs-admin-timer" style="font-family:var(--font-title);font-size:52px;color:var(--dorado);letter-spacing:4px;line-height:1;">60</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;">
+      <button type="button" class="admin-btn secondary" id="qs-pause-btn" onclick="qsTogglePause()">⏸ Pausar</button>
+      <button type="button" class="admin-btn secondary" onclick="qsResetTimer()">🔄 Reiniciar tiempo</button>
+    </div>
+
+    <div class="admin-card-label" style="margin-bottom:10px;">Resultado del turno</div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="admin-btn primary" style="flex:1;background:#3a6e3a;" onclick="qsResolve(true)">✅ Adivinó</button>
+      <button type="button" class="admin-btn primary" style="flex:1;background:#6e3a3a;" onclick="qsResolve(false)">❌ No adivinó</button>
+    </div>
+  </div>
+
+  <!-- ── Resultado de ronda ── -->
+  <div class="admin-card hidden" id="qs-result-card-admin" style="margin-bottom:16px;">
+    <div class="admin-card-label">Resultado</div>
+    <div id="qs-result-display" style="font-size:14px;color:var(--crema-2);line-height:1.7;padding:4px 0 12px;"></div>
+    <button type="button" class="admin-btn secondary" onclick="qsNextRound()">⏭ Siguiente turno</button>
+  </div>
+
+  <!-- ── Marcador de equipos ── -->
+  <div class="admin-card" style="margin-bottom:24px;">
+    <div class="admin-card-label">Marcador</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div style="flex:1;text-align:center;padding:12px;background:rgba(200,50,50,0.08);border-radius:8px;border:1px solid rgba(200,50,50,0.15);">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#e88;margin-bottom:4px;" id="qs-score-label-rojo">🔴 Equipo Rojo</div>
+        <div style="font-family:var(--font-title);font-size:40px;color:#e88;line-height:1;" id="qs-score-rojo">0</div>
+      </div>
+      <div style="flex:1;text-align:center;padding:12px;background:rgba(50,100,200,0.08);border-radius:8px;border:1px solid rgba(50,100,200,0.15);">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#88c;margin-bottom:4px;" id="qs-score-label-azul">🔵 Equipo Azul</div>
+        <div style="font-family:var(--font-title);font-size:40px;color:#88c;line-height:1;" id="qs-score-azul">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Biblioteca de cartas ── -->
+  <div class="admin-card">
+    <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>Biblioteca de cartas</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="admin-quiensoy.html" class="admin-btn secondary small" style="text-decoration:none;">📚 Gestionar biblioteca</a>
+        <button type="button" class="admin-btn secondary small" onclick="document.getElementById('qs-upload-area').classList.toggle('hidden')">+ Agregar carta</button>
+      </div>
+    </div>
+
+    <!-- Upload form -->
+    <div id="qs-upload-area" class="hidden" style="margin-bottom:16px;padding:16px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px dashed rgba(200,150,0,0.2);">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nombre / Personaje</label>
+          <input type="text" id="qs-upload-nombre" placeholder="Ej: Albert Einstein"
+            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Categoría</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="qs-upload-cat-select"
+              style="flex:1;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);"
+              onchange="qsCatSelectChange()">
+              <option value="">— Elegir categoría —</option>
+              <option value="__nueva__">+ Nueva categoría…</option>
+            </select>
+            <input type="text" id="qs-upload-categoria" placeholder="Nombre de categoría"
+              style="flex:1;display:none;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Imagen (JPG, PNG — máx 5MB)</label>
+          <input type="file" id="qs-upload-file" accept="image/*"
+            style="display:none;" onchange="qsPreviewUpload(this)" />
+          <button type="button" class="admin-btn secondary" onclick="document.getElementById('qs-upload-file').click()"
+            style="font-size:12px;padding:8px 14px;width:fit-content;">📎 Elegir imagen</button>
+          <span id="qs-upload-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:3px;"></span>
+          <div id="qs-upload-preview" style="margin-top:8px;display:none;">
+            <img id="qs-upload-preview-img" alt="Vista previa de la carta a subir" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(200,150,0,0.2);" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button type="button" class="admin-btn primary" onclick="qsUploadCard()" id="qs-upload-btn">Subir carta</button>
+          <span id="qs-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script type="module">
+  import { db, auth } from "./js/firebase-init.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import {
+    uploadCard as qsUploadCard, onCards,
+    onQuienSoyState, startQuienSoyRound, resolveRound,
+    resetQuienSoy, setTimerActive, resetTimer as qsResetTimerFn
+  } from "./games/quiensoy.js";
+
+  const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+  let qsAdminUid = null;
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user || user.uid !== ADMIN_UID) {
+      window.location.href = "/login.html";
+      return;
+    }
+    qsAdminUid = user.uid;
+    initQuienSoyAdmin();
+  });
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.classList.add("show"), 10);
+    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
+  }
+
+  // ── Roster de usuarios y nombres de equipo (propios de esta página) ──
+  let allUsers = {};
+  let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
+
+  function teamLabel(color) {
+    const t = teamNames[color];
+    return `${t.emoji} ${t.name}`;
+  }
+
+  onValue(ref(db, "users"), (snap) => {
+    allUsers = snap.val() || {};
+    qsPopulateGuesserSelect();
+  });
+
+  onValue(ref(db, "session/teams"), (snap) => {
+    const t = snap.val();
+    if (t) {
+      if (t.rojo) teamNames.rojo = { emoji: t.rojo.emoji || "🔴", name: t.rojo.name || "Equipo Rojo" };
+      if (t.azul) teamNames.azul = { emoji: t.azul.emoji || "🔵", name: t.azul.name || "Equipo Azul" };
+    }
+    document.getElementById("qs-score-label-rojo").textContent = teamLabel("rojo");
+    document.getElementById("qs-score-label-azul").textContent = teamLabel("azul");
+    qsPopulateGuesserSelect();
+  });
+
+  // Comprimir imagen: canvas → JPEG base64 (misma utilidad que usan Noticias/Galería, copia local)
+  function compressImage(file, maxSize, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+          else       { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  ¿QUIÉN SOY? — Admin Logic
+  // ════════════════════════════════════════════════════════
+
+  let qsCards = {};
+  let qsState = { phase: "waiting" };
+  let qsTimerInterval = null;
+  let qsTimerPaused = false;
+
+  function initQuienSoyAdmin() {
+    onCards((cards) => {
+      qsCards = cards || {};
+      qsPopulateCardSelect();
+    });
+
+    onQuienSoyState((state) => {
+      qsState = state || { phase: "waiting" };
+      qsRenderAdminState(state);
+    });
+
+    onValue(ref(db, "session/scores"), (snap) => {
+      const scores = snap.val() || {};
+      document.getElementById("qs-score-rojo").textContent = scores.rojo || 0;
+      document.getElementById("qs-score-azul").textContent = scores.azul || 0;
+    });
+
+    qsPopulateGuesserSelect();
+  }
+
+  function qsPopulateGuesserSelect() {
+    const sel = document.getElementById("qs-guesser-select");
+    if (!sel) return;
+    const activos = Object.entries(allUsers)
+      .filter(([, u]) => u.status === "active" && u.role !== "admin")
+      .sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
+    const rojos = activos.filter(([, u]) => u.team === "rojo");
+    const azules = activos.filter(([, u]) => u.team === "azul");
+    const sin = activos.filter(([, u]) => !u.team || (u.team !== "rojo" && u.team !== "azul"));
+    const makeOpts = (list) => list.map(([uid, u]) => `<option value="${uid}">${u.nick}</option>`).join("");
+    sel.innerHTML = `<option value="">— Elegir jugador —</option>`
+      + (rojos.length ? `<optgroup label="${teamLabel('rojo')}">${makeOpts(rojos)}</optgroup>` : "")
+      + (azules.length ? `<optgroup label="${teamLabel('azul')}">${makeOpts(azules)}</optgroup>` : "")
+      + (sin.length ? `<optgroup label="Sin equipo">${makeOpts(sin)}</optgroup>` : "");
+  }
+
+  function qsPopulateCardSelect() {
+    const catSet = new Set();
+    Object.values(qsCards).forEach(c => { if (c.categoria) catSet.add(c.categoria); });
+    const cats = [...catSet].sort((a, b) => a.localeCompare(b, "es"));
+
+    const catFilter = document.getElementById("qs-cat-filter");
+    if (catFilter) {
+      const prev = catFilter.value;
+      catFilter.innerHTML = `<option value="">Todas las categorías</option>`
+        + cats.map(c => `<option value="${c}">${c}</option>`).join("");
+      if (prev && cats.includes(prev)) catFilter.value = prev;
+    }
+
+    qsRebuildUploadCatSelect(cats);
+    qsRefreshCardSelect();
+  }
+
+  function qsRebuildUploadCatSelect(cats) {
+    const sel = document.getElementById("qs-upload-cat-select");
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">— Elegir categoría —</option>`
+      + cats.map(c => `<option value="${c}">${c}</option>`).join("")
+      + `<option value="__nueva__">+ Nueva categoría…</option>`;
+    if (prev && prev !== "__nueva__" && cats.includes(prev)) sel.value = prev;
+  }
+
+  window.qsCatSelectChange = function() {
+    const sel   = document.getElementById("qs-upload-cat-select");
+    const input = document.getElementById("qs-upload-categoria");
+    if (!sel || !input) return;
+    if (sel.value === "__nueva__") { input.style.display = "block"; input.focus(); }
+    else { input.style.display = "none"; input.value = ""; }
+  };
+
+  window.qsOnCatFilterChange = function() {
+    qsRefreshCardSelect();
+    const cardSel = document.getElementById("qs-card-select");
+    if (cardSel) cardSel.value = "";
+    qsUpdateCardPreview("");
+  };
+
+  function qsRefreshCardSelect() {
+    const sel = document.getElementById("qs-card-select");
+    if (!sel) return;
+    const catFilter = document.getElementById("qs-cat-filter");
+    const cat = catFilter ? catFilter.value : "";
+    let cards = Object.values(qsCards);
+    if (cat) cards = cards.filter(c => (c.categoria || "General") === cat);
+    cards.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "", "es"));
+    const prev = sel.value;
+    sel.innerHTML = `<option value="">— Elegir carta —</option>`
+      + cards.map(c => `<option value="${c.id}">${c.nombre}${cat ? "" : " (" + (c.categoria || "General") + ")"}</option>`).join("");
+    if (prev && cards.find(c => c.id === prev)) sel.value = prev;
+    sel.onchange = () => qsUpdateCardPreview(sel.value);
+  }
+
+  function qsUpdateCardPreview(cardId) {
+    const preview = document.getElementById("qs-card-preview");
+    const img = document.getElementById("qs-card-preview-img");
+    const label = document.getElementById("qs-card-preview-label");
+    if (!cardId || !qsCards[cardId]) { preview.style.display = "none"; return; }
+    const card = qsCards[cardId];
+    img.src = card.url;
+    label.textContent = `${card.nombre} · ${card.categoria || "General"}`;
+    preview.style.display = "block";
+  }
+
+  window.qsPickRandomCard = () => {
+    const cards = Object.keys(qsCards);
+    if (!cards.length) { showToast("No hay cartas cargadas."); return; }
+    const randomId = cards[Math.floor(Math.random() * cards.length)];
+    const sel = document.getElementById("qs-card-select");
+    if (sel) { sel.value = randomId; qsUpdateCardPreview(randomId); }
+  };
+
+  window.qsStartRound = async () => {
+    const guesserUid = document.getElementById("qs-guesser-select").value;
+    const cardId     = document.getElementById("qs-card-select").value;
+    const timerSecs  = parseInt(document.getElementById("qs-timer-input").value) || 60;
+    if (!guesserUid) { showToast("Elegí un jugador."); return; }
+    if (!cardId)     { showToast("Elegí una carta."); return; }
+    const u = allUsers[guesserUid];
+    await startQuienSoyRound({
+      cardId, guesserUid,
+      guesserNick: u?.nick || "—",
+      guesserTeam: u?.team || null,
+      timerSecs
+    });
+  };
+
+  window.qsTogglePause = async () => {
+    qsTimerPaused = !qsTimerPaused;
+    await setTimerActive(!qsTimerPaused);
+    document.getElementById("qs-pause-btn").textContent = qsTimerPaused ? "▶ Reanudar" : "⏸ Pausar";
+  };
+
+  window.qsResetTimer = async () => {
+    const secs = parseInt(document.getElementById("qs-timer-input").value) || 60;
+    qsTimerPaused = false;
+    document.getElementById("qs-pause-btn").textContent = "⏸ Pausar";
+    await qsResetTimerFn(secs);
+  };
+
+  window.qsResolve = async (adivinó) => {
+    await resolveRound(qsState.guesserUid, qsState.guesserTeam, adivinó);
+  };
+
+  window.qsNextRound = async () => {
+    await resetQuienSoy();
+  };
+
+  function qsRenderAdminState(state) {
+    clearInterval(qsTimerInterval);
+    const phase = state?.phase || "waiting";
+    const configCard  = document.getElementById("qs-config-card");
+    const playingCard = document.getElementById("qs-playing-card");
+    const resultCard  = document.getElementById("qs-result-card-admin");
+
+    configCard.classList.toggle("hidden",  phase !== "waiting");
+    playingCard.classList.toggle("hidden", phase !== "playing");
+    resultCard.classList.toggle("hidden",  phase !== "result");
+
+    if (phase === "playing") {
+      document.getElementById("qs-active-guesser").textContent = state.guesserNick || "—";
+      qsTimerPaused = !state.timerActive;
+      document.getElementById("qs-pause-btn").textContent = qsTimerPaused ? "▶ Reanudar" : "⏸ Pausar";
+      qsRunAdminTimer(state);
+    }
+
+    if (phase === "result") {
+      const adivinó = state.roundScore === "adivinó";
+      const guesserNick = state.guesserNick || "—";
+      const teamLabel_ = state.guesserTeam ? teamLabel(state.guesserTeam) : null;
+      document.getElementById("qs-result-display").innerHTML = adivinó
+        ? `🎉 <strong>${guesserNick}</strong> adivinó.<br>${teamLabel_ ? `+1 punto para ${teamLabel_}` : "+1 punto"}`
+        : `⏰ <strong>${guesserNick}</strong> no adivinó esta vez.<br>+0 puntos`;
+    }
+  }
+
+  function qsRunAdminTimer(state) {
+    const display = document.getElementById("qs-admin-timer");
+    function tick() {
+      if (!state.timerActive) { display.textContent = state.timerSecs || 60; return; }
+      const elapsed = state.timerStart ? Math.floor((Date.now() - state.timerStart) / 1000) : 0;
+      const remaining = Math.max(0, (state.timerSecs || 60) - elapsed);
+      display.textContent = remaining;
+      display.style.color = remaining <= 10 ? "#f04040" : remaining <= 20 ? "#f09040" : "var(--dorado)";
+      if (remaining === 0) clearInterval(qsTimerInterval);
+    }
+    tick();
+    qsTimerInterval = setInterval(tick, 500);
+  }
+
+  window.qsPreviewUpload = (input) => {
+    const file = input.files[0];
+    const nameEl = document.getElementById("qs-upload-file-name");
+    if (!file) { if (nameEl) nameEl.textContent = ""; return; }
+    if (nameEl) nameEl.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById("qs-upload-preview-img").src = e.target.result;
+      document.getElementById("qs-upload-preview").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.qsUploadCard = async () => {
+    const nombre    = document.getElementById("qs-upload-nombre").value.trim();
+    const catSel    = document.getElementById("qs-upload-cat-select");
+    const catInput  = document.getElementById("qs-upload-categoria");
+    const fileInput = document.getElementById("qs-upload-file");
+    const status    = document.getElementById("qs-upload-status");
+    const btn       = document.getElementById("qs-upload-btn");
+
+    if (!nombre) { showToast("Poné el nombre del personaje."); return; }
+
+    let categoria;
+    if (catSel && catSel.value === "__nueva__") {
+      const nueva = catInput ? catInput.value.trim() : "";
+      if (!nueva) { showToast("Escribí el nombre de la nueva categoría."); return; }
+      categoria = nueva;
+    } else if (catSel && catSel.value) {
+      categoria = catSel.value;
+    } else {
+      categoria = "General";
+    }
+
+    if (!fileInput.files[0]) { showToast("Seleccioná una imagen."); return; }
+    const file = fileInput.files[0];
+    if (file.size > 5 * 1024 * 1024) { showToast("La imagen no puede superar 5MB."); return; }
+
+    btn.disabled = true;
+    status.textContent = "Comprimiendo...";
+
+    try {
+      const b64 = await compressImage(file, 800, 0.82);
+      status.textContent = "Subiendo...";
+      const cardNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim();
+      await qsUploadCard(qsAdminUid, b64, cardNombre, categoria);
+
+      showToast("✅ Carta subida: " + cardNombre);
+      document.getElementById("qs-upload-nombre").value = "";
+      if (catSel) catSel.value = "";
+      if (catInput) { catInput.value = ""; catInput.style.display = "none"; }
+      fileInput.value = "";
+      const fnEl = document.getElementById("qs-upload-file-name");
+      if (fnEl) fnEl.textContent = "";
+      document.getElementById("qs-upload-preview").style.display = "none";
+      status.textContent = "";
+      document.getElementById("qs-upload-area").classList.add("hidden");
+    } catch(e) {
+      showToast("Error al subir: " + e.message);
+      status.textContent = "";
+    }
+    btn.disabled = false;
+  };
+</script>
+
+</body>
+</html>
