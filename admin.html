@@ -20,7 +20,6 @@
   <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/admin.css" />
-  <link rel="stylesheet" href="css/taboo.css" />
   <link rel="stylesheet" href="css/noticias.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -367,144 +366,23 @@
       <div class="admin-section-inner">
         <div class="admin-section-header">
           <h2 class="admin-section-title">🃏 Taboo</h2>
-          <span class="admin-badge" id="taboo-deck-count">0 tarjetas</span>
         </div>
 
-        <!-- TARJETA EQUIPOS + FINALIZAR JUEGO -->
-        <div class="admin-card" id="card-equipos-taboo" style="margin-bottom:20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
-            <div class="admin-card-label" style="margin:0;">Equipos</div>
-            <button type="button" class="admin-btn primary" style="background:var(--rojo-claro);border-color:var(--rojo-claro);color:#fff;" onclick="handleFinalizarJuego()">🏆 Finalizar juego</button>
+        <div class="admin-card">
+          <div class="admin-card-label">Acceso rápido</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+            <a href="admin-taboo.html"
+               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
+               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
+               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
+              🃏 Administrar Taboo
+            </a>
           </div>
-          <div id="equipos-taboo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div>
-              <div class="score-team-name rojo" id="label-equipo-rojo-taboo" style="margin-bottom:10px;font-size:14px;">🔴 Equipo Rojo</div>
-              <div id="lista-equipo-rojo" style="display:flex;flex-direction:column;gap:5px;">
-                <span style="font-size:13px;color:var(--crema-3);">Sin jugadores</span>
-              </div>
-            </div>
-            <div>
-              <div class="score-team-name azul" id="label-equipo-azul-taboo" style="margin-bottom:10px;font-size:14px;">🔵 Equipo Azul</div>
-              <div id="lista-equipo-azul" style="display:flex;flex-direction:column;gap:5px;">
-                <span style="font-size:13px;color:var(--crema-3);">Sin jugadores</span>
-              </div>
-            </div>
+          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
+            Marcador, turnos, timer y equipos — ahora en su propia pantalla. La gestión del mazo sigue en Admin Mazo.
           </div>
         </div>
 
-        <div class="taboo-panel-grid">
-
-          <!-- COLUMNA IZQUIERDA: Control del turno -->
-          <div class="taboo-panel-col">
-
-            <!-- Scoreboard editable -->
-            <div class="admin-card">
-              <div class="admin-card-label">Marcador</div>
-              <div class="taboo-scoreboard">
-                <div class="taboo-score-team rojo">
-                  <span class="score-team-name rojo" id="label-score-rojo">🔴 Equipo Rojo</span>
-                  <span class="score-team-value" id="score-rojo">0</span>
-                  <div class="score-edit-row">
-                    <input type="number" class="score-edit-input" id="input-score-rojo" min="0" value="0" />
-                    <button type="button" class="score-edit-btn" onclick="editScore('rojo')">OK</button>
-                  </div>
-                </div>
-                <div class="taboo-score-team azul">
-                  <span class="score-team-name azul" id="label-score-azul">🔵 Equipo Azul</span>
-                  <span class="score-team-value" id="score-azul">0</span>
-                  <div class="score-edit-row">
-                    <input type="number" class="score-edit-input" id="input-score-azul" min="0" value="0" />
-                    <button type="button" class="score-edit-btn" onclick="editScore('azul')">OK</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Configuración del turno -->
-            <div class="admin-card">
-              <div class="admin-card-label">Configurar turno</div>
-              <div class="turn-controls">
-                <div class="turn-row">
-                  <span class="turn-label">Describe</span>
-                  <select class="turn-select" id="select-describer">
-                    <option value="">— Elegir jugador —</option>
-                  </select>
-                </div>
-                <div class="turn-row">
-                  <span class="turn-label">Veedor</span>
-                  <select class="turn-select" id="select-veedor">
-                    <option value="">— Elegir veedor —</option>
-                  </select>
-                </div>
-                <div class="turn-row">
-                  <span class="turn-label">Equipo</span>
-                  <select class="turn-select" id="select-team-turn">
-                    <option value="rojo" id="option-team-rojo">🔴 Equipo Rojo</option>
-                    <option value="azul" id="option-team-azul">🔵 Equipo Azul</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- Timer config -->
-            <div class="admin-card">
-              <div class="admin-card-label">Tiempo por turno</div>
-              <div class="timer-config-row">
-                <input type="number" class="timer-input" id="timer-seconds" value="60" min="10" max="300" />
-                <span class="timer-config-label">segundos</span>
-                <input type="number" class="timer-input" id="penalty-skip" value="10" min="0" max="30" style="width:56px" />
-                <span class="timer-config-label">pen. pasar</span>
-              </div>
-            </div>
-
-            <!-- Acciones del turno -->
-            <div class="admin-card">
-              <div class="admin-card-label">Control del turno</div>
-              <div class="turn-action-btns" style="margin-bottom:10px">
-                <button type="button" class="btn-timer-toggle" id="btn-timer-toggle" onclick="toggleTimer()">▶ Iniciar tiempo</button>
-              </div>
-              <div class="turn-action-btns" style="margin-bottom:10px">
-                <button type="button" class="btn-next-card" onclick="nextCard()">🃏 Enviar tarjeta aleatoria</button>
-              </div>
-              <div class="turn-action-btns">
-                <button type="button" class="btn-correct" onclick="handleCorrect()">✓ Correcta (+1 punto)</button>
-                <button type="button" class="btn-wrong" onclick="handleWrong()">✗ Incorrecta (siguiente)</button>
-              </div>
-              <div class="turn-action-btns" style="margin-top:8px">
-                <button type="button" class="taboo-btn-skip" style="flex:1;padding:12px;font-size:13px;" onclick="handleSkip()">⏭ Pasar (−seg penalización)</button>
-              </div>
-            </div>
-
-            <!-- Vista previa tarjeta actual (admin) -->
-            <div class="admin-card">
-              <div class="admin-card-label">Tarjeta actual (solo vos la ves acá)</div>
-              <div id="admin-card-preview">
-                <p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aún.</p>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- COLUMNA DERECHA: Mazo de tarjetas -->
-          <div class="taboo-panel-col">
-
-            <!-- Mazo -->
-            <div class="admin-card">
-              <div class="admin-card-label">Mazo de Taboo</div>
-              <div style="text-align:center; padding: 20px 0;">
-                <p class="deck-count" id="deck-count-label" style="font-size:16px; margin-bottom:16px; color:var(--dorado);">0 tarjetas en total</p>
-                <a href="admin-mazo.html" class="admin-btn primary" style="text-decoration:none; display:block; padding:12px;">Ir a Gestión del Mazo</a>
-              </div>
-            </div>
-
-            <!-- Reset -->
-            <div class="admin-card">
-              <div class="admin-card-label">Reiniciar juego</div>
-              <button type="button" class="admin-btn secondary" style="width:100%" onclick="confirmResetTaboo()">Resetear puntajes y turno</button>
-            </div>
-
-          </div>
-        </div>
       </div>
     </section>
 
@@ -1172,14 +1050,6 @@
     import { db, auth } from "./js/firebase-init.js";
     import { onSession, getUserData, logoutUser, recoverPassword } from "./js/auth.js";
     import {
-      saveCard, deleteCard, updateCard,
-      sendRandomCard, skipCard,
-      setTimerRunning, setTimeLeft,
-      markCorrect, markWrong, setScore,
-      setTurnConfig, resetTaboo,
-      onTabooState, onTabooScores, onTabooDeck
-    } from "./games/taboo.js";
-    import {
       uploadCard as qsUploadCard, deleteCard as qsDeleteCard, onCards, getCard,
       onQuienSoyState, startQuienSoyRound, resolveRound,
       resetQuienSoy, setTimerActive, resetTimer as qsResetTimerFn
@@ -1208,23 +1078,6 @@
       return `${t.emoji} ${t.name}`;
     }
 
-    function applyTeamNames() {
-      const rojo = teamLabel("rojo");
-      const azul = teamLabel("azul");
-      const hRojo = document.getElementById("header-equipo-rojo");
-      const hAzul = document.getElementById("header-equipo-azul");
-      const lRojo = document.getElementById("label-score-rojo");
-      const lAzul = document.getElementById("label-score-azul");
-      const oRojo = document.getElementById("option-team-rojo");
-      const oAzul = document.getElementById("option-team-azul");
-      if (hRojo) hRojo.textContent = rojo;
-      if (hAzul) hAzul.textContent = azul;
-      if (lRojo) lRojo.textContent = rojo;
-      if (lAzul) lAzul.textContent = azul;
-      if (oRojo) oRojo.textContent = rojo;
-      if (oAzul) oAzul.textContent = azul;
-    }
-
     // ── PROTECCIÓN DE RUTA ──
     let adminUid = null;
 
@@ -1243,7 +1096,6 @@
       listenSession();
       listenTablon();
       initTablonCounter();
-      initTaboo();
       listenTeamNames();
       listenPresence();
       initQuienSoyAdmin(adminUid);
@@ -1263,7 +1115,6 @@
         document.getElementById("input-name-rojo").value = teamNames.rojo.name;
         document.getElementById("input-emoji-azul").value = teamNames.azul.emoji;
         document.getElementById("input-name-azul").value = teamNames.azul.name;
-        applyTeamNames();
         renderEquipos();
       });
     }
@@ -1288,8 +1139,6 @@
         updatePendingBadge();
         renderEquipos();
         renderSesionUsuarios();
-        populatePlayerSelects();
-        renderEquiposTaboo();
         qsPopulateGuesserSelect();
       });
     }
@@ -1359,7 +1208,6 @@
     function renderEquipos() {
       // kept for compatibility — calls the unified render
       renderSesionUsuarios();
-      renderEquiposTaboo();
     }
 
     function renderSesionUsuarios() {
@@ -1507,324 +1355,6 @@
       setTimeout(() => t.classList.add("show"), 10);
       setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
     }
-
-
-    // ══════════════════════════════════════
-    // ── TABOO ──
-    // ══════════════════════════════════════
-
-    let tabooState = {};
-    let tabooScores = { rojo: 0, azul: 0 };
-    let tabooDeck = {};
-    let timerInterval = null;
-    let usedCards = [];
-
-    function initTaboo() {
-      onTabooState(state => {
-        tabooState = state;
-        renderAdminCardPreview(state.currentCard);
-        updateTimerDisplay(state.timeLeft ?? 60);
-        const btn = document.getElementById("btn-timer-toggle");
-        if (btn) {
-          btn.textContent = state.timerRunning ? "⏸ Pausar tiempo" : "▶ Iniciar tiempo";
-          btn.classList.toggle("running", !!state.timerRunning);
-        }
-        if (state.timerRunning) startLocalTimer();
-        else stopLocalTimer();
-      });
-
-      onTabooScores(scores => {
-        tabooScores = scores;
-        document.getElementById("score-rojo").textContent = scores.rojo ?? 0;
-        document.getElementById("score-azul").textContent = scores.azul ?? 0;
-        document.getElementById("input-score-rojo").value = scores.rojo ?? 0;
-        document.getElementById("input-score-azul").value = scores.azul ?? 0;
-      });
-
-      onTabooDeck(deck => {
-        tabooDeck = deck;
-        updateDeckCount(deck);
-        populatePlayerSelects();
-      });
-    }
-
-    // ── Timer local (sincronizado con Firebase) ──
-    function startLocalTimer() {
-      stopLocalTimer();
-      timerInterval = setInterval(async () => {
-        const current = tabooState.timeLeft ?? 0;
-        if (current <= 0) {
-          stopLocalTimer();
-          await setTimerRunning(false);
-          showToast("⏰ ¡Se acabó el tiempo!");
-          return;
-        }
-        const newTime = current - 1;
-        tabooState.timeLeft = newTime;
-        updateTimerDisplay(newTime);
-        await setTimeLeft(newTime);
-      }, 1000);
-    }
-
-    function stopLocalTimer() {
-      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    }
-
-    function updateTimerDisplay(seconds) {
-      const s = Math.max(0, seconds ?? 0);
-      const min = Math.floor(s / 60);
-      const sec = s % 60;
-      const display = `${min > 0 ? min + ":" : ""}${String(sec).padStart(2, "0")}`;
-      document.querySelectorAll(".timer-display").forEach(el => {
-        el.textContent = display;
-        el.className = "timer-display" + (s <= 10 ? " danger" : s <= 20 ? " warning" : "");
-      });
-    }
-
-    // ── Toggle timer ──
-    window.toggleTimer = async () => {
-      if (tabooState.timerRunning) {
-        await setTimerRunning(false);
-      } else {
-        if (!tabooState.currentCard) {
-          showToast("Primero enviá una tarjeta.");
-          return;
-        }
-        await setTimerRunning(true);
-      }
-    };
-
-    // ── Enviar tarjeta aleatoria (inicio de turno) ──
-    window.nextCard = async () => {
-      const describer = document.getElementById("select-describer").value;
-      const veedor = document.getElementById("select-veedor").value;
-      const team = document.getElementById("select-team-turn").value;
-      if (!describer || !veedor) {
-        showToast("Elegí el jugador que describe y el veedor.");
-        return;
-      }
-      if (describer === veedor) {
-        showToast("El que describe y el veedor no pueden ser el mismo.");
-        return;
-      }
-      try {
-        await setTimerRunning(false);
-        stopLocalTimer();
-        const seconds = parseInt(document.getElementById("timer-seconds").value) || 60;
-        const penaltySkip = parseInt(document.getElementById("penalty-skip").value) || 10;
-        await setTimeLeft(seconds);
-        await setTurnConfig({ currentTeam: team, penaltySkip, turnDuration: seconds });
-        tabooState.timeLeft = seconds;
-        updateTimerDisplay(seconds);
-        usedCards = [];
-        await sendRandomCard(describer, veedor, usedCards);
-        showToast("¡Tarjeta enviada!");
-      } catch (e) {
-        showToast(e.message);
-      }
-    };
-
-    // ── Correcta: suma punto + nueva tarjeta ──
-    window.handleCorrect = async () => {
-      const team = document.getElementById("select-team-turn").value;
-      const describer = document.getElementById("select-describer").value;
-      const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
-      try {
-        const usedCards = tabooState.usedCards || [];
-        await markCorrect(team, describer, veedor, usedCards);
-        showToast(`✓ Punto para ${team}! Nueva tarjeta enviada.`);
-      } catch (e) { showToast(e.message); }
-    };
-
-    // ── Incorrecta: solo nueva tarjeta (sin penalización) ──
-    window.handleWrong = async () => {
-      const describer = document.getElementById("select-describer").value;
-      const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
-      try {
-        const usedCards = tabooState.usedCards || [];
-        await markWrong(describer, veedor, usedCards);
-        showToast(`✗ Incorrecta — nueva tarjeta enviada`);
-      } catch (e) { showToast(e.message); }
-    };
-
-    // ── Pasar: resta penalización + nueva tarjeta ──
-    window.handleSkip = async () => {
-      const describer = document.getElementById("select-describer").value;
-      const veedor = document.getElementById("select-veedor").value;
-      if (!describer || !veedor) { showToast("Elegí descriptor y veedor."); return; }
-      const penalty = parseInt(document.getElementById("penalty-skip").value) || 10;
-      try {
-        const usedCards = tabooState.usedCards || [];
-        await skipCard(penalty, describer, veedor, usedCards);
-        showToast(`⏭ Pasada — −${penalty} segundos`);
-      } catch (e) { showToast(e.message); }
-    };
-
-    // ── Editar puntaje ──
-    window.editScore = async (team) => {
-      const val = document.getElementById(`input-score-${team}`).value;
-      try {
-        await setScore(team, val);
-        showToast(`Puntaje ${team} actualizado`);
-      } catch (e) {
-        showToast(e.message);
-      }
-    };
-
-
-
-    function updateDeckCount(deck) {
-      const count = Object.keys(deck).length;
-      const label = `${count} tarjeta${count !== 1 ? "s" : ""}`;
-      const badge = document.getElementById("taboo-deck-count");
-      const countLabel = document.getElementById("deck-count-label");
-      if (badge) badge.textContent = label;
-      if (countLabel) countLabel.textContent = label;
-    }
-
-    // ── Eliminar tarjeta ──
-    window.confirmDeleteCard = (id, word) => {
-      showModal(`¿Eliminás la tarjeta "${word}"?`, async () => {
-        await deleteCard(id);
-        closeModal();
-        showToast(`"${word}" eliminada`);
-      });
-    };
-
-    // ── Vista previa tarjeta admin ──
-    function renderAdminCardPreview(card) {
-      const el = document.getElementById("admin-card-preview");
-      if (!el) return;
-      if (!card) {
-        el.innerHTML = `<p style="font-size:13px;color:#5a4030;text-align:center;padding:16px 0;">Ninguna tarjeta enviada aún.</p>`;
-        return;
-      }
-      const timeLeft = tabooState.timeLeft ?? 60;
-      const min = Math.floor(timeLeft / 60);
-      const sec = timeLeft % 60;
-      const timeStr = `${min > 0 ? min + ":" : ""}${String(sec).padStart(2, "0")}`;
-      el.innerHTML = `
-        <div class="taboo-card">
-          <div class="taboo-card-timer">
-            <span class="timer-display ${timeLeft <= 10 ? "danger" : timeLeft <= 20 ? "warning" : ""}">${timeStr}</span>
-          </div>
-          <div class="taboo-card-word">
-            <span class="taboo-card-word-label">Palabra a adivinar</span>
-            <div class="taboo-card-word-text">${card.word}</div>
-          </div>
-          <div class="taboo-card-forbidden">
-            <span class="taboo-forbidden-label">No pueden decir</span>
-            ${(card.forbidden || []).map(f => `<div class="taboo-forbidden-item">${f}</div>`).join("")}
-          </div>
-        </div>
-      `;
-    }
-
-    // ── Poblar selects con jugadores activos ──
-    function populatePlayerSelects() {
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      const options = activos.map(([uid, u]) =>
-        `<option value="${uid}">${u.nick} (${u.team === "rojo" ? "🔴" : u.team === "azul" ? "🔵" : "⚪"})</option>`
-      ).join("");
-      const defaultOpt = `<option value="">— Elegir jugador —</option>`;
-      document.getElementById("select-describer").innerHTML = defaultOpt + options;
-      document.getElementById("select-veedor").innerHTML = defaultOpt + options;
-    }
-
-    // ── Reset taboo ──
-    // ── Render equipos en tarjeta Taboo ──
-    function renderEquiposTaboo() {
-      const labelRojo = document.getElementById("label-equipo-rojo-taboo");
-      const labelAzul = document.getElementById("label-equipo-azul-taboo");
-      const listaRojo = document.getElementById("lista-equipo-rojo");
-      const listaAzul = document.getElementById("lista-equipo-azul");
-      if (!listaRojo || !listaAzul) return;
-
-      if (labelRojo) labelRojo.textContent = teamLabel("rojo");
-      if (labelAzul) labelAzul.textContent = teamLabel("azul");
-
-      const activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      const jugRojo = activos.filter(([, u]) => u.team === "rojo");
-      const jugAzul = activos.filter(([, u]) => u.team === "azul");
-
-      const makeItem = ([, u]) => `
-        <div style="display:flex;align-items:center;gap:7px;padding:5px 8px;background:var(--negro-3);border-radius:5px;border:1px solid rgba(200,150,0,0.08);">
-          <span style="font-size:12px;color:var(--crema);">${u.nick}</span>
-        </div>
-      `;
-
-      listaRojo.innerHTML = jugRojo.length ? jugRojo.map(makeItem).join("") : `<span style="font-size:12px;color:var(--crema-3);">Sin jugadores</span>`;
-      listaAzul.innerHTML = jugAzul.length ? jugAzul.map(makeItem).join("") : `<span style="font-size:12px;color:var(--crema-3);">Sin jugadores</span>`;
-    }
-
-    // ── Finalizar juego Taboo ──
-    window.handleFinalizarJuego = () => {
-      const pRojo = tabooScores.rojo || 0;
-      const pAzul = tabooScores.azul || 0;
-
-      if (pRojo === pAzul) {
-        showModal(`Empate (${pRojo} – ${pAzul}). ¿Finalizar sin dar puntos?`, async () => {
-          // Notificar empate a jugadores
-          await set(ref(db, "session/tabooResult"), {
-            tipo: "empate", pRojo, pAzul, ts: Date.now()
-          });
-          await resetTaboo(parseInt(document.getElementById("timer-seconds").value) || 60);
-          usedCards = []; stopLocalTimer(); closeModal();
-          showToast("Juego finalizado — empate, sin puntos asignados");
-        });
-        return;
-      }
-
-      const ganadorColor  = pRojo > pAzul ? "rojo" : "azul";
-      const perdedorColor = ganadorColor === "rojo" ? "azul" : "rojo";
-      const ganadorLabel  = teamLabel(ganadorColor);
-      const perdedorLabel = teamLabel(perdedorColor);
-      const ganadorScore  = pRojo > pAzul ? pRojo : pAzul;
-      const perdedorScore = pRojo > pAzul ? pAzul : pRojo;
-
-      showModal(`¿Finalizar? ${ganadorLabel} gana (${ganadorScore}–${perdedorScore}). +3 pts a cada jugador del equipo ganador.`, async () => {
-        const activos   = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-        const ganadores = activos.filter(([, u]) => u.team === ganadorColor);
-
-        // Sumar 3 pts a tabooPoints (campo propio, no wordleStats)
-        const updates = {};
-        for (const [uid, u] of ganadores) {
-          const current = u.tabooPoints || 0;
-          updates[`users/${uid}/tabooPoints`] = current + 3;
-        }
-        if (Object.keys(updates).length > 0) await update(ref(db), updates);
-
-        // Notificar resultado a jugadores via Firebase
-        await set(ref(db, "session/tabooResult"), {
-          tipo:          "resultado",
-          ganador:       ganadorColor,
-          ganadorLabel:  ganadorLabel,
-          perdedorLabel: perdedorLabel,
-          ganadorScore,
-          perdedorScore,
-          ts: Date.now()
-        });
-
-        await resetTaboo(parseInt(document.getElementById("timer-seconds").value) || 60);
-        usedCards = []; stopLocalTimer(); closeModal();
-        showToast(`🏆 ${ganadorLabel} gana — +3 pts para ${ganadores.length} jugador${ganadores.length !== 1 ? "es" : ""}`);
-      });
-    };
-
-    window.confirmResetTaboo = () => {
-      showModal("¿Resetear puntajes y turno del Taboo?", async () => {
-        const seconds = parseInt(document.getElementById("timer-seconds").value) || 60;
-        await resetTaboo(seconds);
-        usedCards = [];
-        stopLocalTimer();
-        closeModal();
-        showToast("Taboo reseteado");
-      });
-    };
-
-
 
 
     // ══════════════════════════════════════
