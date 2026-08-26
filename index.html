@@ -19,709 +19,235 @@
   <meta name="twitter:description" content="Juegos en vivo para pasar la mejor noche. Wordle, Taboo y más." />
   <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
-  <link rel="stylesheet" href="css/main.css?v=2" />
+  <link rel="stylesheet" href="css/main.css?v=3" />
   <link rel="stylesheet" href="css/landing.css" />
 </head>
-<body>
+<body class="checking-session">
 
-  <!-- TELÓN -->
-  <div id="curtain" class="curtain">
-    <div class="curtain-left"></div>
-    <div class="curtain-right"></div>
-    <div class="curtain-logo">
-      <img src="assets/img/logo.png" alt="El Burdel" class="curtain-img" />
+  <!-- TELÓN — solo lo ve un visitante sin sesión. Si hay sesión activa,
+       el script de abajo redirige antes de que el telón llegue a animarse. -->
+  <div class="curtain" id="curtain">
+    <div class="curtain-valance"></div>
+    <div class="curtain-panel l"></div>
+    <div class="curtain-panel r"></div>
+    <div class="curtain-brand">
+      <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+      <div class="curtain-brand-title">EL BURDEL</div>
     </div>
   </div>
 
+  <nav class="landing-nav">
+    <div class="landing-nav-brand">
+      <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+      <span>EL BURDEL</span>
+    </div>
+    <a href="login.html" class="landing-nav-cta">Entrar</a>
+  </nav>
 
-
-  <!-- HERO -->
   <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-bombitas">
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-      </div>
-      <div class="hero-logo">
-        <img src="assets/img/logo.png" alt="El Burdel" />
-      </div>
-      <div class="hero-bombitas bottom">
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-      </div>
-      <p class="hero-sub">La noche empieza acá</p>
-      <p class="hero-copy">Juegos, ranking y recuerdos de cada noche en un solo lugar.</p>
-      <a href="login.html" class="hero-btn">Entrar al Burdel</a>
+    <div class="hero-drape l"></div>
+    <div class="hero-drape r"></div>
+    <svg class="hero-mask" viewBox="0 0 90 140" fill="none" stroke="currentColor" stroke-width="2">
+      <ellipse cx="45" cy="55" rx="30" ry="40"/>
+      <path d="M25 48c4-6 12-6 16 0" stroke-linecap="round"/>
+      <path d="M49 48c4-6 12-6 16 0" stroke-linecap="round"/>
+      <path d="M32 75c6 6 20 6 26 0" stroke-linecap="round"/>
+      <path d="M45 15v-8M35 12l-4-7M55 12l4-7" stroke-linecap="round"/>
+      <path d="M15 95c10-4 20-4 30 0M45 95c10-4 20-4 30 0" stroke-linecap="round" opacity="0.6"/>
+    </svg>
+
+    <div class="bulb-row">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span>
+    </div>
+
+    <svg class="hero-crown" viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+    <div class="hero-title">EL<br>BURDEL</div>
+    <div class="hero-sub">La noche empieza acá</div>
+    <p class="hero-copy">Juegos, risas, estrategia y mucha joda. Un lugar para desconectar del día y conectar con la noche.</p>
+
+    <a href="login.html?tab=register" class="hero-btn">Entrar al Burdel</a>
+    <div class="hero-ingresa">¿Ya tenés cuenta? <a href="login.html">Ingresá</a></div>
+
+    <div class="bulb-row">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span>
     </div>
   </section>
 
-  <!-- JUEGOS -->
-  <section class="section" id="juegos">
-    <div class="section-inner">
-      <span class="section-label">Juegos de la noche</span>
-      <h2 class="section-title">¿A qué jugamos hoy?</h2>
-      <div class="games-grid">
-        <a href="taboo.html" class="game-card">
-          <span class="game-icon">🃏</span>
-          <div class="game-name">Taboo</div>
-          <div class="game-desc">Describí sin decir las palabras prohibidas</div>
-        </a>
-        <a href="wordle.html" class="game-card">
-          <span class="game-icon">🔤</span>
-          <div class="game-name">Wordle</div>
-          <div class="game-desc">Adiviná la palabra en 6 intentos</div>
-        </a>
-        <a href="impostor.html" class="game-card">
-          <span class="game-icon">🕵️</span>
-          <div class="game-name">El Impostor</div>
-          <div class="game-desc">¿Quién no tiene la palabra?</div>
-        </a>
-        <a href="quiensoy.html" class="game-card">
-          <span class="game-icon">🪪</span>
-          <div class="game-name">¿Quién Soy?</div>
-          <div class="game-desc">Adiviná quién sos con preguntas de sí o no</div>
-        </a>
-        <div class="game-card" style="opacity: 0.7; cursor: not-allowed;" title="Próximamente">
-          <span class="game-icon">💰</span>
+  <div class="section" id="juegos">
+    <span class="section-label">Jugá. Competí. Divertite.</span>
+    <div class="section-title">¿A qué jugamos hoy?</div>
+    <div class="games-grid">
+
+      <a href="taboo.html" class="game-card" style="--gc: var(--c-taboo);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <rect x="8" y="9" width="32" height="28" rx="3"/>
+          <line x1="14" y1="19" x2="34" y2="19"/>
+          <line x1="14" y1="26" x2="27" y2="26"/>
+          <line x1="9" y1="41" x2="39" y2="6"/>
+        </svg>
+        <div class="game-name">Taboo</div>
+        <div class="game-desc">Palabras prohibidas, mucha creatividad</div>
+      </a>
+
+      <a href="wordle.html" class="game-card" style="--gc: var(--c-wordle);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="6" y="6" width="12" height="12" rx="2"/>
+          <rect x="20" y="6" width="12" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+          <rect x="34" y="6" width="8" height="12" rx="2"/>
+          <rect x="6" y="20" width="12" height="12" rx="2"/>
+          <rect x="20" y="20" width="12" height="12" rx="2"/>
+          <rect x="34" y="20" width="8" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+        </svg>
+        <div class="game-name">Wordle</div>
+        <div class="game-desc">Adiviná la palabra antes de quedarte sin intentos</div>
+      </a>
+
+      <a href="impostor.html" class="game-card" style="--gc: var(--c-impostor);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="currentColor">
+          <path d="M24 6c-5 0-8 4-8 9 0 3 1 5 2 6-6 2-10 8-10 15v6h32v-6c0-7-4-13-10-15 1-1 2-3 2-6 0-5-3-9-8-9z"/>
+        </svg>
+        <div class="game-name">Impostor</div>
+        <div class="game-desc">Mentiras, engaños y deducción</div>
+      </a>
+
+      <a href="quiensoy.html" class="game-card" style="--gc: var(--c-quiensoy);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+          <rect x="10" y="6" width="28" height="36" rx="4"/>
+          <path d="M19 18c0-3.3 2.2-5.5 5-5.5s5 2.2 5 5.5c0 3-2 4-4 6-1 1-1 2-1 3.2"/>
+          <circle cx="24" cy="33.5" r="1.6" fill="currentColor" stroke="none"/>
+        </svg>
+        <div class="game-name">¿Quién Soy?</div>
+        <div class="game-desc">Descubrí tu personaje con preguntas</div>
+      </a>
+
+      <a href="ruleta.html" class="game-card" style="--gc: var(--c-ruleta);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="24" cy="24" r="17"/>
+          <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+          <line x1="24" y1="7" x2="24" y2="41"/>
+          <line x1="7" y1="24" x2="41" y2="24"/>
+          <line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/>
+          <line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/>
+        </svg>
+        <div class="game-name">Ruleta</div>
+        <div class="game-desc">Girá, apostá y que la suerte te acompañe</div>
+      </a>
+
+      <a href="tests.html" class="game-card" style="--gc: var(--c-tests);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M19 6h10"/>
+          <path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/>
+          <line x1="16.5" y1="29" x2="31.5" y2="29"/>
+        </svg>
+        <div class="game-name">Tests</div>
+        <div class="game-desc">Desafíos para demostrar cuánto sabés</div>
+      </a>
+
+      <div class="game-card wide" style="--gc: var(--c-millon);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="currentColor">
+          <path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/>
+        </svg>
+        <div>
           <div class="game-name">El Millonario</div>
           <div class="game-desc">Encontrá al millonario entre todos</div>
+          <span class="game-badge">Próximamente</span>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- NOTICIAS -->
-  <section class="section" id="noticias">
-    <div class="section-inner">
-      <span class="section-label">Del Burdel</span>
-      <h2 class="section-title">Noticias</h2>
-      <a href="noticias.html" class="game-card" style="display:flex;flex-direction:column;align-items:center;text-decoration:none;max-width:260px;margin:0 auto;">
-        <span class="game-icon">📰</span>
-        <span class="game-name">Últimas noticias</span>
-        <span class="game-desc">Novedades y actualizaciones del Burdel</span>
+    </div>
+    <div class="section-cta"><a href="login.html?tab=register" class="hero-btn">¿Listo para la próxima partida?</a></div>
+  </div>
+
+  <div class="section alt">
+    <div class="section-inner datos-grid">
+      <div class="dato-card sabias">
+        <div class="dato-label">¿Sabías que?</div>
+        <div class="dato-texto" id="texto-sabias-que">Cargando...</div>
+      </div>
+      <div class="dato-card frase">
+        <svg class="suit" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3 4-8 6-8 11a8 8 0 0 0 16 0c0-5-5-7-8-11z"/></svg>
+        <div class="dato-label">La frase de hoy</div>
+        <div class="dato-texto" id="texto-frase-hoy">Cargando...</div>
+        <div class="dato-footer">Volvé mañana para descubrir otra.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <span class="section-label">Acá pasan cosas</span>
+    <div class="collage">
+      <div class="collage-photo a"><div class="ph"></div><span>foto</span></div>
+      <div class="collage-photo b"><div class="ph"></div><span>foto</span></div>
+      <div class="collage-photo c"><div class="ph"></div><span>foto</span></div>
+      <div class="collage-photo d"><div class="ph"></div><span>foto</span></div>
+      <div class="collage-photo e"><div class="ph"></div><span>foto</span></div>
+    </div>
+    <div class="section-cta"><a href="login.html?tab=register" class="hero-btn">Ver más al entrar</a></div>
+  </div>
+
+  <div class="cierre">
+    <div class="door"></div>
+    <div class="cierre-title">¿TODAVÍA ESTÁS AFUERA?</div>
+    <div class="cierre-script">La noche empieza cuando entrás.</div>
+    <a href="login.html?tab=register" class="hero-btn" style="animation:none;">Entrar al Burdel</a>
+  </div>
+
+  <div class="redes">
+    <div class="redes-label">Seguinos</div>
+    <div class="redes-row">
+      <a href="https://instagram.com/elburdel_" target="_blank" rel="noopener" class="red-item">
+        <div class="red-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></div>
+        Instagram
+      </a>
+      <a href="https://discord.gg/elburdel" target="_blank" rel="noopener" class="red-item">
+        <div class="red-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="6"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+        Discord
       </a>
     </div>
-  </section>
+    <div class="redes-tag">La noche también sigue afuera.</div>
+  </div>
 
-  <!-- GALERÍA -->
-  <section class="section alt" id="galeria">
-    <div class="section-inner">
-      <span class="section-label">Noches anteriores</span>
-      <h2 class="section-title">Galería</h2>
-      <div id="galeria-grid" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:60px;"></div>
-      <div style="text-align:center;margin-top:24px;">
-        <a href="galeria.html" id="galeria-ver-btn" class="hero-btn" style="padding:12px 28px;font-size:11px;display:none;">📸 Ver galería completa</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- MÚSICA -->
-  <section class="section" id="musica">
-    <div class="section-inner" style="text-align:center;">
-      <span class="section-label">Nuestros temas</span>
-      <h2 class="section-title">El Burdel Suena</h2>
-      <div id="musica-btn-wrap" style="margin-top:24px;">
-        <!-- Se muestra solo para usuarios activos; si no, botón de login -->
-        <a href="login.html" id="musica-login-btn" class="hero-btn" style="padding:12px 28px;font-size:11px;">Entrar para escuchar</a>
-        <a href="musica.html" id="musica-ver-btn" class="hero-btn" style="padding:12px 28px;font-size:11px;display:none;">🎵 Ver todos los temas</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- CURIOSIDAD DEL DÍA -->
-  <section class="section" id="curiosidad">
-    <div class="section-inner">
-      <span class="section-label">Dato del día</span>
-      <h2 class="section-title">Curiosidad del día</h2>
-      <div id="curiosidad-card" class="curiosidad-card">
-        <div class="curiosidad-numero" id="curiosidad-numero">#</div>
-        <div class="curiosidad-texto" id="curiosidad-texto">Cargando...</div>
-        <div class="curiosidad-footer">
-          <span class="curiosidad-dot"></span>
-          <span class="curiosidad-date" id="curiosidad-date"></span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- RANKING -->
-  <section class="section alt" id="ranking">
-    <div class="section-inner">
-      <span class="section-label">Los mejores</span>
-      <h2 class="section-title">Ranking</h2>
-      <div class="ranking-list" id="ranking-list">
-        <div class="media-placeholder" style="font-size:12px;color:var(--crema-3);">Cargando ranking...</div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- REDES -->
-  <section class="section" id="redes">
-    <div class="section-inner">
-      <span class="section-label">Seguinos</span>
-      <h2 class="section-title">Nuestras redes</h2>
-      <div class="redes-grid">
-        <a href="https://www.instagram.com/elburdel_/" target="_blank" rel="noopener" class="red-card">
-          <div class="red-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-              <circle cx="12" cy="12" r="4.5"/>
-              <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
-            </svg>
-          </div>
-          <span class="red-nombre">Instagram</span>
-          <span class="red-handle">@elburdel_</span>
-        </a>
-        <a href="https://discord.gg/25ydASYXQW" target="_blank" rel="noopener" class="red-card">
-          <div class="red-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.032.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-          </div>
-          <span class="red-nombre">Discord</span>
-          <span class="red-handle">Sumate al server</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- TABLÓN -->
-  <section class="tablon">
-    <div class="section-inner">
-      <span class="section-label">Del admin</span>
-      <p class="tablon-msg" id="tablon-msg">"Bienvenidos a El Burdel."</p>
-    </div>
-  </section>
-
-  <!-- NAV BOTTOM -->
+  <!-- NAV BOTTOM (igual al resto del sitio; pendiente componentizar) -->
   <footer class="nav-bottom">
     <div class="nav-bottom-inner">
       <div class="nav-bottom-links">
-        <a href="index.html" class="nav-bottom-link">Inicio</a>
         <a href="#juegos" class="nav-bottom-link">Juegos</a>
-        <a href="#noticias" class="nav-bottom-link">Noticias</a>
-        <a href="#galeria" class="nav-bottom-link">Galería</a>
-        <a href="#musica" class="nav-bottom-link">Música</a>
-        <a href="#curiosidad" class="nav-bottom-link">Curiosidad</a>
-        <a href="#ranking" class="nav-bottom-link">Ranking</a>
-        <a href="#redes" class="nav-bottom-link">Redes</a>
+        <a href="login.html" class="nav-bottom-link">Ingresar</a>
       </div>
       <div class="nav-bottom-divider"></div>
       <div class="nav-bottom-links">
         <a href="terminos.html" class="nav-bottom-link">Términos</a>
         <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
       </div>
-      <p class="nav-bottom-copy">© 2025 El Burdel — Todos los derechos reservados</p>
+      <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
     </div>
   </footer>
 
   <script type="module">
-    import { onSession, getUserData } from "./js/auth.js";
-    import { initNavbar } from "./js/navbar.js";
-    import { db } from "./js/firebase-init.js";
-    import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { onAlbums } from "./games/galeria.js";
+    import { onSession, redirectByRole } from "./js/auth.js";
+    import { getFraseDelDia, getFraseDelDiaOffset } from "./games/frases.js";
 
-    initNavbar();
+    // ── Contenido estático del día (sin Firebase) ──
+    document.getElementById("texto-sabias-que").textContent = getFraseDelDia();
+    document.getElementById("texto-frase-hoy").textContent = getFraseDelDiaOffset(180);
 
-    // ── Galería: últimos álbumes visibles ──
-    onAlbums(albums => {
-      const grid = document.getElementById("galeria-grid");
-      const btn  = document.getElementById("galeria-ver-btn");
-      if (!grid) return;
-      const visibles = albums.filter(a => a.visible !== false).slice(0, 4);
-      if (!visibles.length) {
-        grid.innerHTML = `<div class="media-placeholder" style="grid-column:1/-1;">Próximamente</div>`;
-        return;
-      }
-      grid.innerHTML = visibles.map(a => `
-        <a href="galeria.html#${a.id}" style="display:block;width:120px;height:120px;border-radius:8px;overflow:hidden;background:var(--negro-2);text-decoration:none;position:relative;flex-shrink:0;">
-          ${a.miniatura
-            ? `<img src="${a.miniatura}" alt="${a.nombre}" style="width:100%;height:100%;object-fit:cover;">`
-            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;">📸</div>`
-          }
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:5px 7px;background:linear-gradient(transparent,rgba(0,0,0,0.75));font-size:9px;letter-spacing:1px;color:var(--crema);text-transform:uppercase;line-height:1.2;">${a.nombre}</div>
-        </a>`).join("");
-      if (btn) btn.style.display = "inline-block";
-    });
-
-    // ── Tablón en tiempo real ──
-    onValue(ref(db, "session/broadcast"), (snap) => {
-      const msg = snap.val();
-      const el = document.getElementById("tablon-msg");
-      if (el) el.textContent = msg ? `"${msg}"` : `"Bienvenidos a El Burdel."`;
-    });
-
-    // ── Ranking general en tiempo real (todos los juegos) ──
-    onValue(ref(db, "users"), (snap) => {
-      const users = snap.val() || {};
-      const list = document.getElementById("ranking-list");
-      if (!list) return;
-
-      const ranking = Object.entries(users)
-        .filter(([, u]) => u.role !== "admin" && u.status === "active")
-        .map(([uid, u]) => ({
-          uid,
-          nick:  u.nick || "—",
-          total: (u.wordleStats?.totalPoints || 0) + (u.points || 0) + (u.quienSoyPoints || 0) + (u.tabooPoints || 0),
-        }))
-        .sort((a, b) => b.total - a.total);
-
-      if (!ranking.length) {
-        list.innerHTML = `<div class="media-placeholder">Aún no hay datos de ranking.</div>`;
-        return;
-      }
-
-      const medals = ["🥇", "🥈", "🥉", "4."];
-      const top4 = ranking.slice(0, 4);
-      list.innerHTML = `<div style="width:100%;display:flex;flex-direction:column;gap:4px;">` +
-        top4.map((u, i) => {
-          const medal    = medals[i] || `${i + 1}.`;
-          const fontSize = i === 0 ? "20px" : i === 1 ? "17px" : "15px";
-          return `
-            <div class="ranking-row" style="justify-content:center;font-size:${fontSize};display:flex;align-items:center;width:100%;">
-              <span class="ranking-medal" style="margin-right:8px;">${medal}</span>
-              <span class="ranking-nick" style="font-weight:500;color:var(--crema);">${u.nick}</span>
-              <span class="ranking-points" style="margin-left:8px;color:var(--dorado);font-family:var(--font-display);">${u.total} <span style="font-size:0.6em;letter-spacing:1px;opacity:.6;font-family:var(--font-body);">pts</span></span>
-            </div>
-          `;
-        }).join("") +
-        `<div style="text-align:center;margin-top:16px;">
-          <a href="ranking.html" class="hero-btn" style="padding:10px 24px;font-size:11px;">Ver ranking completo</a>
-        </div>
-      </div>`;
-    });
-
-
-
-    // ─── CURIOSIDAD DEL DÍA ───
-    const CURIOSIDADES = [
-      "Los pulpos tienen tres corazones y sangre azul.",
-      "La miel es el único alimento que no se echa a perder: se han encontrado jarros con miel comestible en tumbas egipcias de 3000 años.",
-      "Un grupo de flamencos se llama 'flamboyance'.",
-      "Los delfines duermen con un ojo abierto.",
-      "El cerebro humano tiene una capacidad de almacenamiento de aproximadamente 2.5 petabytes.",
-      "Las hormigas nunca duermen y tampoco tienen pulmones.",
-      "El ADN humano comparte un 50% de similitud con el de los plátanos.",
-      "Los caracoles pueden dormir hasta tres años.",
-      "Una cucharada de estrella de neutrones pesa alrededor de mil millones de toneladas.",
-      "El ojo humano puede distinguir aproximadamente 10 millones de colores distintos.",
-      "Los gatos tienen más huesos que los humanos: 244 contra 206.",
-      "El agua caliente puede congelarse más rápido que el agua fría en algunas condiciones (efecto Mpemba).",
-      "Las huellas dactilares de los koalas son casi idénticas a las humanas.",
-      "El sonido es 4 veces más rápido en el agua que en el aire.",
-      "Los flamencos son rosados por los carotenoides de los camarones que comen.",
-      "Un día en Venus dura más que un año en Venus.",
-      "Las arañas no pueden digerir comida sólida; inyectan jugos digestivos en sus presas.",
-      "El Monte Everest crece aproximadamente 4 mm por año.",
-      "Los tiburones son más antiguos que los árboles: existen desde hace 450 millones de años.",
-      "El ojo del avestruz es más grande que su cerebro.",
-      "Los humanos son los únicos animales que se ruborizan.",
-      "Un rayo viaja a 270.000 km por segundo.",
-      "Las abejas pueden reconocer rostros humanos.",
-      "El número de bacterias en el cuerpo humano supera al de células humanas.",
-      "Los pulpos pueden ver colores aunque son daltónicos.",
-      "La luna se aleja de la Tierra unos 3,8 cm cada año.",
-      "Los cocodrilos no pueden sacar la lengua.",
-      "El hipocampo del cerebro crece con cada nueva experiencia.",
-      "Los peces tienen memoria mucho más larga de lo que se creía: hasta varios meses.",
-      "El único planeta que gira en dirección opuesta al sol (desde abajo) es Urano.",
-      "Una persona promedio camina el equivalente a 3 veces alrededor de la Tierra en su vida.",
-      "El cuerpo humano emite una pequeña cantidad de luz visible, imperceptible para el ojo.",
-      "Las estrellas de mar no tienen cerebro ni sangre.",
-      "El color de las pupilas de los gatos cambia según la luz.",
-      "Los elefantes son los únicos mamíferos que no pueden saltar.",
-      "El origen de las palabras 'robot' viene del checo 'robota', que significa trabajo forzado.",
-      "Los patos siempre duermen en fila, con los de los extremos durmiendo con un ojo abierto.",
-      "Una taza de café tiene más cafeína que un Red Bull.",
-      "El pitón reticulado es la serpiente más larga del mundo: puede superar los 7 metros.",
-      "Las cucarachas pueden sobrevivir sin cabeza durante semanas.",
-      "La primera alarma de despertador conocida fue creada por Platón para sus clases.",
-      "Los humanos y los canguros comparten el 85% de su ADN.",
-      "El corazón de un camarón está en su cabeza.",
-      "Las jirafas solo duermen unas 30 minutos al día.",
-      "El papel de lija fue inventado en China en el siglo XIII.",
-      "Los bebés tienen aproximadamente 300 huesos al nacer; los adultos solo 206.",
-      "Los árboles de bambú pueden crecer hasta 91 cm en un solo día.",
-      "El ser humano parpadea aproximadamente 15 a 20 veces por minuto.",
-      "Cada año, el Gran Cañón del Colorado se hace unos pocos centímetros más profundo.",
-      "Los pingüinos se casan con la misma pareja y permanecen fieles de por vida.",
-      "El 40% del ADN humano es idéntico al del plátano.",
-      "Las ranas congeladas pueden volver a la vida cuando se descongelan.",
-      "Una gota de sangre contiene 250 millones de glóbulos rojos.",
-      "Los osos polares tienen piel negra bajo su pelaje blanco.",
-      "El cuerpo humano tiene suficiente hierro para fabricar un clavo de 8 cm.",
-      "Las medusas son 95% agua.",
-      "Los árboles de ceiba pueden vivir más de 1.000 años.",
-      "El primer videojuego fue creado en 1958 por un físico nuclear de recreación.",
-      "Los loros pueden aprender vocabulario y usarlo en contexto.",
-      "El Sol representa el 99,86% de la masa total del Sistema Solar.",
-      "El tiempo que tarda la luz en llegar del Sol a la Tierra es de 8 minutos.",
-      "Los delfines tienen nombres individuales que se llaman entre sí.",
-      "El gorila occidental puede aprender hasta 2.000 palabras en lenguaje de señas.",
-      "El olfato es el sentido más vinculado a los recuerdos emocionales.",
-      "Las abejas pueden detectar campos eléctricos de las flores.",
-      "Los cuervos son tan inteligentes que pueden resolver puzzles en múltiples pasos.",
-      "El lago Baikal de Rusia contiene el 20% del agua dulce no congelada del planeta.",
-      "Los hipopótamos secretan un líquido rojo que actúa como bloqueador solar y antibiótico.",
-      "Las estrellas de neutrones giran hasta 700 veces por segundo.",
-      "El cerebro humano procesa el lenguaje en zonas distintas según si es nativo o aprendido.",
-      "Los gorilas tienen huellas dactilares únicas, como los humanos.",
-      "Las tortugas pueden respirar a través de la piel.",
-      "Las libélulas tienen una tasa de éxito de caza del 95%, la más alta del reino animal.",
-      "El camaleón no cambia de color para camuflarse, sino para comunicarse.",
-      "El ADN de todos los humanos vivos es más del 99.9% idéntico.",
-      "El cerebelo coordina el movimiento y el equilibrio, pero también la creatividad.",
-      "Los dientes son la única parte del cuerpo humano que no puede regenerarse.",
-      "Las medusas inmortales pueden revertir su ciclo de vida y volver al estado juvenil.",
-      "Los científicos clasificaron al ornitorrinco como un mamífero ponedor de huevos en 1799.",
-      "El planeta más caliente del sistema solar es Venus, no Mercurio.",
-      "El colibrí es el único pájaro que puede volar hacia atrás.",
-      "Los humanos comparten un ancestro común con todas las formas de vida en la Tierra.",
-      "Las hormigas cortadoras de hojas cultivan hongos como alimento desde hace 50 millones de años.",
-      "La ballena azul puede escuchar los sonidos de otras ballenas a miles de kilómetros.",
-      "El primer juego de mesa conocido fue el Senet egipcio, de hace 5.000 años.",
-      "Un caracol puede tener hasta 25.000 dientes microscópicos.",
-      "Las pulgas pueden saltar 200 veces su propia longitud.",
-      "El promedio de palabras que una persona aprende a lo largo de su vida es 300.000.",
-      "Los humanos son los únicos primates con barbilla.",
-      "Los rinocerontes y los caballos son parientes más cercanos entre sí que con los hipopótamos.",
-      "El 70% de los oxígenos que respiramos es producido por el fitoplancton marino.",
-      "La Gran Muralla China no es visible desde el espacio a simple vista.",
-      "El tiempo más largo que un ser humano ha estado despierto es 11 días con 25 minutos.",
-      "Las estrellas de mar tienen un ojo en cada brazo, aunque sin lente ni córnea.",
-      "El pez payaso puede cambiar de sexo: todos nacen machos.",
-      "Los elefantes son los únicos animales con cuatro rodillas funcionales.",
-      "La vaca tiene cuatro estómagos independientes.",
-      "La lengua de la ballena azul puede pesar tanto como un elefante adulto.",
-      "El corazón humano late más de 100.000 veces al día.",
-      "Los canguros no pueden caminar hacia atrás.",
-      "Las tortugas galápagos pueden vivir más de 170 años.",
-      "El cerebro de un pulpo está distribuido en sus tentáculos.",
-      "El cuerpo humano produce suficiente saliva en su vida para llenar dos piscinas.",
-      "Los peces tienen personalidades individuales comprobadas científicamente.",
-      "Los flamencos forman amistades largas y específicas dentro de su bandada.",
-      "El único metal líquido a temperatura ambiente es el mercurio.",
-      "Las estaciones en Urano duran 21 años cada una.",
-      "El cuerpo humano tiene más bacterias que células propias.",
-      "El lobo marino puede dormir mientras nada.",
-      "Las abejas toman decisiones colectivas votando con movimientos de cola.",
-      "El ruido de un maremoto puede viajar por los océanos durante horas.",
-      "Las mariposas saborean con sus patas.",
-      "El nervio óptico no tiene receptores de luz, por eso tenemos un punto ciego.",
-      "Los caballos pueden dormir de pie gracias a un mecanismo muscular especial.",
-      "El primer ordenador pesaba más de 27 toneladas.",
-      "Los cerdos son capaces de resolver laberintos y jugar videojuegos básicos.",
-      "Los pulpos tienen tres cromosomas sexuales.",
-      "La velocidad de la luz tarda en cruzar la Vía Láctea 100.000 años.",
-      "Las hojas de los árboles cambian de color en otoño porque dejan de producir clorofila.",
-      "El silbido de las termitas puede colapsar edificios antes de que se vean daños externos.",
-      "Los perros tienen el mismo número de neuronas que los leones.",
-      "El ojo de una mantis mantídea puede distinguir 16 tipos de color; el humano solo 3.",
-      "El ojo del calamar gigante es del tamaño de una pelota de fútbol.",
-      "Las plantas pueden comunicarse mediante señales químicas cuando son atacadas.",
-      "El cerebro humano consume el 20% de toda la energía del cuerpo.",
-      "Una abeja reina puede poner hasta 2.000 huevos por día.",
-      "El zorro ártico cambia su pelaje dos veces al año.",
-      "Los pulpos tienen neuronas en sus tentáculos que actúan de forma semi-autónoma.",
-      "El color azul fue el último en ser nombrado en la mayoría de los idiomas del mundo.",
-      "El dinosaurio más pequeño conocido era del tamaño de un pollo.",
-      "El látigo de papel no lastima porque la punta no llega a tocar.",
-      "Las tortugas de mar vuelven a la misma playa donde nacieron para poner huevos.",
-      "Las manos y pies del ser humano representan el 25% de los huesos del cuerpo.",
-      "El ADN humano, si se estirara, mediría 2 metros de largo.",
-      "Los canguros usan sus colas como una tercera pata al pararse.",
-      "Las aves migratorias usan el campo magnético de la Tierra para orientarse.",
-      "Las lombrices tienen cinco corazones.",
-      "El miedo a los números impares se llama 'impariofobia'.",
-      "Los loros pueden aprender a asociar palabras con objetos específicos.",
-      "La primera farmacia de la historia fue inaugurada en Bagdad en el siglo IX.",
-      "La lengua humana es el músculo más flexible del cuerpo.",
-      "Los osos polares son zurdos, o al menos eso se creía durante mucho tiempo.",
-      "El esperma humano puede sobrevivir hasta 5 días dentro del cuerpo femenino.",
-      "Las ratas se ríen cuando las hacen cosquillas: emiten ultrasonidos inaudibles.",
-      "El zumbido de las abejas es producido por el movimiento de sus alas a 200 vibraciones por segundo.",
-      "Las arañas producen 7 tipos distintos de seda.",
-      "Los humanos son los únicos animales que cocinan sus alimentos.",
-      "Un caracol de jardín puede recorrer un metro por minuto.",
-      "Los elefantes reconocen a sus muertos y realizan ritos fúnebres.",
-      "Las ardillas olvidan dónde enterraron sus bellotas el 74% de las veces.",
-      "El golfo de México tardó 300 millones de años en formarse.",
-      "Las letras 'j' y 'v' no existen en el latín clásico.",
-      "El 80% de la biomasa animal del océano vive en zonas abisales.",
-      "Los avestruces pueden correr a 70 km/h y dan zancadas de 5 metros.",
-      "El ojo de un cuervo puede detectar luz ultravioleta.",
-      "Las ballenas jorobadas tienen canciones que se propagan por el océano como modas musicales.",
-      "Los lagartos de cuello con volante pueden correr bípedamente.",
-      "El volcán más alto del sistema solar es el Olympus Mons de Marte (21 km de altura).",
-      "Una taza de agua contiene miles de millones de moléculas H2O.",
-      "Los delfines nariz de botella son los únicos animales además de los humanos que tienen relaciones sexuales por placer.",
-      "Los pulpos pueden abrir frascos con tapón desde el interior.",
-      "El cocodrilo marino es el reptil más grande del mundo.",
-      "Los murciélagos son los únicos mamíferos que vuelan de verdad.",
-      "El cristalino del ojo humano sigue creciendo durante toda la vida.",
-      "Las ranas venenosas obtienen su toxina de los insectos que comen.",
-      "Los leones son los únicos felinos que viven en grupos sociales.",
-      "La mayoría de los diamantes tienen más de 3.000 millones de años.",
-      "El cuerpo humano desprende suficiente calor en 30 minutos para hervir dos litros de agua.",
-      "Las estrellas parecen parpadear porque la atmósfera distorsiona su luz.",
-      "El sonido de un trueno puede viajar más de 25 km.",
-      "Los percebes son los animales con el órgano sexual más largo en relación a su cuerpo.",
-      "El fuego no tiene sombra porque es él mismo una fuente de luz.",
-      "El tamaño del pulmón derecho humano es un 10% mayor que el izquierdo.",
-      "El cuerpo humano produce un nuevo revestimiento estomacal cada 2 semanas.",
-      "Una persona promedio tiene entre 100.000 y 150.000 cabellos.",
-      "Los osos tienen más grasa corporal en invierno que los humanos obesos en verano.",
-      "Los pingüinos de Magallanes son monógamos y se reencuentran cada año.",
-      "Los cerebros de los insectos tienen 1 millón de neuronas (el humano, 86 mil millones).",
-      "El fémur es el hueso más largo y resistente del cuerpo humano.",
-      "El pulgar opuesto fue clave en el desarrollo de la humanidad.",
-      "Las nubes de tormenta pueden pesar más de 500 toneladas.",
-      "Las estrellas producen su energía mediante fusión nuclear en su núcleo.",
-      "Los gatos tienen oído ultrasónico que detecta frecuencias que los humanos no perciben.",
-      "Las plantas de interior no mejoran significativamente la calidad del aire según la NASA.",
-      "Los camaleons tienen campo visual de 360 grados.",
-      "Los recién nacidos de ballena pueden pesar 600 kg.",
-      "La hormiga leafcutter puede cargar 50 veces su propio peso.",
-      "Las medusas no tienen corazón, cerebro ni huesos.",
-      "El tiempo que tarda el sonido en viajar 1 km es de 3 segundos.",
-      "Los tiburones blancos pueden detectar una gota de sangre en 100 litros de agua.",
-      "El hipopótamo produce su propio aceite para protegerse del sol.",
-      "Los humanos son los únicos animales que lloran lágrimas emocionales.",
-      "La velocidad terminal de un ser humano en caída libre es de 200 km/h.",
-      "Los koalas tienen huellas dactilares casi idénticas a las humanas, incluso genéticamente.",
-      "Las nutrias marinas se agarran de la mano cuando duermen para no separarse.",
-      "El leopardo de las nieves puede saltar hasta 9 metros.",
-      "Las ratas son altruistas: ayudan a otras ratas a escapar sin recibir recompensa.",
-      "Los cangrejos ermitaños buscan una nueva concha cuando crecen.",
-      "El cerebro de los enamorados muestra actividad similar al del adicto a las drogas.",
-      "Las focas grises reconocen melodías y ritmos musicales.",
-      "Los conejos no pueden vomitar.",
-      "Los peces payaso son inmunes a las toxinas de las anémonas.",
-      "El camello puede perder el 40% de su agua corporal sin sufrir deshidratación.",
-      "El agua de mar ocupa el 71% de la superficie terrestre.",
-      "Los vampiros reales existen: el pez de sangre del Amazonas.",
-      "El sistema nervioso de los invertebrados es mucho más simple que el de los vertebrados.",
-      "El cerebro humano tiene más conexiones que estrellas hay en la Vía Láctea.",
-      "Los patos mallard emiten un graznido que tiene eco, aunque parezca que no.",
-      "Los pingüinos emperador pueden aguantar sin comer hasta 4 meses.",
-      "Los gatos pueden hacer más de 100 sonidos vocales diferentes.",
-      "Los caballos tienen una memoria asociativa similar a la de los elefantes.",
-      "El núcleo de la Tierra es tan caliente como la superficie del sol.",
-      "Los delfines duermen nadando lentamente en círculos.",
-      "Los humanos pierden entre 50 y 100 cabellos por día naturalmente.",
-      "Los cerdos son más inteligentes que los perros según estudios cognitivos.",
-      "Un humano adulto promedio contiene suficiente potasio para detonar un explosivo pequeño.",
-      "Los ratones cantan canciones de amor ultrasónicas para cortejar.",
-      "Los gatos domésticos comparten el 95.6% de su ADN con los tigres.",
-      "Las tortugas leatherback pueden bucear hasta 1.280 metros de profundidad.",
-      "El primer humano en el espacio fue Yuri Gagarin, el 12 de abril de 1961.",
-      "Los elefantes se reconocen a sí mismos en el espejo.",
-      "El hielo flota porque el agua es más densa en estado líquido que sólido.",
-      "La marmota puede predecir el clima con la misma precisión que un meteorólogo.",
-      "Los zorros árticos pueden soportar temperaturas de -50°C.",
-      "Las arañas del grupo Bagheera kiplingi son principalmente herbívoras.",
-      "El calamar gigante tiene los ojos más grandes de cualquier animal vivo.",
-      "El sonido más ruidoso de la historia fue la explosión del Krakatoa en 1883.",
-      "La tierra produce un nuevo mineral aproximadamente cada dos años.",
-      "El hipocampo es clave para los recuerdos y aumenta con el ejercicio físico.",
-      "Los elefantes tienen el mayor periodo de gestación de los mamíferos: 22 meses.",
-      "Los lagartos del desierto pueden vivir sin agua tomándola solo del aire.",
-      "El esperma del ratón es más grande que el esperma del elefante.",
-      "Las langostas no envejecen biológicamente de la misma forma que los mamíferos.",
-      "El único hueso del cuerpo humano no conectado a otro es el hioides.",
-      "Los lobos aúllan con tonos distintos que corresponden a sus emociones.",
-      "Las naranjas no eran de color naranja originalmente: eran verdes.",
-      "Los humanos tenemos unos 20.000 genes, similar al número del gusano nematodo.",
-      "El desierto más grande del mundo no es el Sahara, sino la Antártida.",
-      "Las galaxias están hechas principalmente de materia oscura, que no podemos ver.",
-      "El veneno de la araña viuda negra es 15 veces más potente que el de una serpiente.",
-      "Los pulpos ven en blanco y negro pero pueden imitar colores gracias a su piel.",
-      "Los astronautas crecen hasta 3 cm en el espacio por la descompresión espinal.",
-      "Las raíces de los árboles se extienden tanto como su copa visible.",
-      "El gen que hace que las rosas tengan espinas es el mismo que causa el cáncer de piel.",
-      "Los delfines tienen cerebros más arrugados que los humanos, lo que indica alta inteligencia.",
-      "Los murciélagos son polinizadores esenciales para el tequila: polinizan los agaves.",
-      "Las tortugas pueden vivir varios meses sin oxígeno bajo el hielo.",
-      "El color favorito estadísticamente en el mundo es el azul.",
-      "El intestino delgado humano mide entre 6 y 7 metros de longitud.",
-      "Los gatos tienen un órgano sensorial en el paladar que detecta feromonas.",
-      "El corazón de un pez late 20 veces más lento que el corazón humano.",
-      "Los ornitorrincos son los únicos mamíferos venenosos: tienen un espolón venenoso.",
-      "Los canguros tienen tres vaginas.",
-      "La mandíbula de un cocodrilo puede cerrar con una fuerza de 16.000 Newtons.",
-      "El primer antibiótico fue descubierto por accidente por Alexander Fleming en 1928.",
-      "Los leones duermen entre 16 y 20 horas al día.",
-      "Los humanos son los únicos animales que se ponen rojos de vergüenza.",
-      "Las águilas reales pueden ver un conejo a 3 km de distancia.",
-      "El 90% de las especies que han existido en la Tierra están extintas.",
-      "Las células madre del cuerpo humano pueden convertirse en cualquier tipo de célula.",
-      "El peso del Sol es 333.000 veces el peso de la Tierra.",
-      "Las bacterias que viven en el intestino humano superan en número a las estrellas de la Vía Láctea.",
-      "Los perros sueñan, y sus sueños están relacionados con sus experiencias del día.",
-      "Los electrones tienen una masa 1836 veces menor que los protones.",
-      "Los huesos son más resistentes que el hormigón, libra por libra.",
-      "Los cactus guardan agua en su tallo, no en las espinas.",
-      "Los leones marinos pueden moverse a 35 km/h en el agua.",
-      "Un error de cálculo de una sola letra llevó a la pérdida del Mars Climate Orbiter en 1999.",
-      "Las cucarachas pueden vivir dos semanas sin cabeza; mueren de sed, no de hambre.",
-      "El cristal es, técnicamente, un líquido extremadamente lento.",
-      "Los rinocerontes son parientes lejanos de los caballos, no de los elefantes.",
-      "Los árboles de secoya son los organismos vivos más grandes del mundo.",
-      "Los fotones viajan desde el núcleo solar hasta la superficie en 100.000 años.",
-      "Los peces espada pueden calentar su cerebro para mejorar su velocidad de reacción.",
-      "La Antártida es el continente más ventoso, seco y frío del planeta.",
-      "El número pi ha sido calculado a más de 100 billones de decimales.",
-      "Los flamencos pueden sobrevivir en agua casi hiriente por la alcalinidad extrema.",
-      "Los monos capuchinos usan herramientas desde hace miles de años.",
-      "El ojo del avestruz mide 5 cm de diámetro, el mayor de cualquier vertebrado terrestre.",
-      "Las moscas de la fruta tienen el 75% de los genes que causan enfermedades en humanos.",
-      "El Sol está compuesto en un 73% de hidrógeno y en un 25% de helio.",
-      "El cuerpo humano crea 3.8 millones de células por segundo.",
-      "Los dientes de leche de los bebés empiezan a formarse antes del nacimiento.",
-      "Los mandriles son los primates más grandes del mundo después de los gorilas.",
-      "Un rayo contiene suficiente energía para cocinar 100.000 tostadas.",
-      "El corazón de los pulpos es azul porque usa hemocianina en lugar de hemoglobina.",
-      "Los humanos son los únicos animales que se miran a los ojos para comunicar confianza.",
-      "El silencio total puede volverse insoportable para el oído humano en minutos.",
-      "Las esponjas de mar no tienen músculos, nervios ni órganos.",
-      "Los camellos no almacenan agua en sus jorobas: almacenan grasa.",
-      "El ADN mitocondrial solo se hereda de la madre.",
-      "Los flamencos jóvenes nacen blancos y van adquiriendo su color rosado con la dieta.",
-      "Los caracoles de mar más venenosos pueden matar a un humano adulto.",
-      "El acero es esencialmente hierro con una pequeña cantidad de carbono.",
-      "Los cuervos pueden reconocer y recordar rostros humanos durante años.",
-      "El primer satélite artificial fue el Sputnik, lanzado por la URSS en 1957.",
-      "Los elefantes africanos tienen orejas con forma de África.",
-      "La energía solar que llega a la Tierra en una hora podría abastecer al mundo durante un año.",
-      "El gas helio fue descubierto en el sol antes de encontrarse en la Tierra.",
-      "Los cocodrilos lloran cuando comen, no de tristeza, sino por glándulas lacrimales activas.",
-      "Las ardillas plantan accidentalmente miles de árboles cada año al olvidar sus escondites.",
-      "Los árboles más viejos del planeta tienen más de 5.000 años.",
-      "El corazón de un bebé late dos veces más rápido que el de un adulto.",
-      "Las nutrias tienen el pelaje más denso de todos los mamíferos.",
-      "Los tentáculos de las medusas siguen disparando toxinas después de que el animal muere.",
-      "Un año en Marte dura 687 días terrestres.",
-      "Los gatos tienen una membrana nictitante, un tercer párpado visible a veces.",
-      "Las estrellas de mar pueden regenerar sus brazos si los pierden.",
-      "Los rayos de sol tardan 8 minutos y 20 segundos en llegar a la Tierra.",
-      "Los seres humanos y los chimpancés comparten el 98.7% del ADN.",
-      "El agua de una nube puede pesar más de 500 toneladas.",
-      "Los anfibios fueron los primeros vertebrados en adaptarse a vivir en tierra.",
-      "El color negro no es un color técnicamente: es la ausencia de luz.",
-      "Las hormigas pueden levantar hasta 50 veces su propio peso.",
-      "El tiempo que tarda un oso polar en digerir su comida es de 2 semanas.",
-      "El plástico tardará miles de años en descomponerse por completo.",
-      "Los lobos pueden escuchar sonidos a 10 km de distancia.",
-      "Los gatos domésticos pasan el 70% del día durmiendo.",
-      "La longitud del intestino delgado humano es mayor que la de muchos coches.",
-      "Los flamencos doblan las rodillas hacia atrás, aunque parezcan que es al revés.",
-      "El murciélago vampiro es el único mamífero que se alimenta exclusivamente de sangre.",
-      "Las anguilas eléctricas pueden generar 600 voltios.",
-      "El cerebro humano produce suficiente electricidad para encender una bombilla.",
-      "Los humanos son los únicos primates que no tienen pelo en la palma de la mano.",
-      "El universo observable tiene un diámetro de 93 mil millones de años luz.",
-      "El genoma humano contiene más de 3 mil millones de pares de bases.",
-      "Los cocodrilos son más emparentados con las aves que con los lagartos.",
-      "La velocidad del sonido en el acero es 15 veces mayor que en el aire.",
-      "Los leones pueden rugir lo suficientemente fuerte para escucharse a 8 km.",
-      "Las jirafas tienen la misma cantidad de vértebras en el cuello que los humanos: 7.",
-      "Las estrellas de tipo F son las que mejor condición reúnen para planetas con vida.",
-      "El color de la piel humana está determinado por la melanina, no por el número de melanocitos.",
-      "Las golondrinas de mar ártica migran 70.000 km al año.",
-      "Los pingüinos pueden reconocerse entre sí por su voz.",
-      "Los osos koala duermen 22 horas al día para digerir el tóxico eucalipto.",
-      "La luna está cubierta de un polvo llamado regolito que tiene olor a pólvora.",
-      "Las anguilas de río nacen en el Atlántico y emigran a Europa o América para vivir.",
-      "El espermatozoide es la célula más pequeña del cuerpo humano.",
-      "Las lagartijas pierden la cola para escapar de depredadores y luego les vuelve a crecer.",
-      "El tamaño de una célula humana varía entre 5 y 200 micrómetros.",
-      "Los hipopótamos pasan 16 horas al día en el agua para mantenerse frescos.",
-      "El metal más abundante en la corteza terrestre es el aluminio.",
-      "Los humanos son los únicos animales que pueden ruborizarse voluntariamente.",
-      "La luz de la luna es solo luz solar reflejada.",
-      "Los tiburones tienen un sentido electro-receptivo que les permite detectar campos eléctricos.",
-      "El hueso más pequeño del cuerpo humano es el estribo, en el oído.",
-      "Las ranas arborícolas de algunos trópicos tienen piel translúcida.",
-      "La mayoría del calor del cuerpo humano se pierde por la cabeza.",
-      "Las luciérnagas producen la luz más eficiente conocida: casi sin calor.",
-      "Los insectos no tienen pulmones: respiran a través de tubos llamados tráqueas.",
-      "El ADN de dos humanos cualesquiera difiere en tan solo el 0.1%.",
-      "Las algas marinas producen más oxígeno que todos los bosques del mundo juntos.",
-      "El cerebro de los adolescentes no termina de desarrollarse hasta los 25 años.",
-    ];
-
-    function getDayCuriosidad() {
-      const now = new Date();
-      // Día del año (0-364)
-      const start = new Date(now.getFullYear(), 0, 0);
-      const diff = now - start;
-      const oneDay = 1000 * 60 * 60 * 24;
-      const dayOfYear = Math.floor(diff / oneDay);
-      const idx = (dayOfYear - 1 + CURIOSIDADES.length) % CURIOSIDADES.length;
-      return { text: CURIOSIDADES[idx], number: idx + 1 };
-    }
-
-    (function initCuriosidad() {
-      const { text, number } = getDayCuriosidad();
-      const now = new Date();
-      const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
-      const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-      const dateStr = `${dias[now.getDay()]}, ${now.getDate()} de ${meses[now.getMonth()]}`;
-
-      const numEl = document.getElementById("curiosidad-numero");
-      const txtEl = document.getElementById("curiosidad-texto");
-      const dateEl = document.getElementById("curiosidad-date");
-      if (numEl) numEl.textContent = `#${number} de 365`;
-      if (txtEl) txtEl.textContent = text;
-      if (dateEl) dateEl.textContent = dateStr;
-    })();
-
-    // Animación telón
-    window.addEventListener("load", () => {
-      const curtain = document.getElementById("curtain");
-      const logo = curtain.querySelector(".curtain-logo");
-
-      // 1. Mostrar logo sobre el telón cerrado
-      setTimeout(() => {
-        logo.classList.add("visible");
-      }, 300);
-
-      // 2. Abrir el telón
-      setTimeout(() => {
-        curtain.classList.add("open");
-      }, 1600);
-
-      // 3. Ocultar telón completamente
-      setTimeout(() => {
-        curtain.style.transition = "opacity 0.4s ease";
-        curtain.style.opacity = "0";
-        curtain.style.pointerEvents = "none";
-        setTimeout(() => { curtain.style.display = "none"; }, 400);
-      }, 3100);
-    });
-  </script>
-
-  <script type="module">
-    import { onSession, getUserData } from "./js/auth.js";
-
+    // ── Sesión: si hay usuario logueado, redirige ANTES de mostrar nada.
+    //    Reutiliza redirectByRole (misma lógica que login.html), así que
+    //    pending/paused/admin/activo se comportan exactamente igual que
+    //    en el resto del sitio. ──
     onSession(async (user) => {
-      const loginBtn = document.getElementById("musica-login-btn");
-      const verBtn   = document.getElementById("musica-ver-btn");
-      if (!loginBtn || !verBtn) return;
-
-      if (!user) return; // queda el botón "Entrar para escuchar"
-
-      const data = await getUserData(user.uid);
-      if (!data || data.status !== "active") return;
-
-      // Usuario activo — mostrar botón de ir a la página
-      loginBtn.style.display = "none";
-      verBtn.style.display   = "inline-block";
+      if (user) {
+        await redirectByRole(user);
+        return; // nunca se llega a mostrar el telón ni la landing
+      }
+      // Sin sesión: mostramos la landing (el telón ya está animando por CSS)
+      document.body.classList.remove("checking-session");
     });
   </script>
+
 </body>
 </html>
