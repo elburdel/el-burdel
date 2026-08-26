@@ -208,6 +208,13 @@
       hideMsg();
     };
 
+    // Si venimos del CTA "Entrar al Burdel" de la landing (?tab=register),
+    // abrimos directo en Registrarse en vez del login por defecto.
+    const paramsTab = new URLSearchParams(window.location.search).get("tab");
+    if (paramsTab === "register") {
+      window.showTab("register");
+    }
+
     window.showRecover = () => {
       ["login", "register"].forEach(t => {
         document.getElementById(`form-${t}`).classList.add("hidden");
