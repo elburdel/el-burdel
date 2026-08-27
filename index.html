@@ -24,17 +24,8 @@
 </head>
 <body class="checking-session">
 
-  <!-- TELÓN — solo lo ve un visitante sin sesión. Si hay sesión activa,
-       el script de abajo redirige antes de que el telón llegue a animarse. -->
-  <div class="curtain" id="curtain">
-    <div class="curtain-valance"></div>
-    <div class="curtain-panel l"></div>
-    <div class="curtain-panel r"></div>
-    <div class="curtain-brand">
-      <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
-      <div class="curtain-brand-title">EL BURDEL</div>
-    </div>
-  </div>
+  <!-- Sin sesión activa: se muestra la landing directamente (sin telón).
+       Con sesión activa: el script de abajo redirige antes de pintar nada. -->
 
   <nav class="landing-nav">
     <div class="landing-nav-brand">
