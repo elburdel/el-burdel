@@ -1,56 +1,110 @@
-/* ─── DASHBOARD MAIN ─── */
+/* ═══════════════════════════════════════════════
+   DASHBOARD.CSS — El Burdel
+   Panel del jugador logueado.
+   Misma estética cabaret/casino nocturno que landing.css:
+   tarjetas con acento de color por juego, íconos SVG,
+   tipografía Bebas Neue + acento Caveat. Mobile-first.
+   ═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap');
+
+:root {
+  --c-taboo: #b52020;
+  --c-wordle: #4c9a5f;
+  --c-impostor: #7d5bc2;
+  --c-quiensoy: #2a9d9d;
+  --c-ruleta: #d98a25;
+  --c-tests: #3f7fc4;
+  --c-millon: var(--dorado-claro);
+  --c-horoscopo: #9d6bd9;
+  --c-noticias: #c2884a;
+  --c-galeria: #4caf7d;
+  --c-musica: #d94f8a;
+  --c-ranking: #d9b23f;
+  --font-script: 'Caveat', cursive;
+}
+
+/* ─── MAIN ─── */
 .dashboard-main {
   min-height: calc(100vh - 120px);
-  max-width: 600px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 0 40px;
 }
 
-/* ─── RESUMEN DEL USUARIO ─── */
+/* ─── BIENVENIDA ─── */
 .dash-welcome {
-  margin: 22px 20px 8px;
-  padding: 24px 20px;
+  position: relative;
+  margin: 18px 16px 8px;
+  padding: 28px 20px 24px;
+  text-align: center;
+  overflow: hidden;
   background:
-    linear-gradient(135deg, rgba(139,26,26,0.22), rgba(200,150,0,0.06)),
+    radial-gradient(ellipse at 50% 0%, rgba(200,150,0,0.14), transparent 65%),
+    radial-gradient(ellipse at 50% 100%, rgba(139,26,26,0.16), transparent 65%),
     var(--negro-2);
   border: 1px solid rgba(200,150,0,0.2);
-  border-radius: 8px;
+  border-radius: 10px;
 }
+
+.dash-bulb-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; position: relative; z-index: 2; }
+.dash-bulb { width: 5px; height: 5px; border-radius: 50%; background: var(--dorado-claro); box-shadow: 0 0 5px 1px rgba(245,200,66,0.6); }
+.dash-bulb:nth-child(3n) { background: var(--rojo-claro); box-shadow: 0 0 5px 1px rgba(181,32,32,0.5); }
 
 .dash-eyebrow {
   display: block;
+  position: relative;
+  z-index: 2;
   color: var(--crema-3);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
   margin-bottom: 8px;
 }
 
 .dash-welcome-title {
-  font-family: var(--font-display);
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-title);
   color: var(--dorado);
-  font-size: 34px;
+  font-size: 40px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: 1px;
-  margin-bottom: 12px;
+  text-shadow: 0 0 20px rgba(200,150,0,0.35);
+  margin-bottom: 8px;
+}
+
+.dash-welcome-script {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-script);
+  font-size: 22px;
+  color: var(--rojo-claro);
+  margin-bottom: 10px;
 }
 
 .dash-welcome-copy {
+  position: relative;
+  z-index: 2;
   color: var(--crema-2);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
+  max-width: 380px;
+  margin: 0 auto;
 }
 
 .dash-status-strip {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
 .dash-status-chip {
-  border: 1px solid rgba(200,150,0,0.16);
+  border: 1px solid rgba(200,150,0,0.18);
   border-radius: 6px;
   padding: 10px 12px;
   background: rgba(8,8,8,0.35);
@@ -71,274 +125,222 @@
   font-weight: 500;
 }
 
-/* ─── SCOREBOARD GLOBAL ─── */
-.dash-scoreboard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 20px;
-  background: var(--negro-2);
-  border-bottom: 1px solid rgba(200,150,0,0.12);
-  position: sticky;
-  top: 56px;
-  z-index: 50;
-  backdrop-filter: blur(8px);
+@media (max-width: 420px) {
+  .dash-status-strip { grid-template-columns: 1fr; }
 }
 
-.dash-score-team {
-  flex: 1;
-  text-align: center;
-  padding: 12px 8px;
-}
-
-.dash-score-label {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #7a6040;
-  margin-bottom: 6px;
-}
-
-.dash-score-value {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 52px;
-  font-weight: 900;
-  color: #c89600;
-  line-height: 1;
-}
-
-.dash-score-team.rojo .dash-score-label { color: #f09090; }
-.dash-score-team.azul .dash-score-label { color: #90b0f0; }
-.dash-score-team.rojo .dash-score-value { color: #f09090; }
-.dash-score-team.azul .dash-score-value { color: #90b0f0; }
-
-.dash-score-divider {
-  width: 1px;
-  height: 48px;
-  background: rgba(200,150,0,0.2);
-  flex-shrink: 0;
-}
-
-/* ─── CONTENIDO ─── */
-.dash-content {
-  padding: 32px 20px;
-}
-
-/* ─── IDLE ─── */
-.dash-idle {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.dash-idle-bombitas {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.dash-idle-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 700;
-  font-style: italic;
-  color: #c89600;
-  margin-bottom: 12px;
-}
-
-.dash-idle-sub {
-  font-size: 14px;
-  color: #7a6040;
-  line-height: 1.6;
-  max-width: 300px;
-  margin: 0 auto;
-}
-
-/* ─── TABOO CARD ─── */
-.dash-taboo-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.dash-card-role {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-/* ─── SPECTATOR ─── */
-.dash-taboo-spectator {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.dash-spectator-timer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.dash-spectator-timer .timer-display {
-  font-size: 64px;
-}
-
-.dash-spectator-label {
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #7a6040;
-}
-
-.dash-spectator-msg {
-  font-size: 14px;
-  color: #7a6040;
-  line-height: 1.6;
-}
-
-/* ─── TABLÓN ─── */
-.dash-tablon {
-  margin: 0 20px;
-  padding: 20px;
-  background: var(--negro-2);
-  border: 1px solid rgba(200,150,0,0.12);
-  border-radius: 8px;
-  text-align: center;
-  display: none;
-}
-
-.dash-tablon-msg {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 18px;
-  color: #c8a868;
-  line-height: 1.5;
-}
-
-/* ─── NAV USER ─── */
-.nav-user {
-  font-size: 13px;
-  color: #c89600;
-  letter-spacing: 1px;
-}
-
-/* ─── LOBBY DE JUEGOS ─── */
+/* ─── LOBBY DE JUEGOS / SECCIONES ─── */
 .dash-lobby {
-  padding: 28px 20px 0;
+  padding: 30px 16px 0;
 }
 
 .dash-lobby-inner {
-  max-width: 600px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
+.section-label {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--crema-3);
+  margin-bottom: 6px;
+}
+
 .dash-lobby-title {
-  font-family: var(--font-display);
+  font-family: var(--font-title);
   font-size: 28px;
-  font-weight: 700;
-  font-style: italic;
-  color: var(--dorado);
-  margin-bottom: 8px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-align: center;
+  color: var(--crema);
+  margin-bottom: 10px;
 }
 
 .dash-lobby-sub {
   color: var(--crema-2);
   font-size: 13px;
   line-height: 1.6;
-  margin: 0 0 16px;
+  text-align: center;
+  max-width: 460px;
+  margin: 0 auto 18px;
 }
 
+/* ─── TARJETAS DE JUEGO (mismo lenguaje visual que index) ─── */
 .dash-games-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  margin-bottom: 24px;
-}
-
-.dash-game-card {
-  background: var(--negro-2);
-  border: 1px solid rgba(200,150,0,0.12);
-  border-radius: 8px;
-  padding: 18px 14px;
-  text-align: center;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.dash-game-card:hover {
-  border-color: rgba(200,150,0,0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(200, 150, 0, 0.12);
-}
-
-.dash-game-card.active {
-  border-color: rgba(200,150,0,0.5);
-  background: rgba(200,150,0,0.06);
-}
-
-.dash-game-icon {
-  font-size: 24px;
-  display: block;
   margin-bottom: 8px;
 }
 
+.dash-game-card {
+  position: relative;
+  display: block;
+  background: var(--negro-3);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-top: 2px solid var(--gc, var(--dorado));
+  border-radius: 8px;
+  padding: 18px 10px 14px;
+  text-align: center;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s, background 0.2s;
+}
+
+.dash-game-card::before {
+  content: "";
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: var(--gc, var(--dorado));
+  opacity: 0.08;
+}
+
+.dash-game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+}
+
+.dash-game-card.active {
+  border-top-color: var(--gc, var(--dorado));
+  background: rgba(200,150,0,0.07);
+  box-shadow: 0 0 0 1px rgba(200,150,0,0.25), 0 8px 22px rgba(200,150,0,0.12);
+}
+
+.dash-game-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--gc, var(--dorado));
+  display: block;
+  margin: 0 auto 10px;
+  position: relative;
+  z-index: 1;
+}
+
 .dash-game-name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
-  font-style: normal;
-  color: var(--dorado);
-  margin-bottom: 6px;
+  font-family: var(--font-title);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: var(--crema);
+  position: relative;
+  z-index: 1;
 }
 
 .dash-game-status {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--crema-3);
+  margin-top: 5px;
+  position: relative;
+  z-index: 1;
 }
 
 .dash-game-status.active {
-  color: #4caf50;
-  font-weight: 700;
+  color: #6fcf6f;
+  font-weight: 600;
 }
 
-@media (max-width: 420px) {
-  .dash-status-strip {
-    grid-template-columns: 1fr;
-  }
+.dash-game-status.active::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6fcf6f;
+  box-shadow: 0 0 6px rgba(111,207,111,0.8);
+  animation: dash-pulse 1.4s ease-in-out infinite;
 }
 
-/* ─── NAV RIGHT ─── */
-.nav-right {
-  display: flex;
-  align-items: center;
+@keyframes dash-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (min-width: 640px) {
+  .dash-games-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ─── SECCIÓN "EXPLORÁ" ─── */
+.dash-explora-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+  margin-bottom: 8px;
 }
 
-.nav-logout {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+@media (min-width: 640px) {
+  .dash-explora-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+/* ─── CIERRE / IDLE DECORATIVO ─── */
+.dash-content {
+  padding: 34px 20px 8px;
+}
+
+.dash-idle {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 26px 20px;
+  text-align: center;
+  border-radius: 4px;
+  background: linear-gradient(160deg, rgba(200,150,0,0.06), transparent);
+  border: 1px solid rgba(200,150,0,0.25);
+}
+
+.dash-idle::before, .dash-idle::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 1px solid var(--dorado);
+  opacity: 0.6;
+}
+.dash-idle::before { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+.dash-idle::after  { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+.dash-idle-bombitas {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.dash-idle-bombita {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--dorado-claro);
+  box-shadow: 0 0 5px rgba(245,200,66,0.6);
+  animation: bombita-parpadeo 2.4s ease-in-out infinite;
+}
+.dash-idle-bombita:nth-child(2) { animation-delay: .3s; }
+.dash-idle-bombita:nth-child(3) { animation-delay: .6s; }
+.dash-idle-bombita:nth-child(4) { animation-delay: .9s; }
+.dash-idle-bombita:nth-child(5) { animation-delay: 1.2s; }
+
+@keyframes bombita-parpadeo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.dash-idle-title {
+  font-family: var(--font-script);
+  font-size: 26px;
+  color: var(--rojo-claro);
+  margin-bottom: 8px;
+}
+
+.dash-idle-sub {
+  font-size: 13px;
   color: var(--crema-3);
-  background: transparent;
-  border: 1px solid rgba(200,150,0,0.15);
-  padding: 6px 12px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  white-space: nowrap;
-}
-
-.nav-logout:hover {
-  color: #f09090;
-  border-color: rgba(240,144,144,0.3);
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0 auto;
 }
