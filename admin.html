@@ -65,68 +65,6 @@
       line-height: 1;
     }
 
-    /* ── Nav secciones ── */
-    /* ══ BARRA DE NAVEGACIÓN ADMIN ══ */
-    .admin-section-nav {
-      background: var(--negro-1);
-      border-bottom: 1px solid rgba(200,150,0,0.15);
-    }
-    .admin-nav-wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-    .admin-nav-top {
-      display: flex;
-      gap: 4px;
-      padding: 8px 0 0;
-    }
-    .admin-nav-btn {
-      background: transparent;
-      border: 1px solid rgba(200,150,0,0.15);
-      border-radius: 6px 6px 0 0;
-      border-bottom: none;
-      color: var(--crema-3);
-      cursor: pointer;
-      font-family: var(--font-title);
-      font-size: 13px;
-      letter-spacing: 2px;
-      padding: 7px 22px;
-      white-space: nowrap;
-      transition: color 0.15s, background 0.15s, border-color 0.15s;
-    }
-    .admin-nav-btn:hover { color: var(--crema); background: rgba(200,150,0,0.05); }
-    .admin-nav-btn.open  { color: var(--dorado); background: rgba(200,150,0,0.07); border-color: rgba(200,150,0,0.3); }
-    .admin-nav-btn.juegos.open { color: var(--crema); background: rgba(255,255,255,0.04); border-color: rgba(220,220,220,0.2); }
-
-    .admin-nav-tabs {
-      display: none;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      border-top: 1px solid rgba(200,150,0,0.12);
-    }
-    .admin-nav-tabs::-webkit-scrollbar { display: none; }
-    .admin-nav-tabs.open { display: flex; }
-
-    .active-section {
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      color: var(--crema-3);
-      cursor: pointer;
-      font-family: var(--font-title);
-      font-size: 14px;
-      letter-spacing: 1.5px;
-      padding: 10px 16px 9px;
-      white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-      flex-shrink: 0;
-    }
-    .active-section:hover { color: var(--crema); background: rgba(200,150,0,0.04); }
-    .active-section.active { color: var(--dorado); border-bottom-color: var(--dorado); }
-    .active-section.juego.active { color: var(--crema); border-bottom-color: rgba(220,220,220,0.45); }
-
     /* ── El Millón ── */
     .mil-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
     .mil-stat { background:rgba(212,168,0,0.05); border:1px solid rgba(212,168,0,0.12); border-radius:10px; padding:12px; text-align:center; }
@@ -198,10 +136,97 @@
 </head>
 <body>
 
-  
-
   <!-- MAIN -->
   <main class="admin-main">
+
+    <!-- SIDEBAR — navegación fija, pensada para uso en desktop -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-brand">
+        <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+        <span>EL BURDEL</span>
+      </div>
+
+      <div class="admin-sidebar-groups">
+
+        <div class="admin-sidebar-group">
+          <span class="admin-sidebar-label">Panel</span>
+          <button type="button" class="admin-side-link active-section active" data-section="usuarios">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="16" r="8"/><path d="M8 40c0-8.8 7.2-16 16-16s16 7.2 16 16"/></svg>
+            Usuarios
+          </button>
+          <button type="button" class="admin-side-link active-section" data-section="sesion">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="4" fill="currentColor" stroke="none"/><path d="M17 17a10 10 0 0 0 0 14"/><path d="M31 17a10 10 0 0 1 0 14"/><path d="M11 11a18 18 0 0 0 0 26"/><path d="M37 11a18 18 0 0 1 0 26"/></svg>
+            Sesión
+          </button>
+        </div>
+
+        <div class="admin-sidebar-group">
+          <span class="admin-sidebar-label">Contenido</span>
+          <button type="button" class="admin-side-link active-section" data-section="musica" style="--gc: var(--c-musica);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 32V10l20-4v20"/><circle cx="14" cy="34" r="5" fill="currentColor" stroke="none"/><circle cx="34" cy="30" r="5" fill="currentColor" stroke="none"/></svg>
+            Música
+          </button>
+          <button type="button" class="admin-side-link active-section" data-section="tablon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="10" width="32" height="24" rx="2"/><line x1="16" y1="18" x2="30" y2="18"/><line x1="16" y1="24" x2="26" y2="24"/><circle cx="24" cy="34" r="2" fill="currentColor" stroke="none"/><line x1="24" y1="36" x2="24" y2="41"/></svg>
+            Tablón
+          </button>
+          <button type="button" class="admin-side-link active-section" data-section="noticias" style="--gc: var(--c-noticias);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="7" y="12" width="28" height="28" rx="2"/><path d="M35 18h6v18a4 4 0 0 1-4 4H12"/><line x1="13" y1="19" x2="24" y2="19"/><line x1="13" y1="25" x2="29" y2="25"/><line x1="13" y1="31" x2="29" y2="31"/></svg>
+            Noticias
+          </button>
+          <button type="button" class="admin-side-link active-section" data-section="galeria" style="--gc: var(--c-galeria);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="8" width="36" height="32" rx="3"/><circle cx="17" cy="19" r="4"/><path d="M6 33l11-11 9 9 6-6 10 10"/></svg>
+            Galería
+          </button>
+          <a class="admin-side-link" href="admin-horoscopo.html" style="--gc: var(--c-horoscopo);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M29 8a16 16 0 1 0 11 27A12 12 0 0 1 29 8z"/><path d="M38 9l1.4 3.6L43 14l-3.6 1.4L38 19l-1.4-3.6L33 14l3.6-1.4z"/></svg>
+            Horóscopo
+          </a>
+        </div>
+
+        <div class="admin-sidebar-group">
+          <span class="admin-sidebar-label">Juegos</span>
+          <a class="admin-side-link" href="admin-taboo.html" style="--gc: var(--c-taboo);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="8" y="9" width="32" height="28" rx="3"/><line x1="14" y1="19" x2="34" y2="19"/><line x1="14" y1="26" x2="27" y2="26"/><line x1="9" y1="41" x2="39" y2="6"/></svg>
+            Taboo
+          </a>
+          <a class="admin-side-link" href="admin-wordle.html" style="--gc: var(--c-wordle);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="20" y="6" width="12" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/><rect x="34" y="6" width="8" height="12" rx="2"/><rect x="6" y="20" width="12" height="12" rx="2"/><rect x="20" y="20" width="12" height="12" rx="2"/><rect x="34" y="20" width="8" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/></svg>
+            Wordle
+          </a>
+          <a class="admin-side-link" href="admin-impostor.html" style="--gc: var(--c-impostor);">
+            <svg viewBox="0 0 48 48" fill="currentColor"><path d="M24 6c-5 0-8 4-8 9 0 3 1 5 2 6-6 2-10 8-10 15v6h32v-6c0-7-4-13-10-15 1-1 2-3 2-6 0-5-3-9-8-9z"/></svg>
+            Impostor
+          </a>
+          <a class="admin-side-link" href="admin-quiensoy-juego.html" style="--gc: var(--c-quiensoy);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><rect x="10" y="6" width="28" height="36" rx="4"/><path d="M19 18c0-3.3 2.2-5.5 5-5.5s5 2.2 5 5.5c0 3-2 4-4 6-1 1-1 2-1 3.2"/><circle cx="24" cy="33.5" r="1.6" fill="currentColor" stroke="none"/></svg>
+            ¿Quién Soy? — Ronda
+          </a>
+          <a class="admin-side-link" href="admin-quiensoy.html" style="--gc: var(--c-quiensoy);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="7" y="12" width="28" height="28" rx="2"/><line x1="13" y1="19" x2="24" y2="19"/><line x1="13" y1="25" x2="29" y2="25"/><line x1="13" y1="31" x2="29" y2="31"/></svg>
+            ¿Quién Soy? — Cartas
+          </a>
+          <a class="admin-side-link" href="admin-millon.html" style="--gc: var(--c-millon);">
+            <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+            El Millón
+          </a>
+          <a class="admin-side-link" href="admin-ruleta.html" style="--gc: var(--c-ruleta);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/><line x1="24" y1="7" x2="24" y2="41"/><line x1="7" y1="24" x2="41" y2="24"/><line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/><line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/></svg>
+            Ruleta
+          </a>
+          <a class="admin-side-link" href="admin-tests.html" style="--gc: var(--c-tests);">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"><path d="M19 6h10"/><path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/><line x1="16.5" y1="29" x2="31.5" y2="29"/></svg>
+            Tests
+          </a>
+        </div>
+
+      </div>
+
+      <button type="button" class="admin-side-logout" onclick="handleLogout()">Cerrar sesión</button>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <div class="admin-content">
 
     <!-- HEADER -->
     <div class="admin-header">
@@ -219,34 +244,6 @@
       <div class="admin-game-bar-inner">
         <span class="admin-game-bar-label">Juego activo</span>
         <span class="admin-game-bar-active" id="active-game-display">🚫 Ninguno</span>
-      </div>
-    </div>
-
-    <!-- NAV SECCIONES -->
-    <div class="admin-section-nav">
-      <div class="admin-nav-wrap">
-        <div class="admin-nav-top">
-          <button type="button" class="admin-nav-btn open" id="nav-btn-admin" onclick="toggleNavGroup('admin')">⚙️ Admin</button>
-          <button type="button" class="admin-nav-btn juegos" id="nav-btn-juegos" onclick="toggleNavGroup('juegos')">🎮 Juegos</button>
-        </div>
-        <div class="admin-nav-tabs open" id="nav-tabs-admin">
-          <button type="button" class="active-section active" data-section="usuarios">👥 Usuarios</button>
-          <button type="button" class="active-section" data-section="sesion">📡 Sesión</button>
-          <button type="button" class="active-section" data-section="musica">🎵 Música</button>
-          <button type="button" class="active-section" data-section="tablon">📋 Tablón</button>
-          <button type="button" class="active-section" data-section="noticias">📰 Noticias</button>
-          <button type="button" class="active-section" data-section="galeria">🖼️ Galería</button>
-          <button type="button" class="active-section" data-section="horoscopo">🔮 Horóscopo</button>
-        </div>
-        <div class="admin-nav-tabs" id="nav-tabs-juegos">
-          <button type="button" class="active-section juego" data-section="taboo">🃏 Taboo</button>
-          <button type="button" class="active-section juego" data-section="wordle">🔤 Wordle</button>
-          <button type="button" class="active-section juego" data-section="impostor">🕵️ Impostor</button>
-          <button type="button" class="active-section juego" data-section="quiensoy">🪪 ¿Quién Soy?</button>
-          <button type="button" class="active-section juego" data-section="millon">💰 El Millón</button>
-          <button type="button" class="active-section juego" data-section="ruleta">🎡 Ruleta</button>
-          <button type="button" class="active-section juego" data-section="tests">🧠 Tests</button>
-        </div>
       </div>
     </div>
 
@@ -353,85 +350,6 @@
               </div>
               <button type="button" class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
             </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- SECCIÓN: TABLÓN -->
-
-    <!-- SECCIÓN: TABOO -->
-    <section class="admin-section" id="section-taboo">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🃏 Taboo</h2>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-taboo.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              🃏 Administrar Taboo
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            Marcador, turnos, timer y equipos — ahora en su propia pantalla. La gestión del mazo sigue en Admin Mazo.
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- SECCIÓN: WORDLE -->
-    <section class="admin-section" id="section-wordle">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🔤 Wordle</h2>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-wordle.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              🔤 Administrar Wordle
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            Palabra del día, forzar palabra, ranking y reseteos — ahora en su propia pantalla.
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════ -->
-    <!-- ── EL IMPOSTOR ── -->
-    <!-- ══════════════════════════════════════ -->
-    <section class="admin-section" id="section-impostor">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🕵️ El Impostor</h2>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-impostor.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              🕵️ Administrar Impostor
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            Configurar ronda, seguir la partida en vivo y revelar el resultado — ahora en su propia pantalla.
           </div>
         </div>
 
@@ -598,39 +516,6 @@
     </div>
 
     <!-- ════════════════════════════════════════
-         SECCIÓN ¿QUIÉN SOY?
-    ════════════════════════════════════════ -->
-    <section class="admin-section" id="section-quiensoy">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🪪 ¿Quién Soy?</h2>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-quiensoy-juego.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              🪪 Controlar ronda
-            </a>
-            <a href="admin-quiensoy.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              📚 Biblioteca de cartas
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            Turno, timer, marcador y agregar cartas rápido — ahora en su propia pantalla.
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ════════════════════════════════════════
          SECCIÓN GALERÍA
     ════════════════════════════════════════ -->
     <section class="admin-section" id="section-galeria">
@@ -646,29 +531,6 @@
           <div class="admin-noticias-empty">Cargando...</div>
         </div>
 
-      </div>
-    </section>
-
-    <!-- SECCIÓN: EL MILLÓN -->
-    <section class="admin-section" id="section-millon">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">💰 El Millón</h2>
-        </div>
-        <p style="font-size:13px;color:var(--crema-3);margin-bottom:20px;line-height:1.7;">
-          El panel del Millonario tiene su propia página dedicada con lobby de inscripciones,
-          control de rondas, votación en tiempo real, validación de misiones y biblioteca de misiones.
-        </p>
-        <a href="admin-millon.html" style="
-          display:inline-flex;align-items:center;gap:12px;
-          background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.35);
-          border-radius:12px;padding:16px 24px;text-decoration:none;
-          font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:#f5c842;
-          transition:background .2s;
-        " onmouseover="this.style.background='rgba(200,150,0,0.18)'"
-           onmouseout="this.style.background='rgba(200,150,0,0.1)'">
-          💰 Ir al panel de El Millonario →
-        </a>
       </div>
     </section>
 
@@ -764,108 +626,6 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: RULETA -->
-    <section class="admin-section" id="section-ruleta">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🎡 Ruleta</h2>
-        </div>
-
-        <div class="admin-card" style="margin-bottom:16px;">
-          <div class="admin-card-label">Cómo funciona</div>
-          <div style="font-size:13px;color:var(--crema-2);line-height:1.8;">
-            <div>1️⃣ &nbsp;Abrí el <strong>panel de admin de la ruleta</strong> (botón abajo)</div>
-            <div>2️⃣ &nbsp;Elegís modo <strong>1 ruleta</strong> o <strong>2 ruletas</strong> e ingresás los participantes</div>
-            <div>3️⃣ &nbsp;Girás desde el panel — todos los usuarios ven la misma animación en tiempo real</div>
-            <div>4️⃣ &nbsp;Podés forzar resultados, eliminar salidos y guardar listas para reutilizar</div>
-            <div style="margin-top:8px;padding:10px 12px;background:rgba(200,150,0,0.06);border-radius:8px;border:1px solid rgba(200,150,0,0.15);font-size:12px;color:var(--crema-3);">
-              El resultado siempre se calcula en el admin. Los viewers solo ven la animación sincronizada.
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-ruleta.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background=\'rgba(200,150,0,0.15)\'"
-               onmouseout="this.style.background=\'rgba(200,150,0,0.08)\'">
-              ⚙️ Panel admin ruleta
-            </a>
-            <a href="ruleta.html" target="_blank"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.04);border:1px solid rgba(200,150,0,0.15);border-radius:10px;color:var(--crema-3);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background=\'rgba(200,150,0,0.1)\'"
-               onmouseout="this.style.background=\'rgba(200,150,0,0.04)\'">
-              👁 Ver ruleta pública ↗
-            </a>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- SECCIÓN: TESTS -->
-    <section class="admin-section" id="section-tests">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🧠 Tests</h2>
-        </div>
-
-        <div class="admin-card" style="margin-bottom:16px;">
-          <div class="admin-card-label">Cómo funciona</div>
-          <div style="font-size:13px;color:var(--crema-2);line-height:1.8;">
-            <div>1️⃣ &nbsp;En <strong>Gestión de tests</strong> creás y editás todos los tests que quieras (preguntas, opciones, puntos, resultados)</div>
-            <div>2️⃣ &nbsp;Quedan guardados como "Preparados" hasta que decidas usarlos en un vivo</div>
-            <div>3️⃣ &nbsp;El control del vivo (activar, revelar opciones, puntuar, revelar resultados) se maneja desde otra pantalla — todavía no está lista</div>
-            <div style="margin-top:8px;padding:10px 12px;background:rgba(200,150,0,0.06);border-radius:8px;border:1px solid rgba(200,150,0,0.15);font-size:12px;color:var(--crema-3);">
-              Un test guardado nunca se activa solo. Vos elegís cuál usar cada vivo.
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-tests.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background=\'rgba(200,150,0,0.15)\'"
-               onmouseout="this.style.background=\'rgba(200,150,0,0.08)\'">
-              📋 Gestión de tests
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            El control en vivo (Tests → En vivo) se agrega en la próxima etapa.
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <section class="admin-section" id="section-horoscopo">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🔮 Horóscopo</h2>
-        </div>
-
-        <div class="admin-card">
-          <div class="admin-card-label">Acceso rápido</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-            <a href="admin-horoscopo.html"
-               style="flex:1;min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(200,150,0,0.08);border:1px solid rgba(200,150,0,0.25);border-radius:10px;color:var(--dorado-claro);font-family:var(--font-display);font-size:17px;letter-spacing:1px;text-decoration:none;transition:all 0.2s;"
-               onmouseover="this.style.background='rgba(200,150,0,0.15)'"
-               onmouseout="this.style.background='rgba(200,150,0,0.08)'">
-              🔮 Cargar horóscopo
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--crema-3);margin-top:10px;letter-spacing:0.5px;">
-            Publicás el de hoy o el del mes — se guarda al instante, sin pasos intermedios.
-          </div>
-        </div>
-
-      </div>
-    </section>
-
     <!-- MODAL EDITAR USUARIO -->
   <div id="edit-user-modal" class="modal-overlay hidden">
     <div class="modal-box" style="max-width:360px;width:100%;">
@@ -884,6 +644,7 @@
     </div>
   </div>
 
+    </div><!-- /.admin-content -->
 </main>
 
   <!-- NAV BOTTOM -->
@@ -1126,11 +887,20 @@
       });
     }
 
+    // Mapa: juego activo → página de administración correspondiente.
+    // Al activar un juego, saltamos directo a su pantalla de control.
+    const GAME_TO_PAGE = {
+      taboo:      "admin-taboo.html",
+      wordle:     "admin-wordle.html",
+      impostor:   "admin-impostor.html",
+      quiensoy:   "admin-quiensoy-juego.html",
+      millonario: "admin-millon.html"
+    };
+
     window.setActiveGame = async (game) => {
       await set(ref(db, "session/activeGame"), game);
-      // Navegar a la sección del juego correspondiente
-      const section = GAME_TO_SECTION[game] || "sesion";
-      showSection(section);
+      const page = GAME_TO_PAGE[game];
+      if (page) window.location.href = page;
     };
 
     // ── TABLÓN ──
@@ -1219,17 +989,9 @@
     // ── NAVEGACIÓN POR SECCIONES ──
     // ══════════════════════════════════════
 
-    const SECTION_IDS = ["usuarios", "sesion", "taboo", "wordle", "impostor", "quiensoy", "musica", "tablon", "noticias", "galeria", "millon", "ruleta", "tests", "horoscopo"];
-
-    // Mapa: juego activo → sección del admin que corresponde
-    const GAME_TO_SECTION = {
-      taboo:      "taboo",
-      wordle:     "wordle",
-      impostor:   "impostor",
-      quiensoy:   "quiensoy",
-      millonario: "millon",
-      none:       "tablon"
-    };
+    // Únicas secciones que siguen viviendo dentro de admin.html — el resto
+    // (juegos y Horóscopo) son páginas propias, linkeadas directo desde el sidebar.
+    const SECTION_IDS = ["usuarios", "sesion", "musica", "tablon", "noticias", "galeria"];
 
     function showSection(sectionId) {
       SECTION_IDS.forEach(id => {
@@ -1245,38 +1007,12 @@
     window.showSection = showSection;
     window.renderSesionUsuarios = () => renderSesionUsuarios();
     window.renderUsers = () => renderUsers(currentFilter);
-
-    window.toggleNavGroup = function(grupo) {
-      const tabsAdmin  = document.getElementById("nav-tabs-admin");
-      const tabsJuegos = document.getElementById("nav-tabs-juegos");
-      const btnAdmin   = document.getElementById("nav-btn-admin");
-      const btnJuegos  = document.getElementById("nav-btn-juegos");
-      if (grupo === "admin") {
-        const abriendo = !tabsAdmin.classList.contains("open");
-        tabsAdmin.classList.toggle("open", abriendo);
-        tabsJuegos.classList.remove("open");
-        btnAdmin.classList.toggle("open", abriendo);
-        btnJuegos.classList.remove("open");
-        if (abriendo && !tabsAdmin.querySelector(".active-section.active")) showSection("usuarios");
-      } else {
-        const abriendo = !tabsJuegos.classList.contains("open");
-        tabsJuegos.classList.toggle("open", abriendo);
-        tabsAdmin.classList.remove("open");
-        btnJuegos.classList.toggle("open", abriendo);
-        btnAdmin.classList.remove("open");
-        if (abriendo && !tabsJuegos.querySelector(".active-section.active")) showSection("taboo");
-      }
-    };
+    window.handleLogout = () => logoutUser();
 
     showSection("usuarios");
 
     document.querySelectorAll(".active-section").forEach(link => {
-      link.addEventListener("click", () => {
-        showSection(link.dataset.section);
-        const esJuego = link.classList.contains("juego");
-        document.getElementById("nav-btn-admin").classList.toggle("open", !esJuego);
-        document.getElementById("nav-btn-juegos").classList.toggle("open", esJuego);
-      });
+      link.addEventListener("click", () => showSection(link.dataset.section));
     });
 
     // Comprimir imagen: canvas → JPEG base64
