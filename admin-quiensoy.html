@@ -224,7 +224,7 @@
 </head>
 <body>
 
-  <main class="admin-main">
+  <main class="aqb-main">
     <div class="admin-header">
       <div class="admin-header-inner">
         <div>
@@ -562,7 +562,9 @@
 
   <script type="module">
     import { initNavbar } from "./js/navbar.js";
+    import { mountAdminSidebar } from "./js/admin-sidebar.js";
     initNavbar();
+    mountAdminSidebar("quiensoy-cartas");
   </script>
 </body>
 </html>
