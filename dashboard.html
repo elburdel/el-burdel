@@ -110,15 +110,18 @@
 </head>
 <body>
 
-
-
   <!-- MAIN -->
   <main class="dashboard-main">
 
     <!-- RESUMEN DEL USUARIO -->
     <section class="dash-welcome" aria-label="Resumen de la noche">
-      <span class="dash-eyebrow">Tu noche</span>
+      <div class="dash-bulb-row">
+        <span class="dash-bulb"></span><span class="dash-bulb"></span><span class="dash-bulb"></span>
+        <span class="dash-bulb"></span><span class="dash-bulb"></span>
+      </div>
+      <span class="dash-eyebrow">Tu noche en El Burdel</span>
       <h1 class="dash-welcome-title">Hola, <span id="dash-user-nick">jugador</span></h1>
+      <div class="dash-welcome-script">Ya estás adentro</div>
       <p class="dash-welcome-copy" id="dash-user-state">Ya estás dentro. Cuando el admin active un juego, lo vas a ver marcado acá.</p>
       <div class="dash-status-strip">
         <div class="dash-status-chip">
@@ -136,75 +139,148 @@
     <div class="dash-lobby" id="dash-lobby">
       <div class="dash-lobby-inner">
         <span class="section-label">Esta noche</span>
-        <h2 class="dash-lobby-title">Juegos</h2>
+        <h2 class="dash-lobby-title">¿A qué jugamos hoy?</h2>
         <p class="dash-lobby-sub">Los juegos activos se iluminan solos. Si no hay ninguno activo, podés practicar Wordle o esperar al admin.</p>
         <div class="dash-games-grid" id="dash-games-grid">
-          <a class="dash-game-card" id="game-card-taboo" href="taboo.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🃏</span>
+
+          <a class="dash-game-card" id="game-card-taboo" href="taboo.html" style="--gc: var(--c-taboo);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+              <rect x="8" y="9" width="32" height="28" rx="3"/>
+              <line x1="14" y1="19" x2="34" y2="19"/>
+              <line x1="14" y1="26" x2="27" y2="26"/>
+              <line x1="9" y1="41" x2="39" y2="6"/>
+            </svg>
             <div class="dash-game-name">Taboo</div>
             <div class="dash-game-status" id="status-taboo">Jugar</div>
           </a>
-          <a class="dash-game-card" id="game-card-wordle" href="wordle.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🔤</span>
+
+          <a class="dash-game-card" id="game-card-wordle" href="wordle.html" style="--gc: var(--c-wordle);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="6" y="6" width="12" height="12" rx="2"/>
+              <rect x="20" y="6" width="12" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+              <rect x="34" y="6" width="8" height="12" rx="2"/>
+              <rect x="6" y="20" width="12" height="12" rx="2"/>
+              <rect x="20" y="20" width="12" height="12" rx="2"/>
+              <rect x="34" y="20" width="8" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+            </svg>
             <div class="dash-game-name">Wordle</div>
             <div class="dash-game-status" id="status-wordle">Jugar</div>
           </a>
-          <a class="dash-game-card" id="game-card-impostor" href="impostor.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🕵️</span>
+
+          <a class="dash-game-card" id="game-card-impostor" href="impostor.html" style="--gc: var(--c-impostor);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="currentColor">
+              <path d="M24 6c-5 0-8 4-8 9 0 3 1 5 2 6-6 2-10 8-10 15v6h32v-6c0-7-4-13-10-15 1-1 2-3 2-6 0-5-3-9-8-9z"/>
+            </svg>
             <div class="dash-game-name">El Impostor</div>
             <div class="dash-game-status" id="status-impostor">Jugar</div>
           </a>
-          <a class="dash-game-card" id="game-card-quiensoy" href="quiensoy.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🪪</span>
+
+          <a class="dash-game-card" id="game-card-quiensoy" href="quiensoy.html" style="--gc: var(--c-quiensoy);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+              <rect x="10" y="6" width="28" height="36" rx="4"/>
+              <path d="M19 18c0-3.3 2.2-5.5 5-5.5s5 2.2 5 5.5c0 3-2 4-4 6-1 1-1 2-1 3.2"/>
+              <circle cx="24" cy="33.5" r="1.6" fill="currentColor" stroke="none"/>
+            </svg>
             <div class="dash-game-name">¿Quién Soy?</div>
             <div class="dash-game-status" id="status-quiensoy">Jugar</div>
           </a>
-          <a class="dash-game-card" id="game-card-millonario" href="millonario.html" style="text-decoration:none;">
-            <span class="dash-game-icon">💰</span>
+
+          <a class="dash-game-card" id="game-card-millonario" href="millonario.html" style="--gc: var(--c-millon);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="currentColor">
+              <path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/>
+            </svg>
             <div class="dash-game-name">El Millonario</div>
             <div class="dash-game-status" id="status-millonario">Jugar</div>
           </a>
-          <a class="dash-game-card" id="game-card-ruleta" href="ruleta.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🎡</span>
+
+          <a class="dash-game-card" id="game-card-ruleta" href="ruleta.html" style="--gc: var(--c-ruleta);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="24" cy="24" r="17"/>
+              <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+              <line x1="24" y1="7" x2="24" y2="41"/>
+              <line x1="7" y1="24" x2="41" y2="24"/>
+              <line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/>
+              <line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/>
+            </svg>
             <div class="dash-game-name">Ruleta</div>
             <div class="dash-game-status" id="status-ruleta">Ver ruleta</div>
           </a>
-          <a class="dash-game-card" id="game-card-tests" href="tests.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🧠</span>
+
+          <a class="dash-game-card" id="game-card-tests" href="tests.html" style="--gc: var(--c-tests);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+              <path d="M19 6h10"/>
+              <path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/>
+              <line x1="16.5" y1="29" x2="31.5" y2="29"/>
+            </svg>
             <div class="dash-game-name">Tests</div>
             <div class="dash-game-status" id="status-tests">Jugar</div>
           </a>
+
         </div>
       </div>
     </div>
 
     <!-- SECCIONES RÁPIDAS -->
-    <div class="dash-lobby" style="margin-top:0;padding-top:0;">
+    <div class="dash-lobby" style="margin-top:0;padding-top:24px;">
       <div class="dash-lobby-inner">
-        <span class="section-label">Explorá</span>
-        <h2 class="dash-lobby-title">El Burdel</h2>
-        <p class="dash-lobby-sub">Contenido para ver entre partidas: novedades, fotos, música, ranking y fixture.</p>
-        <div class="dash-games-grid">
-          <a class="dash-game-card" href="noticias.html" style="text-decoration:none;">
-            <span class="dash-game-icon">📰</span>
+        <span class="section-label">Entre partidas</span>
+        <h2 class="dash-lobby-title">Explorá El Burdel</h2>
+        <p class="dash-lobby-sub">Contenido para ver entre partidas: novedades, fotos, música, ranking y tu horóscopo.</p>
+        <div class="dash-explora-grid">
+
+          <a class="dash-game-card" href="horoscopo.html" style="--gc: var(--c-horoscopo);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M29 8a16 16 0 1 0 11 27A12 12 0 0 1 29 8z"/>
+              <path d="M38 9l1.4 3.6L43 14l-3.6 1.4L38 19l-1.4-3.6L33 14l3.6-1.4z"/>
+            </svg>
+            <div class="dash-game-name">Horóscopo</div>
+            <div class="dash-game-status">Ver signo</div>
+          </a>
+
+          <a class="dash-game-card" href="noticias.html" style="--gc: var(--c-noticias);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+              <rect x="7" y="12" width="28" height="28" rx="2"/>
+              <path d="M35 18h6v18a4 4 0 0 1-4 4H12"/>
+              <line x1="13" y1="19" x2="24" y2="19"/>
+              <line x1="13" y1="25" x2="29" y2="25"/>
+              <line x1="13" y1="31" x2="29" y2="31"/>
+            </svg>
             <div class="dash-game-name">Noticias</div>
             <div class="dash-game-status">Ver novedades</div>
           </a>
-          <a class="dash-game-card" href="galeria.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🖼️</span>
+
+          <a class="dash-game-card" href="galeria.html" style="--gc: var(--c-galeria);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+              <rect x="6" y="8" width="36" height="32" rx="3"/>
+              <circle cx="17" cy="19" r="4"/>
+              <path d="M6 33l11-11 9 9 6-6 10 10"/>
+            </svg>
             <div class="dash-game-name">Galería</div>
             <div class="dash-game-status">Ver fotos</div>
           </a>
-          <a class="dash-game-card" href="musica.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🎵</span>
+
+          <a class="dash-game-card" href="musica.html" style="--gc: var(--c-musica);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 32V10l20-4v20"/>
+              <circle cx="14" cy="34" r="5" fill="currentColor" stroke="none"/>
+              <circle cx="34" cy="30" r="5" fill="currentColor" stroke="none"/>
+            </svg>
             <div class="dash-game-name">Música</div>
             <div class="dash-game-status">Escuchar</div>
           </a>
-          <a class="dash-game-card" href="ranking.html" style="text-decoration:none;">
-            <span class="dash-game-icon">🏆</span>
+
+          <a class="dash-game-card" href="ranking.html" style="--gc: var(--c-ranking);">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 8h20v10a10 10 0 0 1-20 0V8z"/>
+              <path d="M14 11H8a2 2 0 0 0-2 2v2a6 6 0 0 0 6 6"/>
+              <path d="M34 11h6a2 2 0 0 1 2 2v2a6 6 0 0 1-6 6"/>
+              <line x1="24" y1="28" x2="24" y2="36"/>
+              <path d="M16 40h16"/>
+            </svg>
             <div class="dash-game-name">Ranking</div>
             <div class="dash-game-status">Ver posiciones</div>
           </a>
+
         </div>
       </div>
     </div>
@@ -215,8 +291,8 @@
       <!-- ESTADO IDLE (sin juego activo) -->
       <div class="dash-idle" id="dash-idle">
         <div class="dash-idle-bombitas">
-          <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
-          <span class="bombita"></span><span class="bombita"></span>
+          <span class="dash-idle-bombita"></span><span class="dash-idle-bombita"></span><span class="dash-idle-bombita"></span>
+          <span class="dash-idle-bombita"></span><span class="dash-idle-bombita"></span>
         </div>
         <h2 class="dash-idle-title">Todo listo para jugar</h2>
         <p class="dash-idle-sub">Cuando el admin active una partida, la tarjeta correspondiente va a quedar marcada y te avisamos desde acá.</p>
@@ -243,6 +319,7 @@
     <div class="nav-bottom-inner">
       <div class="nav-bottom-links">
         <a href="index.html" class="nav-bottom-link">Inicio</a>
+        <a href="horoscopo.html" class="nav-bottom-link">Horóscopo</a>
         <a href="noticias.html" class="nav-bottom-link">Noticias</a>
         <a href="galeria.html" class="nav-bottom-link">Galería</a>
         <a href="musica.html" class="nav-bottom-link">Música</a>
