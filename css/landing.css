@@ -71,7 +71,6 @@ body.checking-session > * { visibility: hidden; }
 }
 .hero-drape.l { left: -6%; transform: skewX(4deg); }
 .hero-drape.r { right: -6%; transform: skewX(-4deg); }
-.hero-mask { position: absolute; top: 18px; right: 4px; width: 84px; height: 130px; color: var(--rojo-claro); opacity: 0.35; }
 .bulb-row { display: flex; justify-content: center; gap: 9px; margin: 14px 0; position: relative; z-index: 2; }
 .bulb { width: 5px; height: 5px; border-radius: 50%; background: var(--dorado-claro); box-shadow: 0 0 5px 1px rgba(245,200,66,0.6); }
 .bulb:nth-child(3n) { background: var(--rojo-claro); box-shadow: 0 0 5px 1px rgba(181,32,32,0.5); }
