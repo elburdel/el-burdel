@@ -20,55 +20,10 @@
 
 body { overflow-x: hidden; }
 
-/* ══════════ TELÓN ══════════ */
-.curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  animation: curtain-hide 0.1s 3.6s forwards;
-}
-.curtain-panel {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 52%;
-  background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.25) 0 6px, rgba(180,20,20,0.9) 6px 26px, rgba(0,0,0,0.15) 26px 32px),
-    linear-gradient(180deg, #7a1616, #4a0d0d 70%, #2c0808);
-  box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
-}
-.curtain-panel.l { left: 0; animation: curtain-open-l 1.1s 2.1s ease-in forwards; }
-.curtain-panel.r { right: 0; animation: curtain-open-r 1.1s 2.1s ease-in forwards; }
-@keyframes curtain-open-l { to { transform: translateX(-105%); } }
-@keyframes curtain-open-r { to { transform: translateX(105%); } }
-@keyframes curtain-hide { to { visibility: hidden; } }
-.curtain-valance {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 34px;
-  background: linear-gradient(180deg, var(--dorado-oscuro), var(--negro-2));
-  border-bottom: 2px solid var(--dorado);
-  z-index: 2;
-}
-.curtain-brand {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  z-index: 3;
-  opacity: 0;
-  animation: brand-fade 0.8s 0.4s ease forwards, brand-fade-out 0.4s 2.0s ease forwards;
-}
-@keyframes brand-fade { to { opacity: 1; } }
-@keyframes brand-fade-out { to { opacity: 0; } }
-.curtain-brand svg { width: 46px; height: 46px; color: var(--dorado); }
-.curtain-brand-title { font-family: var(--font-title); font-size: 30px; letter-spacing: 6px; color: var(--dorado); }
-
-/* Usuario logueado: se resuelve antes de pintar nada (ver script). Si por
-   alguna razón el redirect tarda, ocultamos body para no mostrar flash. */
-body.checking-session > *:not(.curtain) { visibility: hidden; }
+/* Usuario logueado: se resuelve antes de pintar nada (ver script en index.html).
+   Mientras se chequea la sesión, ocultamos todo el body para no mostrar
+   un flash de la landing antes del redirect. Sin telón ni animación. */
+body.checking-session > * { visibility: hidden; }
 
 /* ══════════ NAV ══════════ */
 .landing-nav {
