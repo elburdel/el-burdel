@@ -506,6 +506,7 @@
 
   <script type="module">
     import { initNavbar } from "./js/navbar.js";
+    import { mountAdminSidebar } from "./js/admin-sidebar.js";
     import { onSession, getUserData } from "./js/auth.js";
     import {
       adminOpenEnrollment, adminCloseEnrollment, adminKickPlayer,
@@ -541,6 +542,7 @@
         return;
       }
       initNavbar();
+      mountAdminSidebar("millon");
       startListeners();
     });
 
