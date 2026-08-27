@@ -13,7 +13,7 @@
   --c-musica: #d94f8a;
 }
 
-/* ─── ADMIN MAIN — sidebar + contenido ─── */
+/* ─── ADMIN MAIN — sidebar + contenido (admin.html, que siempre tiene nav-top) ─── */
 .admin-main {
   max-width: 100%;
   min-height: calc(100vh - 56px);
@@ -26,6 +26,16 @@
   min-width: 0;
 }
 
+/* ─── ADMIN SHELL — genérico, usado en las pantallas de juego standalone.
+     Se arma en runtime por js/admin-sidebar.js, que mueve el contenido
+     existente de <body> adentro y agrega .has-topnav si detecta nav-top. ─── */
+.admin-shell {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+.admin-shell.has-topnav { min-height: calc(100vh - 56px); }
+
 /* ─── SIDEBAR — navegación fija (pensada para desktop) ─── */
 .admin-sidebar {
   width: 236px;
@@ -33,12 +43,26 @@
   background: var(--negro-2);
   border-right: 1px solid rgba(200,150,0,0.12);
   position: sticky;
-  top: 56px;
-  height: calc(100vh - 56px);
+  top: 0;
+  height: 100vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 18px 0 14px;
+}
+.admin-main .admin-sidebar,
+.admin-shell.has-topnav .admin-sidebar {
+  top: 56px;
+  height: calc(100vh - 56px);
+}
+
+/* Las pantallas de juego standalone usan su propio <main class="X-main">
+   (o un <div> como .mil-admin-wrap) como raíz de contenido; al quedar
+   dentro de .admin-shell necesitan ocupar el espacio restante. */
+.admin-shell > main,
+.admin-shell > .mil-admin-wrap {
+  flex: 1;
+  min-width: 0;
 }
 
 .admin-sidebar-brand {
@@ -112,7 +136,7 @@
 .admin-side-logout:hover { color: #f09090; border-color: rgba(240,144,144,0.3); }
 
 @media (max-width: 900px) {
-  .admin-main { flex-direction: column; }
+  .admin-main, .admin-shell { flex-direction: column; }
   .admin-sidebar {
     position: static;
     width: 100%;
