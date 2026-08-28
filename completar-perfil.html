@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Completá tu registro — El Burdel</title>
+  <meta name="description" content="Terminá de crear tu cuenta en El Burdel." />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <style>
+    .status-main {
+      min-height: calc(100vh - 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+  </style>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+</head>
+<body>
+
+  <nav class="nav-top">
+    <div class="nav-top-inner">
+      <a href="index.html" class="nav-brand">El Burdel</a>
+      <div class="nav-links"><a href="index.html" class="nav-link">Inicio</a></div>
+      <button class="nav-cta" onclick="handleLogout()">Salir</button>
+    </div>
+  </nav>
+
+  <main class="status-main">
+    <div class="login-card">
+
+      <div class="login-bombitas">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+
+      <h1 class="login-title">Casi listo</h1>
+      <p class="recover-text" id="intro-text">
+        Encontramos tu inicio de sesión pero tu perfil quedó incompleto.
+        Elegí un nick para terminar de crear tu cuenta.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Nick <span class="form-hint">(solo letras y números)</span></label>
+        <input type="text" id="perfil-nick" class="form-input" placeholder="TuNick" maxlength="20"
+          oninput="previewNick(this)" />
+        <span class="nick-preview" id="nick-preview"></span>
+      </div>
+
+      <button class="form-btn" id="btn-completar" onclick="handleCompletar()">Crear perfil</button>
+      <button class="form-link" onclick="handleLogout()">Cerrar sesión</button>
+
+      <p class="form-note">Tu cuenta quedará pendiente hasta que el admin la apruebe.</p>
+
+      <!-- MENSAJE DE ERROR / ÉXITO -->
+      <div class="form-msg hidden" id="form-msg"></div>
+
+      <div class="login-bombitas bottom">
+        <span class="bombita"></span><span class="bombita"></span><span class="bombita"></span>
+        <span class="bombita"></span><span class="bombita"></span>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <p class="nav-bottom-copy">© 2025 El Burdel</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onSession, completeOrphanedProfile, redirectByRole, logoutUser, getUserData } from "./js/auth.js";
+
+    // Si ya tiene perfil completo, no debería estar acá: lo mandamos a donde corresponda.
+    // Si no hay sesión, lo mandamos a loguearse.
+    onSession(async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const data = await getUserData(user.uid);
+      if (data) {
+        await redirectByRole(user);
+      }
+    });
+
+    window.handleCompletar = async () => {
+      const nick = document.getElementById("perfil-nick").value.trim();
+      const btn = document.getElementById("btn-completar");
+      if (!nick) {
+        showMsg("Ingresá un nick.", "error");
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Creando perfil...";
+      try {
+        await completeOrphanedProfile(nick);
+        showMsg("¡Listo! Esperá que el admin te apruebe.", "success");
+        btn.textContent = "¡Listo!";
+        setTimeout(() => {
+          window.location.href = "/pending.html";
+        }, 1200);
+      } catch (e) {
+        showMsg(e.message || "No se pudo crear el perfil. Probá de nuevo.", "error");
+        btn.disabled = false;
+        btn.textContent = "Crear perfil";
+      }
+    };
+
+    window.handleLogout = async () => {
+      await logoutUser();
+    };
+
+    window.previewNick = (input) => {
+      const val = input.value.replace(/[<>"'\/\\]/g, "");
+      const preview = document.getElementById("nick-preview");
+      preview.textContent = val ? `→ ${val}` : "";
+      input.value = val;
+    };
+
+    function showMsg(msg, type) {
+      const el = document.getElementById("form-msg");
+      el.textContent = msg;
+      el.className = `form-msg ${type}`;
+    }
+  </script>
+
+  <script type="module">
+    import { initNavbar } from "./js/navbar.js";
+    initNavbar();
+  </script>
+</body>
+</html>
