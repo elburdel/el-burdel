@@ -32,6 +32,11 @@ function validatePassword(pass) {
   return null;
 }
 
+// Convierte un nick "lindo" en su clave de Firebase (alfanumérico + guión bajo)
+function nickToKey(nick) {
+  return nick.toLowerCase().replace(/[^a-z0-9_]/g, "").replace(/\s+/g, "_") || `user_${Date.now()}`;
+}
+
 // Registro de usuario nuevo
 async function registerUser(nick, email, password) {
   const formattedNick = formatNick(nick);
@@ -47,7 +52,7 @@ async function registerUser(nick, email, password) {
   const uid = cred.user.uid;
 
   // Clave del nick en Firebase: solo alfanumérico + guión bajo (para compatibilidad)
-  const nickKey = formattedNick.toLowerCase().replace(/[^a-z0-9_]/g, "").replace(/\s+/g, "_") || `user_${Date.now()}`;
+  const nickKey = nickToKey(formattedNick);
 
   // 2. Ahora sí tenemos sesión — verificar nick duplicado
   const nickRef = ref(db, `nicks/${nickKey}`);
@@ -98,11 +103,49 @@ async function getUserData(uid) {
   return null;
 }
 
+// Completa el perfil de una cuenta "huérfana": existe en Firebase Auth
+// (login válido) pero no tiene nodo en users/. Pasa esto cuando una cuenta
+// se creó pero el guardado en la DB no llegó a completarse, o cuando un
+// admin la borró desde el panel (eso solo borra la DB, nunca el login).
+// Deja al usuario en el mismo estado que un registro normal: "pending",
+// para que quede en la lista de Usuarios esperando aprobación.
+async function completeOrphanedProfile(nick) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No hay sesión activa.");
+
+  const formattedNick = formatNick(nick);
+  const nickError = validateNick(formattedNick);
+  if (nickError) throw new Error(nickError);
+
+  const nickKey = nickToKey(formattedNick);
+
+  const nickRef = ref(db, `nicks/${nickKey}`);
+  const nickSnap = await get(nickRef);
+  if (nickSnap.exists()) {
+    throw new Error("Ese nick ya está en uso. Elegí otro.");
+  }
+
+  await set(ref(db, `users/${user.uid}`), {
+    nick: formattedNick,
+    email: user.email,
+    role: user.uid === ADMIN_UID ? "admin" : "viewer",
+    status: user.uid === ADMIN_UID ? "active" : "pending",
+    team: null,
+    createdAt: Date.now()
+  });
+
+  await set(ref(db, `nicks/${nickKey}`), user.uid);
+
+  return await getUserData(user.uid);
+}
+
 // Redirigir según rol y estado
 async function redirectByRole(user) {
   const data = await getUserData(user.uid);
   if (!data) {
-    window.location.href = "/login.html";
+    // Sesión de Auth válida pero sin perfil en la DB (cuenta huérfana).
+    // En vez de dejarlo mudo en login.html, lo mandamos a terminar el registro.
+    window.location.href = "/completar-perfil.html";
     return;
   }
   if (data.status === "pending") {
@@ -131,6 +174,7 @@ export {
   logoutUser,
   recoverPassword,
   getUserData,
+  completeOrphanedProfile,
   redirectByRole,
   onSession,
   formatNick,
