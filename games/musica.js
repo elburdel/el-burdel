@@ -5,7 +5,7 @@
 
 import { db } from "../js/firebase-init.js";
 import {
-  ref, onValue, set, remove, push, get
+  ref, onValue, set, remove, push, get, update
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const GAS_URL   = "https://script.google.com/macros/s/AKfycbzIj-RX_YCbunbJs2zU4-y9GX4ZnRM6G7zenIw5x2_D19VAObu3YwQJTHiFNVmOj691/exec";
@@ -50,6 +50,15 @@ export async function loadAudioBlob(audioUrl) {
   const bytes  = Uint8Array.from(atob(json.b64), c => c.charCodeAt(0));
   const blob   = new Blob([bytes], { type: "audio/mpeg" });
   return URL.createObjectURL(blob);
+}
+
+// ── Editar título / intérprete / letra (sin volver a subir el audio) ──
+export async function updateTrack(uid, trackId, { titulo, artista, letra }) {
+  await update(ref(db, `musica/${trackId}`), {
+    titulo:  titulo,
+    artista: artista || "",
+    letra:   letra   || ""
+  });
 }
 
 // ── Eliminar track ──
