@@ -79,6 +79,59 @@
       flex-shrink: 0;
     }
     .track-del-btn:hover { background: rgba(200,80,80,0.15); }
+    .track-edit-btn {
+      background: none;
+      border: 1px solid rgba(200,150,0,0.3);
+      color: var(--dorado);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .track-edit-btn:hover { background: rgba(200,150,0,0.12); }
+
+    /* ── Formulario de edición ── */
+    .track-edit-form {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+      border-left: 2px solid rgba(200,150,0,0.3);
+      border-radius: 0 6px 6px 0;
+    }
+    .track-edit-form.visible { display: block; }
+    .track-edit-field { margin-bottom: 10px; }
+    .track-edit-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--crema-3);
+      margin-bottom: 5px;
+    }
+    .track-edit-input {
+      width: 100%;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 4px;
+      padding: 9px 11px;
+      color: var(--crema);
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .track-edit-input:focus { border-color: rgba(200,150,0,0.5); }
+    .track-edit-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
 
     /* ── Letra expandible ── */
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -134,7 +187,7 @@
 </head>
 <body>
 
-  <main class="admin-main">
+  <main class="mus-main">
     <div class="admin-header">
       <div class="admin-header-inner">
         <div>
@@ -172,11 +225,14 @@
   <script type="module">
     import { onSession, getUserData } from "./js/auth.js";
     import { initNavbar } from "./js/navbar.js";
-    import { onTracks, deleteTrack, loadAudioBlob } from "./games/musica.js";
+    import { mountAdminSidebar } from "./js/admin-sidebar.js";
+    import { onTracks, deleteTrack, updateTrack, loadAudioBlob } from "./games/musica.js";
 
     initNavbar();
+    mountAdminSidebar("musica");
 
     let adminUid = null;
+    let latestTracks = {};
 
     onSession(async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
@@ -191,6 +247,8 @@
       const list  = document.getElementById("tracks-list");
       const count = document.getElementById("tracks-count");
       if (!list) return;
+
+      latestTracks = tracks;
 
       const items = Object.values(tracks)
         .sort((a, b) => (b.creadoEn || 0) - (a.creadoEn || 0));
@@ -212,23 +270,48 @@
                 ${t.artista ? `<div class="track-artista">${esc(t.artista)}</div>` : ""}
                 ${fecha ? `<div class="track-fecha">Subido el ${fecha}</div>` : ""}
               </div>
-              <button class="track-del-btn" onclick="confirmDelete('${t.id}','${t.fileId || ""}','${escAttr(t.titulo)}')">Eliminar</button>
-            </div>
-            <!-- Player lazy: carga el blob solo cuando el admin hace click -->
-            <div id="player-wrap-${t.id}" style="margin:10px 0 4px;">
-              <button onclick="loadAdminPlayer('${t.id}','${t.audioUrl || ""}')"
-                style="background:none;border:1px solid rgba(200,150,0,0.3);color:var(--dorado);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;letter-spacing:1px;">
-                ▶ Cargar audio
-              </button>
-            </div>
-            ${t.letra ? `
-              <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
-                ▶ Ver letra
-              </button>
-              <div class="track-letra-body" id="letra-${t.id}">
-                <pre>${esc(t.letra)}</pre>
+              <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button class="track-edit-btn" onclick="toggleEdit('${t.id}')">Editar</button>
+                <button class="track-del-btn" onclick="confirmDelete('${t.id}','${t.fileId || ""}','${escAttr(t.titulo)}')">Eliminar</button>
               </div>
-            ` : `<span style="font-size:10px;color:var(--crema-3);opacity:.5;">Sin letra</span>`}
+            </div>
+
+            <div id="view-${t.id}">
+              <!-- Player lazy: carga el blob solo cuando el admin hace click -->
+              <div id="player-wrap-${t.id}" style="margin:10px 0 4px;">
+                <button onclick="loadAdminPlayer('${t.id}','${t.audioUrl || ""}')"
+                  style="background:none;border:1px solid rgba(200,150,0,0.3);color:var(--dorado);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;letter-spacing:1px;">
+                  ▶ Cargar audio
+                </button>
+              </div>
+              ${t.letra ? `
+                <button class="track-letra-toggle" id="toggle-${t.id}" onclick="toggleLetra('${t.id}')">
+                  ▶ Ver letra
+                </button>
+                <div class="track-letra-body" id="letra-${t.id}">
+                  <pre>${esc(t.letra)}</pre>
+                </div>
+              ` : `<span style="font-size:10px;color:var(--crema-3);opacity:.5;">Sin letra</span>`}
+            </div>
+
+            <div class="track-edit-form" id="edit-${t.id}">
+              <div class="track-edit-field">
+                <label class="track-edit-label">Título</label>
+                <input class="track-edit-input" id="edit-titulo-${t.id}" value="${escAttr(t.titulo)}" />
+              </div>
+              <div class="track-edit-field">
+                <label class="track-edit-label">Intérprete</label>
+                <input class="track-edit-input" id="edit-artista-${t.id}" value="${escAttr(t.artista || "")}" />
+              </div>
+              <div class="track-edit-field">
+                <label class="track-edit-label">Letra</label>
+                <textarea class="admin-textarea" style="min-height:90px;" id="edit-letra-${t.id}">${esc(t.letra || "")}</textarea>
+              </div>
+              <div class="track-edit-actions">
+                <button class="admin-btn secondary small" onclick="cancelEdit('${t.id}')">Cancelar</button>
+                <button class="admin-btn primary small" onclick="saveEdit('${t.id}')">Guardar</button>
+              </div>
+            </div>
           </div>
         `;
       }).join("");
@@ -261,6 +344,42 @@
       if (!body || !toggle) return;
       const open = body.classList.toggle("visible");
       toggle.textContent = open ? "▼ Ocultar letra" : "▶ Ver letra";
+    };
+
+    // ── Editar ──
+    window.toggleEdit = function(id) {
+      const view = document.getElementById("view-" + id);
+      const edit = document.getElementById("edit-" + id);
+      if (!view || !edit) return;
+      const opening = !edit.classList.contains("visible");
+      edit.classList.toggle("visible", opening);
+      view.style.display = opening ? "none" : "";
+    };
+
+    window.cancelEdit = function(id) {
+      const t = latestTracks[id];
+      if (t) {
+        document.getElementById("edit-titulo-" + id).value  = t.titulo  || "";
+        document.getElementById("edit-artista-" + id).value = t.artista || "";
+        document.getElementById("edit-letra-" + id).value   = t.letra   || "";
+      }
+      const view = document.getElementById("view-" + id);
+      const edit = document.getElementById("edit-" + id);
+      if (view) view.style.display = "";
+      if (edit) edit.classList.remove("visible");
+    };
+
+    window.saveEdit = async function(id) {
+      const titulo  = document.getElementById("edit-titulo-" + id).value.trim();
+      const artista = document.getElementById("edit-artista-" + id).value.trim();
+      const letra   = document.getElementById("edit-letra-" + id).value;
+      if (!titulo) { showToast("El título no puede quedar vacío."); return; }
+      try {
+        await updateTrack(adminUid, id, { titulo, artista, letra });
+        showToast("Tema actualizado.");
+      } catch(e) {
+        showToast("Error: " + e.message);
+      }
     };
 
     // ── Eliminar ──
