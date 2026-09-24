@@ -300,6 +300,23 @@ img {
   margin-top: 12px;
 }
 
+.nav-bottom-credit {
+  font-size: 10px;
+  color: rgba(122,96,64,0.4);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.nav-bottom-credit-link {
+  color: rgba(122,96,64,0.65);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-bottom-credit-link:hover {
+  color: var(--dorado);
+}
+
 /* ─── UTILIDADES ─── */
 .hidden {
   display: none !important;
