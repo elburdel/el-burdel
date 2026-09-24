@@ -144,20 +144,16 @@ body.checking-session > * { visibility: hidden; }
   background: var(--gc);
   opacity: 0.08;
 }
-.game-card.wide { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px; cursor: default; }
 .game-icon { width: 34px; height: 34px; color: var(--gc); display: block; margin: 0 auto 10px; }
-.game-card.wide .game-icon { margin: 0; flex-shrink: 0; }
 .game-name { font-family: var(--font-title); font-size: 16px; letter-spacing: 0.5px; color: var(--crema); }
 .game-desc { font-size: 10px; color: var(--crema-3); margin-top: 4px; line-height: 1.4; }
 .game-badge {
   display: inline-block; margin-top: 6px; font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
   color: var(--dorado-claro); border: 1px solid var(--dorado-oscuro); border-radius: 10px; padding: 2px 8px;
 }
-.game-card.wide .game-badge { margin-top: 4px; }
 
 @media (min-width: 700px) {
   .games-grid { grid-template-columns: repeat(3, 1fr); }
-  .game-card.wide { grid-column: 1 / -1; }
 }
 
 /* ══════════ SABIAS QUE / FRASE DE HOY ══════════ */
