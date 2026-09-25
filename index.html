@@ -160,14 +160,15 @@
 
   <div class="section">
     <span class="section-label">Acá pasan cosas</span>
-    <div class="collage">
-      <div class="collage-photo a"><div class="ph"></div><span>foto</span></div>
-      <div class="collage-photo b"><div class="ph"></div><span>foto</span></div>
-      <div class="collage-photo c"><div class="ph"></div><span>foto</span></div>
-      <div class="collage-photo d"><div class="ph"></div><span>foto</span></div>
-      <div class="collage-photo e"><div class="ph"></div><span>foto</span></div>
+    <div class="collage" id="collage-landing">
+      <p class="collage-empty" id="collage-empty">Fotos de la última noche, muy pronto.</p>
     </div>
     <div class="section-cta"><a href="login.html?tab=register" class="hero-btn">Ver más al entrar</a></div>
+  </div>
+
+  <div class="lightbox-overlay" id="lightbox-overlay">
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Cerrar">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
   </div>
 
   <div class="cierre">
@@ -211,11 +212,48 @@
 
   <script type="module">
     import { onSession, redirectByRole } from "./js/auth.js";
-    import { getFraseDelDia, getFraseDelDiaOffset } from "./games/frases.js";
+    import { getFraseDelDiaOffset } from "./games/frases.js";
+    import { getCuriosidadDelDia } from "./games/curiosidades.js";
+    import { getLandingFotos } from "./games/landing-galeria.js";
 
     // ── Contenido estático del día (sin Firebase) ──
-    document.getElementById("texto-sabias-que").textContent = getFraseDelDia();
+    document.getElementById("texto-sabias-que").textContent = getCuriosidadDelDia();
     document.getElementById("texto-frase-hoy").textContent = getFraseDelDiaOffset(180);
+
+    // ── "Acá pasan cosas": fotos cargadas desde admin (Firebase + Drive) ──
+    const lightboxOverlay = document.getElementById("lightbox-overlay");
+    const lightboxImg     = document.getElementById("lightbox-img");
+
+    function abrirLightbox(url) {
+      lightboxImg.src = url;
+      lightboxOverlay.classList.add("open");
+    }
+    function cerrarLightbox() {
+      lightboxOverlay.classList.remove("open");
+      lightboxImg.src = "";
+    }
+    document.getElementById("lightbox-close").addEventListener("click", cerrarLightbox);
+    lightboxOverlay.addEventListener("click", (e) => {
+      if (e.target === lightboxOverlay) cerrarLightbox();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") cerrarLightbox();
+    });
+
+    getLandingFotos().then(fotos => {
+      if (!fotos.length) return; // se queda el mensaje "Fotos de la última noche, muy pronto."
+      const cont = document.getElementById("collage-landing");
+      cont.innerHTML = "";
+      fotos.forEach(foto => {
+        const div = document.createElement("div");
+        div.className = "collage-photo";
+        div.innerHTML = `<img src="${foto.url}" alt="" loading="lazy" />`;
+        div.addEventListener("click", () => abrirLightbox(foto.url));
+        cont.appendChild(div);
+      });
+    }).catch(() => {
+      // Si falla la lectura (ej. reglas de Firebase), dejamos el mensaje por defecto.
+    });
 
     // ── Sesión: si hay usuario logueado, redirige ANTES de mostrar nada.
     //    Reutiliza redirectByRole (misma lógica que login.html), así que
