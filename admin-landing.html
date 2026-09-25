@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Landing — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+
+    .adl-main { padding: 24px 20px 60px; max-width: 900px; margin: 0 auto; }
+
+    .adl-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .adl-title {
+      font-family: var(--font-title);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .adl-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 7px 12px;
+      border-radius: 5px;
+      border: 1px solid rgba(200,150,0,0.2);
+      background: transparent;
+      color: var(--crema-3);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .adl-btn:hover { color: var(--crema); background: rgba(200,150,0,0.06); }
+    .adl-btn.primary { border-color: rgba(200,150,0,0.3); background: rgba(200,150,0,0.1); color: var(--dorado-claro); }
+    .adl-btn.primary:hover { background: rgba(200,150,0,0.2); }
+    .adl-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .adl-hint {
+      font-size: 12px;
+      color: var(--crema-3);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+    .adl-hint code { color: var(--dorado); }
+
+    .adl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .adl-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(200,150,0,0.15);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .adl-card-img {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .adl-card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      padding: 6px 8px;
+    }
+
+    .adl-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--crema-3);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+    .adl-icon-btn:hover { color: var(--crema); background: rgba(255,255,255,0.06); }
+    .adl-icon-btn:disabled { opacity: 0.25; cursor: default; }
+    .adl-icon-btn.danger:hover { color: #e07a7a; }
+
+    .adl-upload-card {
+      aspect-ratio: 4/5;
+      border: 1px dashed rgba(200,150,0,0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--crema-3);
+      font-size: 12px;
+      text-align: center;
+      padding: 10px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .adl-upload-card:hover { border-color: var(--dorado); color: var(--crema); }
+    .adl-upload-card.uploading { opacity: 0.5; pointer-events: none; }
+    .adl-upload-card span.plus { font-size: 26px; line-height: 1; color: var(--dorado); }
+
+    .adl-empty {
+      color: var(--crema-3);
+      font-size: 13px;
+      padding: 30px 0;
+      text-align: center;
+    }
+
+    .hidden { display: none !important; }
+
+  </style>
+</head>
+<body>
+
+<main class="adl-main">
+
+  <div class="adl-topbar">
+    <div class="adl-title">🖼️ Landing</div>
+    <a href="admin.html" class="adl-btn">← Volver al admin</a>
+  </div>
+
+  <div class="adl-hint">
+    Estas son las fotos que aparecen en <code>elburdel.com.ar</code>, en "Acá pasan cosas".
+    Se guardan en Drive, en <code>Galeria Landing</code>. Podés agregar, borrar y reordenar
+    con las flechas — el orden de acá es el orden en que se ven en la portada.
+  </div>
+
+  <div class="adl-grid" id="adl-grid">
+    <!-- tarjetas de fotos + tarjeta de "agregar" se generan por JS -->
+  </div>
+
+  <input type="file" id="adl-file-input" accept="image/*" class="hidden" />
+
+</main>
+
+<script type="module">
+  import { auth } from "./js/firebase-init.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    onLandingFotos, uploadLandingImg, saveLandingFoto,
+    removeLandingFoto, moverLandingFoto
+  } from "./games/landing-galeria.js";
+
+  const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+  let uid = null;
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user || user.uid !== ADMIN_UID) {
+      window.location.href = "/login.html";
+      return;
+    }
+    uid = user.uid;
+    onLandingFotos(renderGrid);
+  });
+
+  const grid = document.getElementById("adl-grid");
+  const fileInput = document.getElementById("adl-file-input");
+
+  function renderGrid(fotos) {
+    grid.innerHTML = "";
+
+    if (!fotos.length) {
+      const empty = document.createElement("div");
+      empty.className = "adl-empty";
+      empty.textContent = "Todavía no subiste ninguna foto.";
+      grid.appendChild(empty);
+    }
+
+    fotos.forEach((foto, i) => {
+      const card = document.createElement("div");
+      card.className = "adl-card";
+      card.innerHTML = `
+        <img class="adl-card-img" src="${foto.url}" alt="" loading="lazy" />
+        <div class="adl-card-actions">
+          <button type="button" class="adl-icon-btn" data-dir="-1" ${i === 0 ? "disabled" : ""} title="Subir">↑</button>
+          <button type="button" class="adl-icon-btn" data-dir="1" ${i === fotos.length - 1 ? "disabled" : ""} title="Bajar">↓</button>
+          <button type="button" class="adl-icon-btn danger" data-del title="Borrar">🗑️</button>
+        </div>
+      `;
+      card.querySelector('[data-dir="-1"]').addEventListener("click", () => moverLandingFoto(foto.id, -1));
+      card.querySelector('[data-dir="1"]').addEventListener("click", () => moverLandingFoto(foto.id, 1));
+      card.querySelector('[data-del]').addEventListener("click", () => confirmarBorrar(foto));
+      grid.appendChild(card);
+    });
+
+    const upload = document.createElement("div");
+    upload.className = "adl-upload-card";
+    upload.id = "adl-upload-card";
+    upload.innerHTML = `<span class="plus">+</span><span>Agregar foto</span>`;
+    upload.addEventListener("click", () => fileInput.click());
+    grid.appendChild(upload);
+  }
+
+  function confirmarBorrar(foto) {
+    if (!confirm("¿Borrar esta foto? También se borra del Drive.")) return;
+    removeLandingFoto(uid, foto.id).catch(err => alert("Error al borrar: " + err.message));
+  }
+
+  fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const uploadCard = document.getElementById("adl-upload-card");
+    uploadCard.classList.add("uploading");
+    try {
+      const b64 = await fileToB64(file);
+      const nombre = "landing_" + Date.now();
+      const { url, fileId } = await uploadLandingImg(uid, b64, nombre);
+      await saveLandingFoto({ url, fileId, nombre });
+    } catch (err) {
+      alert("Error al subir la imagen: " + err.message);
+    } finally {
+      uploadCard.classList.remove("uploading");
+      fileInput.value = "";
+    }
+  });
+
+  function fileToB64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  import { mountAdminSidebar } from "./js/admin-sidebar.js";
+  initNavbar();
+  mountAdminSidebar("landing");
+</script>
+
+</body>
+</html>
