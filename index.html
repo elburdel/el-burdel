@@ -25,14 +25,17 @@
 <body class="checking-session">
 
   <!-- Sin sesión activa: se muestra la landing directamente (sin telón).
-       Con sesión activa: el script de abajo redirige antes de pintar nada. -->
+       Con sesión activa: el script de abajo redirige antes de pintar nada,
+       salvo que la URL tenga ?ver=1 (así el link "Inicio" del pie de
+       dashboard/juegos puede traer de vuelta a un usuario logueado sin
+       que lo rebote). -->
 
   <nav class="landing-nav">
     <div class="landing-nav-brand">
       <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
       <span>EL BURDEL</span>
     </div>
-    <a href="login.html" class="landing-nav-cta">Entrar</a>
+    <a href="login.html" class="landing-nav-cta" id="nav-cta">Entrar</a>
   </nav>
 
   <section class="hero">
@@ -50,8 +53,8 @@
     <div class="hero-sub">La noche empieza acá</div>
     <p class="hero-copy">Juegos, risas, estrategia y mucha joda. Un lugar para desconectar del día y conectar con la noche.</p>
 
-    <a href="login.html?tab=register" class="hero-btn">Entrar al Burdel</a>
-    <div class="hero-ingresa">¿Ya tenés cuenta? <a href="login.html">Ingresá</a></div>
+    <a href="login.html?tab=register" class="hero-btn" id="hero-cta">Entrar al Burdel</a>
+    <div class="hero-ingresa" id="hero-ingresa">¿Ya tenés cuenta? <a href="login.html">Ingresá</a></div>
 
     <div class="bulb-row">
       <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
@@ -255,16 +258,30 @@
       // Si falla la lectura (ej. reglas de Firebase), dejamos el mensaje por defecto.
     });
 
-    // ── Sesión: si hay usuario logueado, redirige ANTES de mostrar nada.
+    // ── Sesión: si hay usuario logueado, redirige ANTES de mostrar nada,
+    //    salvo que venga con ?ver=1 (visita explícita a la landing, ej.
+    //    desde el link "Inicio" del pie de página de dashboard/juegos).
     //    Reutiliza redirectByRole (misma lógica que login.html), así que
     //    pending/paused/admin/activo se comportan exactamente igual que
     //    en el resto del sitio. ──
+    const verLandingAunLogueado = new URLSearchParams(location.search).get("ver") === "1";
+
     onSession(async (user) => {
-      if (user) {
+      if (user && !verLandingAunLogueado) {
         await redirectByRole(user);
         return; // nunca se llega a mostrar el telón ni la landing
       }
-      // Sin sesión: mostramos la landing (el telón ya está animando por CSS)
+      if (user) {
+        // Logueado, pero visitando la landing a propósito: los CTA de
+        // "Entrar" apuntan al dashboard en vez de a login.html.
+        document.getElementById("nav-cta").textContent = "Mi dashboard";
+        document.getElementById("nav-cta").href = "/dashboard.html";
+        document.getElementById("hero-cta").textContent = "Ir a mi dashboard";
+        document.getElementById("hero-cta").href = "/dashboard.html";
+        document.getElementById("hero-ingresa").style.display = "none";
+      }
+      // Sin sesión (o logueado viendo la landing a propósito): mostramos
+      // la landing (el telón ya está animando por CSS).
       document.body.classList.remove("checking-session");
     });
   </script>
