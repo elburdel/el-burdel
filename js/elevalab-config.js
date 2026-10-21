@@ -6,4 +6,4 @@
 //  páginas públicas la toman de acá vía js/site-credit.js.
 // ============================================================
 
-export const ELEVALAB_URL = "https://elevalabar.github.io/elevalab-web/index.html";
+export const ELEVALAB_URL = "https://elevalab.com.ar";
