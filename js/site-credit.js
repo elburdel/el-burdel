@@ -16,7 +16,10 @@ function inyectarCreditoElevaLab() {
   const p = document.createElement("p");
   p.className = "nav-bottom-credit";
   p.innerHTML =
-    'Desarrollado por <a href="' + ELEVALAB_URL + '" target="_blank" rel="noopener noreferrer" class="nav-bottom-credit-link">ElevaLab</a>';
+    'Desarrollado por <a href="' + ELEVALAB_URL + '" target="_blank" rel="noopener noreferrer" class="nav-bottom-credit-link" ' +
+    'style="display:inline-flex;align-items:center;gap:.35rem;vertical-align:middle">' +
+    // Logo opcional: si assets/img/elevalab.png no existe, se oculta solo y queda el texto.
+    '<img src="assets/img/elevalab.png" alt="" onerror="this.remove()" style="height:14px;width:auto;border-radius:3px">ElevaLab</a>';
   contenedor.appendChild(p);
 }
 
