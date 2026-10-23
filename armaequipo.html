@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Armá tu equipo — El Burdel</title>
+  <meta name="description" content="Armá tu equipo ideal con la gente de El Burdel" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="Armá tu equipo — El Burdel" />
+  <meta property="og:url" content="https://elburdel.com.ar/armaequipo.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/armaequipo.css" />
+</head>
+<body>
+
+<main class="ae-main">
+  <div class="ae-header">
+    <div class="ae-title">⚽ ARMÁ TU EQUIPO</div>
+    <div class="ae-subtitle" id="ae-subtitulo">Cargando...</div>
+  </div>
+
+  <!-- Estado de carga / error -->
+  <div class="ae-estado" id="ae-estado">Cargando...</div>
+
+  <!-- Juego -->
+  <div class="ae-app hidden" id="ae-app">
+
+    <div class="ae-toolbar">
+      <label class="ae-toolbar-label" for="ae-formacion">Formación</label>
+      <select class="ae-select" id="ae-formacion"></select>
+      <button type="button" class="ae-btn" id="ae-reiniciar">Vaciar equipo</button>
+    </div>
+
+    <div class="ae-progreso" id="ae-progreso"></div>
+
+    <div class="ae-layout">
+
+      <!-- Cancha -->
+      <section class="ae-col-cancha" aria-label="Cancha">
+        <div class="ae-cancha">
+          <svg class="ae-lineas" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="3" y="3" width="94" height="144" />
+            <line x1="3" y1="75" x2="97" y2="75" />
+            <circle cx="50" cy="75" r="13" />
+            <circle cx="50" cy="75" r="0.8" class="punto" />
+            <rect x="25" y="3" width="50" height="24" />
+            <rect x="38" y="3" width="24" height="9" />
+            <rect x="25" y="123" width="50" height="24" />
+            <rect x="38" y="138" width="24" height="9" />
+          </svg>
+          <div class="ae-slots" id="ae-slots"></div>
+        </div>
+        <div class="ae-leyenda" aria-hidden="true">
+          <span>ARQ arquero</span><span>DEF defensor</span><span>MED mediocampista</span><span>DEL delantero</span>
+        </div>
+        <div class="ae-acciones" id="ae-acciones" aria-live="polite"></div>
+      </section>
+
+      <!-- Suplentes, plantel y guardado -->
+      <section class="ae-col-panel">
+        <div class="ae-bloque">
+          <h2 class="ae-bloque-titulo">Suplentes (7)</h2>
+          <div class="ae-suplentes" id="ae-suplentes"></div>
+        </div>
+
+        <div class="ae-bloque">
+          <h2 class="ae-bloque-titulo">Plantel</h2>
+          <input type="search" class="ae-buscar" id="ae-buscar" placeholder="Buscar integrante..." autocomplete="off" />
+          <div class="ae-plantel" id="ae-plantel"></div>
+        </div>
+
+        <div class="ae-bloque">
+          <h2 class="ae-bloque-titulo">Tu equipo</h2>
+          <ul class="ae-checks" id="ae-checks"></ul>
+          <button type="button" class="ae-btn ae-btn-primario" id="ae-guardar" disabled>Guardar equipo</button>
+          <p class="ae-msg" id="ae-msg" role="status"></p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<!-- NAV BOTTOM -->
+<footer class="nav-bottom">
+  <div class="nav-bottom-inner">
+    <div class="nav-bottom-links">
+      <a href="index.html?ver=1" class="nav-bottom-link">Inicio</a>
+      <a href="noticias.html" class="nav-bottom-link">Noticias</a>
+      <a href="galeria.html" class="nav-bottom-link">Galería</a>
+      <a href="musica.html" class="nav-bottom-link">Música</a>
+      <a href="ranking.html" class="nav-bottom-link">Ranking</a>
+    </div>
+    <div class="nav-bottom-divider"></div>
+    <div class="nav-bottom-links">
+      <a href="terminos.html" class="nav-bottom-link">Términos</a>
+      <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+    </div>
+    <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
+  </div>
+</footer>
+  <script type="module" src="js/site-credit.js"></script>
+
+<script type="module" src="games/armaequipo.js"></script>
+
+</body>
+</html>
