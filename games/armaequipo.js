@@ -50,6 +50,13 @@ export const ROLES_NOMBRE = { ARQ: "arquero", DEF: "defensor", MED: "mediocampis
 
 const RE_ID = /^[a-z0-9_]{1,30}$/;
 const RE_FOTO = /^assets\/img\/plantel\/[a-z0-9_-]{1,60}\.(jpg|jpeg|png|webp)$/;
+const RE_FOTO_DATA = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
+export const MAX_FOTO_CHARS = 40000;
+
+// Una foto es válida si es una ruta relativa del repositorio o una imagen JPEG subida desde el admin (data URL).
+export function fotoValida(f) {
+  return typeof f === "string" && (RE_FOTO.test(f) || (f.length <= MAX_FOTO_CHARS && RE_FOTO_DATA.test(f)));
+}
 
 export function esFormacion(f) {
   return typeof f === "string" && Object.prototype.hasOwnProperty.call(FORMACIONES, f);
@@ -206,7 +213,7 @@ export function sanitizarPlantel(raw) {
     lista.push({
       id,
       nombre,
-      foto: typeof v.foto === "string" && RE_FOTO.test(v.foto) ? v.foto : null,
+      foto: fotoValida(v.foto) ? v.foto : null,
       activo: v.activo === true,
       orden: Number.isFinite(v.orden) ? v.orden : 9999,
     });
@@ -266,6 +273,28 @@ async function cargarMiEquipo(uid) {
   return snap.exists() ? sanitizarEquipo(snap.val()) : null;
 }
 
+// Devuelve los equipos de los usuarios activos que ya armaron uno. Del perfil se usan solo uid, nick y estado.
+async function cargarEquiposActivos() {
+  const snap = await get(ref(db, "users"));
+  const raw = snap.val();
+  const usuarios = [];
+  if (raw && typeof raw === "object") {
+    for (const [uid, u] of Object.entries(raw)) {
+      if (!u || typeof u !== "object" || u.status !== "active") continue;
+      usuarios.push({ uid, nick: typeof u.nick === "string" && u.nick ? u.nick.slice(0, 24) : "Sin nick" });
+    }
+  }
+  const lista = await Promise.all(usuarios.map(async (u) => {
+    try {
+      const s = await get(ref(db, `armaequipo/equipos/${u.uid}`));
+      if (!s.exists()) return null;
+      const r = sanitizarEquipo(s.val());
+      return r ? { uid: u.uid, nick: u.nick, estado: r.estado, avisos: r.avisos, actualizadoEn: r.actualizadoEn } : null;
+    } catch (e) { return null; } // un equipo que no se puede leer simplemente no se muestra
+  }));
+  return lista.filter(Boolean);
+}
+
 async function guardarMiEquipo(uid, nick, estado) {
   const equipo = { ...armarEquipoPlano(estado, nick), actualizadoEn: serverTimestamp() };
   await set(ref(db, `armaequipo/equipos/${uid}`), equipo);
@@ -302,7 +331,7 @@ let estado = crearEstado();
 let indice = new Map();      // id → integrante del plantel (activos y desactivados)
 let activos = [];            // integrantes activos, ordenados
 const ctx = { uid: null, nick: "", existente: false };
-const ui = { seleccion: null, busqueda: "", guardando: false, mensaje: null };
+const ui = { seleccion: null, busqueda: "", guardando: false, mensaje: null, equipos: [], equipoVisto: null, equiposCargados: false };
 
 function infoJugador(id) {
   return indice.get(id) || { id, nombre: "No disponible", foto: null, activo: false, desconocido: true };
@@ -400,6 +429,7 @@ async function onGuardar() {
   try {
     await guardarMiEquipo(ctx.uid, ctx.nick, estado);
     ctx.existente = true;
+    ui.equiposCargados = false;
     ui.mensaje = { tipo: "ok", texto: "¡Equipo guardado!" };
   } catch (e) {
     ui.mensaje = { tipo: "error", texto: mensajeError(e) };
@@ -410,34 +440,39 @@ async function onGuardar() {
 }
 
 // ── Render ──
-function renderCancha() {
-  const cont = $("ae-slots");
-  cont.replaceChildren();
-  for (const s of slotsActuales()) {
-    const pid = estado.titulares[s.id] || null;
-    const info = pid ? infoJugador(pid) : null;
-    const b = el("button", "ae-slot");
+// Un puesto de la cancha. interactivo = true en el editor; false en la vista de equipos ajenos.
+function crearSlot(s, est, interactivo) {
+  const pid = est.titulares[s.id] || null;
+  const info = pid ? infoJugador(pid) : null;
+  const b = el(interactivo ? "button" : "div", "ae-slot" + (interactivo ? "" : " lectura"));
+  b.style.left = s.x + "%";
+  b.style.top = s.y + "%";
+  if (pid) b.classList.add("ocupado");
+  if (info && (info.desconocido || !info.activo)) b.classList.add("invalido");
+  if (pid && est.capitan === pid) b.classList.add("capitan");
+  b.setAttribute("aria-label", `${ROLES_NOMBRE[s.rol]} (${s.etiqueta}): ${info ? info.nombre : "vacío"}${pid && est.capitan === pid ? ", capitán" : ""}`);
+  b.title = info ? info.nombre : `${s.etiqueta} (vacío)`;
+  if (interactivo) {
     b.type = "button";
-    b.style.left = s.x + "%";
-    b.style.top = s.y + "%";
     b.dataset.slot = s.id;
-    if (pid) b.classList.add("ocupado");
-    if (info && (info.desconocido || !info.activo)) b.classList.add("invalido");
-    if (pid && estado.capitan === pid) b.classList.add("capitan");
     const sel = seleccionEs("slot", s.id);
     if (sel) b.classList.add("seleccionado");
     b.setAttribute("aria-pressed", String(sel));
-    b.setAttribute("aria-label", `${ROLES_NOMBRE[s.rol]} (${s.etiqueta}): ${info ? info.nombre : "vacío"}${pid && estado.capitan === pid ? ", capitán" : ""}`);
-    b.title = info ? info.nombre : `${s.etiqueta} (vacío)`;
-    const circulo = el("span", "ae-slot-circulo");
-    circulo.appendChild(info ? crearAvatar(info) : el("span", "ae-slot-mas", "+"));
-    b.appendChild(circulo);
-    b.appendChild(el("span", "ae-slot-rol", s.rol));
-    if (info) b.appendChild(el("span", "ae-slot-nombre", nombreCorto(info.nombre)));
-    if (pid && estado.capitan === pid) b.appendChild(el("span", "ae-slot-cap", "C"));
     b.addEventListener("click", () => clickPos({ tipo: "slot", id: s.id }));
-    cont.appendChild(b);
   }
+  const circulo = el("span", "ae-slot-circulo");
+  circulo.appendChild(info ? crearAvatar(info) : el("span", "ae-slot-mas", "+"));
+  b.appendChild(circulo);
+  b.appendChild(el("span", "ae-slot-rol", s.rol));
+  if (info) b.appendChild(el("span", "ae-slot-nombre", nombreCorto(info.nombre)));
+  if (pid && est.capitan === pid) b.appendChild(el("span", "ae-slot-cap", "C"));
+  return b;
+}
+
+function renderCancha() {
+  const cont = $("ae-slots");
+  cont.replaceChildren();
+  for (const s of slotsActuales()) cont.appendChild(crearSlot(s, estado, true));
 }
 
 function renderSuplentes() {
@@ -582,6 +617,111 @@ function render() {
   renderProgreso();
 }
 
+// ── Vista de los equipos de los demás ──
+function equiposDemo() {
+  const hacer = (uid, nick, formacion, desde, extra) => {
+    const e = crearEstado(formacion);
+    SLOTS_TIT.forEach((s, i) => asignar(e, { tipo: "slot", id: s }, DEMO_PLANTEL[(desde + i) % 22].id));
+    SLOTS_SUP.forEach((s, i) => { asignar(e, { tipo: "sup", id: s }, DEMO_PLANTEL[(desde + 11 + i) % 22].id); setReemplaza(e, s, SLOTS_TIT[i + 1]); });
+    alternarCapitan(e, "p05");
+    if (extra) extra(e);
+    return { uid, nick, estado: e, avisos: [], actualizadoEn: Date.now() };
+  };
+  return [
+    hacer("demo-a", "Demo Ana", "4-3-3", 0),
+    hacer("demo-b", "Demo Beto", "3-5-2", 5),
+    { ...hacer("demo-c", "Demo Carla", "4-4-2", 9, (e) => { e.titulares.p03 = "fantasma"; delete e.titulares.p04; }), avisos: ["datos de ejemplo incompletos"] },
+  ];
+}
+
+function dibujarCanchaLectura(est) {
+  const cancha = el("div", "ae-cancha");
+  const base = document.querySelector("#ae-app .ae-lineas");
+  if (base) cancha.appendChild(base.cloneNode(true));
+  const slots = el("div", "ae-slots");
+  for (const s of construirSlots(est.formacion)) slots.appendChild(crearSlot(s, est, false));
+  cancha.appendChild(slots);
+  return cancha;
+}
+
+function verEquipo(uid) {
+  const e = ui.equipos.find((x) => x.uid === uid);
+  const cont = $("ae-eq-detalle");
+  cont.replaceChildren();
+  if (!e) { cont.classList.add("hidden"); return; }
+  ui.equipoVisto = uid;
+  for (const b of $("ae-eq-lista").children) b.classList.toggle("seleccionado", b.dataset.uid === uid);
+  const izq = el("div");
+  izq.appendChild(dibujarCanchaLectura(e.estado));
+  const der = el("div");
+  der.appendChild(el("div", "ae-eq-titulo", e.nick + (e.uid === ctx.uid ? " (vos)" : "")));
+  const capitan = e.estado.capitan ? infoJugador(e.estado.capitan).nombre : "sin capitán";
+  const fecha = e.actualizadoEn ? ` · actualizado el ${new Date(e.actualizadoEn).toLocaleDateString("es-AR")}` : "";
+  der.appendChild(el("div", "ae-eq-meta", `Formación ${e.estado.formacion} · capitán: ${capitan}${fecha}`));
+  if (e.avisos.length) der.appendChild(el("div", "ae-eq-aviso", "Este equipo tiene datos incompletos o inválidos; se muestra lo que se pudo leer."));
+  const lista = el("ul", "ae-eq-sups");
+  const etiqueta = (id) => (construirSlots(e.estado.formacion).find((s) => s.id === id) || {}).etiqueta;
+  for (const sid of SLOTS_SUP) {
+    const sup = e.estado.suplentes[sid];
+    if (!sup.jugador) continue;
+    const info = infoJugador(sup.jugador);
+    const li = el("li", "ae-eq-sup", info.nombre + (info.activo ? "" : " (no disponible)"));
+    if (sup.reemplaza) {
+      const titular = e.estado.titulares[sup.reemplaza];
+      li.appendChild(el("small", null, ` — reemplaza a ${etiqueta(sup.reemplaza)}${titular ? " (" + infoJugador(titular).nombre + ")" : ""}`));
+    }
+    lista.appendChild(li);
+  }
+  if (!lista.children.length) lista.appendChild(el("li", "ae-eq-sup", "Sin suplentes válidos."));
+  der.appendChild(lista);
+  cont.appendChild(izq);
+  cont.appendChild(der);
+  cont.classList.remove("hidden");
+}
+
+function renderListaEquipos() {
+  const cont = $("ae-eq-lista");
+  cont.replaceChildren();
+  $("ae-eq-detalle").classList.add("hidden");
+  const lista = [...ui.equipos].sort((a, b) => (b.uid === ctx.uid) - (a.uid === ctx.uid) || a.nick.localeCompare(b.nick, "es"));
+  ui.equipos = lista;
+  $("ae-eq-estado").textContent = lista.length ? "Tocá un equipo para verlo." : "Todavía nadie armó su equipo.";
+  for (const e of lista) {
+    const b = el("button", "ae-eq-card");
+    b.type = "button";
+    b.dataset.uid = e.uid;
+    b.appendChild(el("span", "ae-eq-nick", e.nick + (e.uid === ctx.uid ? " (vos)" : "")));
+    b.appendChild(el("span", "ae-eq-form", e.estado.formacion));
+    if (e.avisos.length) b.appendChild(el("span", "ae-eq-aviso", "datos incompletos"));
+    b.addEventListener("click", () => verEquipo(e.uid));
+    cont.appendChild(b);
+  }
+}
+
+async function cargarVistaEquipos() {
+  $("ae-eq-estado").textContent = "Cargando equipos...";
+  $("ae-eq-lista").replaceChildren();
+  $("ae-eq-detalle").classList.add("hidden");
+  try {
+    ui.equipos = demo ? equiposDemo() : await cargarEquiposActivos();
+    ui.equiposCargados = true;
+    renderListaEquipos();
+  } catch (e) {
+    ui.equiposCargados = false;
+    $("ae-eq-estado").textContent = "No se pudieron cargar los equipos. Probá de nuevo en un momento.";
+  }
+}
+
+function mostrarTab(cual) {
+  $("ae-pane-mi").classList.toggle("hidden", cual !== "mi");
+  $("ae-pane-equipos").classList.toggle("hidden", cual !== "equipos");
+  for (const [id, k] of [["ae-tab-mi", "mi"], ["ae-tab-equipos", "equipos"]]) {
+    $(id).classList.toggle("active", cual === k);
+    $(id).setAttribute("aria-selected", String(cual === k));
+  }
+  if (cual === "equipos" && !ui.equiposCargados) cargarVistaEquipos();
+}
+
 function mostrarEstado(texto, esError) {
   const e = $("ae-estado");
   e.textContent = texto;
@@ -630,6 +770,8 @@ async function iniciar(user, data) {
   $("ae-reiniciar").addEventListener("click", onReiniciar);
   $("ae-guardar").addEventListener("click", onGuardar);
   $("ae-buscar").addEventListener("input", (e) => { ui.busqueda = e.target.value; renderPlantel(); });
+  $("ae-tab-mi").addEventListener("click", () => mostrarTab("mi"));
+  $("ae-tab-equipos").addEventListener("click", () => mostrarTab("equipos"));
 
   $("ae-estado").classList.add("hidden");
   $("ae-app").classList.remove("hidden");
