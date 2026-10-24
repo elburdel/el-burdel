@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Armá tu equipo — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+
+    .aea-main { padding: 24px 20px 60px; max-width: 900px; margin: 0 auto; }
+
+    .aea-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .aea-title {
+      font-family: var(--font-title);
+      font-size: 24px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+    }
+
+    .aea-btn {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(200,150,0,0.25);
+      background: transparent;
+      color: var(--crema-2);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .aea-btn:hover { color: var(--crema); background: rgba(200,150,0,0.08); }
+    .aea-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .aea-btn-primario { background: var(--dorado); border-color: var(--dorado); color: var(--negro); font-weight: 700; }
+    .aea-btn-primario:hover { background: var(--dorado-claro); color: var(--negro); }
+
+    .aea-resumen { font-size: 13px; color: var(--crema-2); margin-bottom: 18px; }
+    .aea-resumen.aviso { color: var(--dorado-claro); }
+
+    .aea-bloque {
+      background: var(--negro-2);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+    .aea-bloque-titulo {
+      font-family: var(--font-title);
+      font-weight: 400;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--dorado);
+      margin-bottom: 12px;
+    }
+
+    .aea-campos { display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-bottom: 12px; }
+    .aea-campo label { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--crema-3); margin-bottom: 4px; }
+    .aea-input {
+      width: 100%;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.25);
+      border-radius: 8px;
+      color: var(--crema);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 9px 10px;
+    }
+    .aea-input:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
+
+    .aea-foto { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+    .aea-foto-ayuda { font-size: 12px; color: var(--crema-3); flex: 1 1 200px; }
+
+    .aea-avatar {
+      position: relative;
+      display: block;
+      width: 44px;
+      height: 44px;
+      flex: none;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.3);
+    }
+    .aea-avatar.grande { width: 72px; height: 72px; }
+    .aea-avatar-ini {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-title);
+      font-size: 16px;
+      color: var(--dorado);
+    }
+    .aea-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+    .aea-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+    .aea-msg { margin-top: 10px; font-size: 13px; min-height: 1.2em; }
+    .aea-msg.ok { color: var(--dorado-claro); }
+    .aea-msg.error { color: #ff8a8a; }
+
+    .aea-lista { display: flex; flex-direction: column; gap: 8px; }
+    .aea-fila {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      background: var(--negro-3);
+      border: 1px solid rgba(200,150,0,0.12);
+      border-radius: 10px;
+    }
+    .aea-fila.inactivo { opacity: 0.55; }
+    .aea-datos { flex: 1; min-width: 0; }
+    .aea-nombre { font-size: 14px; color: var(--crema); overflow-wrap: anywhere; }
+    .aea-sub { font-size: 12px; color: var(--crema-3); }
+    .aea-acciones { display: flex; gap: 6px; flex: none; }
+    .aea-vacio { font-size: 13px; color: var(--crema-3); }
+    .hidden { display: none !important; }
+
+    @media (max-width: 520px) {
+      .aea-fila { flex-wrap: wrap; }
+      .aea-acciones { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="aea-main">
+
+  <div class="aea-topbar">
+    <div class="aea-title">⚽ Armá tu equipo — Plantel</div>
+    <a href="admin.html" class="aea-btn">← Volver al admin</a>
+  </div>
+
+  <p class="aea-resumen" id="aea-resumen">Cargando plantel...</p>
+
+  <section class="aea-bloque" id="aea-form">
+    <h2 class="aea-bloque-titulo" id="aea-form-titulo">Agregar integrante</h2>
+    <div class="aea-campos">
+      <div class="aea-campo">
+        <label for="aea-nombre">Nombre</label>
+        <input type="text" class="aea-input" id="aea-nombre" maxlength="40" autocomplete="off" placeholder="Nombre del integrante" />
+      </div>
+      <div class="aea-campo">
+        <label for="aea-orden">Orden</label>
+        <input type="number" class="aea-input" id="aea-orden" step="1" />
+      </div>
+    </div>
+    <div class="aea-foto">
+      <div id="aea-previa"></div>
+      <div class="aea-foto-ayuda">
+        <input type="file" id="aea-archivo" accept="image/*" />
+        <p>La foto se recorta a un cuadrado y se reduce sola. Si no elegís una, se ven las iniciales.</p>
+      </div>
+    </div>
+    <div class="aea-botones">
+      <button type="button" class="aea-btn aea-btn-primario" id="aea-guardar">Agregar</button>
+      <button type="button" class="aea-btn hidden" id="aea-cancelar">Cancelar edición</button>
+    </div>
+    <p class="aea-msg" id="aea-msg" role="status"></p>
+  </section>
+
+  <section class="aea-bloque">
+    <h2 class="aea-bloque-titulo">Plantel</h2>
+    <div class="aea-lista" id="aea-lista"></div>
+  </section>
+
+</main>
+
+<script type="module" src="games/armaequipo-admin.js"></script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  import { mountAdminSidebar } from "./js/admin-sidebar.js";
+  initNavbar();
+  mountAdminSidebar("armaequipo");
+</script>
+
+</body>
+</html>
