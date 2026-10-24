@@ -394,3 +394,56 @@ body {
 .ae-msg { margin-top: 10px; font-size: 13px; min-height: 1.2em; text-align: center; }
 .ae-msg.ok { color: var(--dorado-claro); }
 .ae-msg.error { color: #ff8a8a; }
+
+/* ── Pestañas ── */
+.ae-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.ae-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(200,150,0,0.06);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 10px;
+  color: var(--crema-3);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ae-tab.active { background: rgba(200,150,0,0.18); border-color: var(--dorado); color: var(--dorado-claro); }
+
+/* ── Equipos de los demás ── */
+.ae-eq-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.ae-eq-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--negro-2);
+  border: 1px solid rgba(200,150,0,0.2);
+  border-radius: 10px;
+  color: var(--crema);
+  font-family: var(--font-body);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ae-eq-card.seleccionado { border-color: var(--dorado-claro); box-shadow: 0 0 0 2px rgba(245,200,66,0.45); }
+.ae-eq-nick { font-size: 14px; font-weight: 500; overflow-wrap: anywhere; }
+.ae-eq-form { font-size: 12px; color: var(--crema-3); }
+.ae-eq-aviso { font-size: 11px; color: #ff8a8a; }
+.ae-eq-detalle { display: grid; gap: 16px; }
+@media (min-width: 880px) {
+  .ae-eq-detalle { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 26px; align-items: start; }
+}
+.ae-eq-titulo { font-family: var(--font-title); font-size: 24px; letter-spacing: 2px; color: var(--dorado); overflow-wrap: anywhere; }
+.ae-eq-meta { font-size: 13px; color: var(--crema-2); margin-top: 4px; }
+.ae-eq-sups { list-style: none; margin-top: 10px; }
+.ae-eq-sup { font-size: 13px; color: var(--crema); padding: 6px 0; border-bottom: 1px solid rgba(200,150,0,0.1); overflow-wrap: anywhere; }
+.ae-eq-sup small { color: var(--crema-3); }
+.ae-slot.lectura { cursor: default; }
