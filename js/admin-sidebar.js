@@ -25,6 +25,7 @@ const ICONS = {
   quiensoyCartas: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="7" y="12" width="28" height="28" rx="2"/><line x1="13" y1="19" x2="24" y2="19"/><line x1="13" y1="25" x2="29" y2="25"/><line x1="13" y1="31" x2="29" y2="31"/></svg>`,
   ruleta: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/><line x1="24" y1="7" x2="24" y2="41"/><line x1="7" y1="24" x2="41" y2="24"/><line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/><line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/></svg>`,
   tests: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"><path d="M19 6h10"/><path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/><line x1="16.5" y1="29" x2="31.5" y2="29"/></svg>`,
+  equipo: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="5" width="32" height="38" rx="2"/><line x1="8" y1="24" x2="40" y2="24"/><circle cx="24" cy="24" r="5"/><rect x="16" y="5" width="16" height="8"/><rect x="16" y="35" width="16" height="8"/></svg>`,
 };
 
 const GROUPS = [
@@ -57,6 +58,7 @@ const GROUPS = [
       { key: "millon",          label: "El Millón",             href: "admin-millon.html",         icon: ICONS.crown,          gc: "var(--c-millon)" },
       { key: "ruleta",          label: "Ruleta",                href: "admin-ruleta.html",         icon: ICONS.ruleta,         gc: "var(--c-ruleta)" },
       { key: "tests",           label: "Tests",                 href: "admin-tests.html",          icon: ICONS.tests,          gc: "var(--c-tests)" },
+      { key: "armaequipo",      label: "Armá tu equipo",        href: "admin-armaequipo.html",     icon: ICONS.equipo,         gc: "var(--dorado)" },
     ],
   },
 ];
