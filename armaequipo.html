@@ -28,6 +28,14 @@
   <!-- Juego -->
   <div class="ae-app hidden" id="ae-app">
 
+    <div class="ae-tabs" role="tablist">
+      <button type="button" class="ae-tab active" id="ae-tab-mi" role="tab" aria-selected="true">Mi equipo</button>
+      <button type="button" class="ae-tab" id="ae-tab-equipos" role="tab" aria-selected="false">Equipos</button>
+    </div>
+
+    <!-- PESTAÑA: MI EQUIPO -->
+    <div id="ae-pane-mi">
+
     <div class="ae-toolbar">
       <label class="ae-toolbar-label" for="ae-formacion">Formación</label>
       <select class="ae-select" id="ae-formacion"></select>
@@ -81,6 +89,15 @@
       </section>
 
     </div>
+    </div>
+
+    <!-- PESTAÑA: EQUIPOS DE LOS DEMÁS -->
+    <div id="ae-pane-equipos" class="hidden">
+      <p class="ae-ayuda" id="ae-eq-estado">Cargando equipos...</p>
+      <div class="ae-eq-lista" id="ae-eq-lista"></div>
+      <div class="ae-eq-detalle hidden" id="ae-eq-detalle"></div>
+    </div>
+
   </div>
 </main>
 
