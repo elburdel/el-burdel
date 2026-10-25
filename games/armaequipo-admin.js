@@ -9,11 +9,14 @@
 //  - Los integrantes NUNCA se borran: solo se desactivan o se reactivan, para conservar
 //    el historial de los equipos ya guardados.
 //  - Todo se guarda reemplazando el integrante completo (set), nunca con cambios parciales.
+//  - Pestaña «Equipos elegidos»: el admin ve los equipos de todos los usuarios (solo lectura).
+//    Del perfil se usan únicamente uid, nick y estado; nunca el email.
 // ============================================================
 
 import { auth, db } from "../js/firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { sanitizarEquipo, construirSlots, SLOTS_SUP } from "./armaequipo.js"; // misma lectura tolerante que usa el juego
 
 const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
 const LADO_FOTO = 160;
@@ -211,6 +214,7 @@ function editar(id) {
 }
 
 async function recargar() {
+  eq.cargado = false; // los nombres que muestra la pestaña de equipos dependen del plantel
   const snap = await get(ref(db, "armaequipo/plantel"));
   plantel = leerPlantel(snap.val());
   renderResumen();
@@ -269,6 +273,128 @@ async function cambiarEstado(id) {
   }
 }
 
+// ── Equipos elegidos (solo lectura) ──
+const ROLES_ORDEN = [["ARQ", "Arquero"], ["DEF", "Defensores"], ["MED", "Mediocampistas"], ["DEL", "Delanteros"]];
+const ESTADOS = { active: "Activo", pending: "Pendiente", paused: "Pausado" };
+const eq = { lista: [], sinEquipo: [], busqueda: "", cargado: false };
+
+// Todos los usuarios del perfil (solo uid, nick y estado) + el equipo de cada uno, si lo hay.
+async function leerEquipos() {
+  const [uSnap, pSnap] = await Promise.all([get(ref(db, "users")), get(ref(db, "armaequipo/plantel"))]);
+  const jugadores = new Map(leerPlantel(pSnap.val()).map((j) => [j.id, j]));
+  const raw = uSnap.val();
+  const usuarios = [];
+  if (raw && typeof raw === "object") {
+    for (const [uid, u] of Object.entries(raw)) {
+      if (!u || typeof u !== "object") continue;
+      usuarios.push({
+        uid,
+        nick: typeof u.nick === "string" && u.nick ? u.nick.slice(0, 24) : "Sin nick",
+        estado: typeof u.status === "string" ? u.status : "?",
+      });
+    }
+  }
+  const filas = await Promise.all(usuarios.map(async (u) => {
+    try {
+      const s = await get(ref(db, `armaequipo/equipos/${u.uid}`));
+      if (!s.exists()) return { ...u, equipo: null };
+      return { ...u, equipo: sanitizarEquipo(s.val()) };
+    } catch (e) {
+      return { ...u, equipo: null, ilegible: true };
+    }
+  }));
+  const con = filas.filter((f) => f.equipo).sort((a, b) => a.nick.localeCompare(b.nick, "es"));
+  const sin = filas.filter((f) => !f.equipo).sort((a, b) => a.nick.localeCompare(b.nick, "es"));
+  return { con, sin, jugadores, total: usuarios.length };
+}
+
+function nombreJugador(jugadores, id) {
+  if (!id) return "—";
+  const j = jugadores.get(id);
+  if (!j) return "No disponible";
+  return j.activo ? j.nombre : `${j.nombre} (desactivado)`;
+}
+
+function cuerpoEquipo(f, jugadores) {
+  const cuerpo = el("div", "aea-eq-cuerpo");
+  const e = f.equipo.estado;
+  const slots = construirSlots(e.formacion);
+  const marca = (id) => (id && e.capitan === id ? " (C)" : "");
+  for (const [rol, titulo] of ROLES_ORDEN) {
+    const nombres = slots.filter((s) => s.rol === rol).map((s) => nombreJugador(jugadores, e.titulares[s.id]) + marca(e.titulares[s.id]));
+    const linea = el("div", "aea-eq-linea");
+    linea.appendChild(el("b", null, titulo + ": "));
+    linea.appendChild(document.createTextNode(nombres.join(", ")));
+    cuerpo.appendChild(linea);
+  }
+  cuerpo.appendChild(el("div", "aea-eq-sub", "Suplentes"));
+  let hay = false;
+  for (const sid of SLOTS_SUP) {
+    const sup = e.suplentes[sid];
+    if (!sup.jugador) continue;
+    hay = true;
+    let texto = nombreJugador(jugadores, sup.jugador);
+    if (sup.reemplaza) {
+      const s = slots.find((x) => x.id === sup.reemplaza);
+      texto += ` — reemplaza a ${s ? s.etiqueta : sup.reemplaza} (${nombreJugador(jugadores, e.titulares[sup.reemplaza])})`;
+    }
+    cuerpo.appendChild(el("div", "aea-eq-linea", texto));
+  }
+  if (!hay) cuerpo.appendChild(el("div", "aea-eq-linea", "Sin suplentes válidos."));
+  if (f.equipo.avisos.length) cuerpo.appendChild(el("div", "aea-eq-aviso", "Este equipo tiene datos incompletos o inválidos; se muestra lo que se pudo leer."));
+  return cuerpo;
+}
+
+function renderEquipos(jugadores) {
+  const cont = $("aea-eq-lista");
+  cont.replaceChildren();
+  const q = eq.busqueda.trim().toLowerCase();
+  const visibles = eq.lista.filter((f) => !q || f.nick.toLowerCase().includes(q));
+  $("aea-eq-resumen").textContent = `${eq.lista.length} de ${eq.lista.length + eq.sinEquipo.length} usuarios ya armaron su equipo.`;
+  if (!visibles.length) cont.appendChild(el("p", "aea-vacio", eq.lista.length ? "Ningún equipo coincide con la búsqueda." : "Todavía nadie armó su equipo."));
+  for (const f of visibles) {
+    const d = el("details", "aea-eq");
+    d.dataset.uid = f.uid;
+    const sum = el("summary");
+    sum.appendChild(el("span", "aea-eq-nick", f.nick));
+    const fecha = f.equipo.actualizadoEn ? ` · ${new Date(f.equipo.actualizadoEn).toLocaleDateString("es-AR")}` : "";
+    sum.appendChild(el("span", "aea-eq-meta", `${f.equipo.estado.formacion} · ${ESTADOS[f.estado] || f.estado}${fecha}`));
+    if (f.equipo.avisos.length) sum.appendChild(el("span", "aea-eq-malo", "datos inválidos"));
+    d.appendChild(sum);
+    d.appendChild(cuerpoEquipo(f, jugadores));
+    cont.appendChild(d);
+  }
+  const sin = eq.sinEquipo.map((f) => f.nick + (f.ilegible ? " (no se pudo leer)" : "") + (f.estado === "active" ? "" : ` [${ESTADOS[f.estado] || f.estado}]`));
+  $("aea-eq-sin").textContent = sin.length ? `Sin equipo todavía: ${sin.join(", ")}.` : "";
+}
+
+let jugadoresEq = new Map();
+async function cargarEquipos() {
+  $("aea-eq-resumen").textContent = "Cargando equipos...";
+  try {
+    const r = await leerEquipos();
+    eq.lista = r.con; eq.sinEquipo = r.sin; eq.cargado = true; jugadoresEq = r.jugadores;
+    renderEquipos(jugadoresEq);
+  } catch (e) {
+    eq.cargado = false;
+    $("aea-eq-lista").replaceChildren();
+    $("aea-eq-sin").textContent = "";
+    $("aea-eq-resumen").textContent = /PERMISSION_DENIED/i.test(String((e && (e.code || e.message)) || ""))
+      ? "Sin permiso para leer los equipos. ¿Ya están publicadas las reglas de «armaequipo»?"
+      : "No se pudieron cargar los equipos.";
+  }
+}
+
+function mostrarTab(cual) {
+  $("aea-pane-plantel").classList.toggle("hidden", cual !== "plantel");
+  $("aea-pane-equipos").classList.toggle("hidden", cual !== "equipos");
+  for (const [id, k] of [["aea-tab-plantel", "plantel"], ["aea-tab-equipos", "equipos"]]) {
+    $(id).classList.toggle("active", cual === k);
+    $(id).setAttribute("aria-selected", String(cual === k));
+  }
+  if (cual === "equipos" && !eq.cargado) cargarEquipos();
+}
+
 async function iniciar() {
   try {
     await recargar();
@@ -278,6 +404,10 @@ async function iniciar() {
   $("aea-nombre").addEventListener("input", renderPrevia);
   $("aea-archivo").addEventListener("change", onArchivo);
   $("aea-guardar").addEventListener("click", onGuardar);
+  $("aea-tab-plantel").addEventListener("click", () => mostrarTab("plantel"));
+  $("aea-tab-equipos").addEventListener("click", () => mostrarTab("equipos"));
+  $("aea-eq-actualizar").addEventListener("click", cargarEquipos);
+  $("aea-eq-buscar").addEventListener("input", (e) => { eq.busqueda = e.target.value; if (eq.cargado) renderEquipos(jugadoresEq); });
   $("aea-cancelar").addEventListener("click", () => { limpiarForm(); mensaje(""); });
   limpiarForm();
 }
