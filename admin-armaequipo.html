@@ -131,6 +131,45 @@
     .aea-vacio { font-size: 13px; color: var(--crema-3); }
     .hidden { display: none !important; }
 
+
+    /* ── Pestañas y equipos elegidos ── */
+    .aea-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .aea-tab {
+      flex: 1;
+      padding: 10px 12px;
+      background: rgba(200,150,0,0.06);
+      border: 1px solid rgba(200,150,0,0.2);
+      border-radius: 8px;
+      color: var(--crema-3);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .aea-tab.active { background: rgba(200,150,0,0.18); border-color: var(--dorado); color: var(--dorado-claro); }
+
+    .aea-eq-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .aea-eq { background: var(--negro-3); border: 1px solid rgba(200,150,0,0.15); border-radius: 10px; }
+    .aea-eq > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 12px;
+    }
+    .aea-eq > summary::-webkit-details-marker { display: none; }
+    .aea-eq-nick { font-size: 15px; color: var(--crema); overflow-wrap: anywhere; }
+    .aea-eq-meta { font-size: 12px; color: var(--crema-3); }
+    .aea-eq-malo { font-size: 12px; color: #ff8a8a; }
+    .aea-eq-cuerpo { padding: 4px 14px 14px; border-top: 1px solid rgba(200,150,0,0.1); }
+    .aea-eq-linea { font-size: 13px; color: var(--crema); padding: 4px 0; overflow-wrap: anywhere; }
+    .aea-eq-linea b { color: var(--dorado-claro); font-weight: 500; }
+    .aea-eq-sub { font-size: 12px; color: var(--crema-3); margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .aea-eq-aviso { color: #ff8a8a; font-size: 12px; padding-top: 6px; }
+    .aea-eq-sin { font-size: 12px; color: var(--crema-3); margin-top: 14px; overflow-wrap: anywhere; }
+
     @media (max-width: 520px) {
       .aea-fila { flex-wrap: wrap; }
       .aea-acciones { width: 100%; justify-content: flex-end; }
@@ -145,6 +184,13 @@
     <div class="aea-title">⚽ Armá tu equipo — Plantel</div>
     <a href="admin.html" class="aea-btn">← Volver al admin</a>
   </div>
+
+  <div class="aea-tabs" role="tablist">
+    <button type="button" class="aea-tab active" id="aea-tab-plantel" role="tab" aria-selected="true">Plantel</button>
+    <button type="button" class="aea-tab" id="aea-tab-equipos" role="tab" aria-selected="false">Equipos elegidos</button>
+  </div>
+
+  <div id="aea-pane-plantel">
 
   <p class="aea-resumen" id="aea-resumen">Cargando plantel...</p>
 
@@ -178,6 +224,22 @@
     <h2 class="aea-bloque-titulo">Plantel</h2>
     <div class="aea-lista" id="aea-lista"></div>
   </section>
+
+  </div>
+
+  <!-- PESTAÑA: EQUIPOS ELEGIDOS (solo lectura) -->
+  <div id="aea-pane-equipos" class="hidden">
+    <section class="aea-bloque">
+      <div class="aea-topbar">
+        <h2 class="aea-bloque-titulo">Equipos elegidos</h2>
+        <button type="button" class="aea-btn" id="aea-eq-actualizar">Actualizar</button>
+      </div>
+      <p class="aea-resumen" id="aea-eq-resumen">Cargando equipos...</p>
+      <input type="search" class="aea-input" id="aea-eq-buscar" placeholder="Buscar por nick..." autocomplete="off" />
+      <div class="aea-eq-lista" id="aea-eq-lista"></div>
+      <p class="aea-eq-sin" id="aea-eq-sin"></p>
+    </section>
+  </div>
 
 </main>
 
