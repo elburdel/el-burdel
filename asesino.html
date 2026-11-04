@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>El asesino está entre nosotros — El Burdel</title>
+  <meta name="description" content="Un juego de deducción por audio: ¿quién es el asesino?" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="El Burdel" />
+  <meta property="og:title" content="El asesino está entre nosotros — El Burdel" />
+  <meta property="og:description" content="Un juego de deducción por audio: ¿quién es el asesino?" />
+  <meta property="og:url" content="https://elburdel.com.ar/asesino.html" />
+  <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/asesino.css" />
+</head>
+<body class="as-body">
+
+  <main class="as-main">
+    <div id="as-root"><p class="as-muted">Cargando…</p></div>
+  </main>
+
+  <footer class="nav-bottom">
+    <div class="nav-bottom-inner">
+      <div class="nav-bottom-links">
+        <a href="index.html?ver=1" class="nav-bottom-link">Inicio</a>
+        <a href="dashboard.html" class="nav-bottom-link">Dashboard</a>
+        <a href="ranking.html" class="nav-bottom-link">Ranking</a>
+      </div>
+      <div class="nav-bottom-divider"></div>
+      <div class="nav-bottom-links">
+        <a href="terminos.html" class="nav-bottom-link">Términos</a>
+        <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
+      </div>
+      <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
+    </div>
+  </footer>
+  <script type="module" src="js/site-credit.js"></script>
+
+  <script type="module">
+    import { iniciarJugador } from "./games/asesino.js";
+    // En modo demo (?demo=1) no se carga nada de Firebase: ni navbar ni sesión.
+    const demo = new URLSearchParams(location.search).get("demo") === "1";
+    if (!demo) {
+      const { initNavbar } = await import("./js/navbar.js");
+      initNavbar();
+    }
+    iniciarJugador();
+  </script>
+</body>
+</html>
