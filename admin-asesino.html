@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin El asesino está entre nosotros — El Burdel</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/asesino.css" />
+</head>
+<body>
+
+<main class="as-main">
+  <div id="as-root"><p class="as-muted">Cargando…</p></div>
+</main>
+
+<script type="module">
+  import { iniciarAdmin } from "./games/asesino-admin.js";
+  iniciarAdmin();
+</script>
+
+<script type="module">
+  import { mountAdminSidebar } from "./js/admin-sidebar.js";
+  // En modo demo (?demo=1) no se carga nada de Firebase: ni navbar ni sesión.
+  const demo = new URLSearchParams(location.search).get("demo") === "1";
+  if (!demo) {
+    const { initNavbar } = await import("./js/navbar.js");
+    initNavbar();
+  }
+  mountAdminSidebar("asesino");
+</script>
+
+</body>
+</html>
