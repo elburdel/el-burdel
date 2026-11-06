@@ -3,7 +3,7 @@
 // crear partida, invitar, configurar roles/tiempos, ver quién está listo, repartir roles y cancelar.
 import * as R from './asesino-reglas.js';
 import * as D from './asesino-datos.js';
-import { h, vaciar, toast, confirmar, modoDemo, bannerDemo, fechaCorta, mensajeDeError } from './asesino-ui.js';
+import { h, vaciar, toast, confirmar, modoDemo, bannerDemo, fechaCorta, mensajeDeError, reloj } from './asesino-ui.js';
 
 async function exigirAdmin() {
   const { auth } = await import('../js/firebase-init.js');
@@ -238,6 +238,9 @@ export async function iniciarAdmin(opciones = {}) {
     let acciones = {}; let bajaAcciones = null; let rondaAcciones = null;
     let victimaElegida = null; let borradorDe = null;
     let resultadoNoche = null; let resultadoDe = null; let leyendoResultado = false;
+    // Interrogatorios y votación
+    let orden = []; let turno = -1; let votos = {}; let bajaVotos = null; let vidVotos = null;
+    const relojes = [];
 
     const mapaRoles = () => Object.fromEntries(Object.entries(roles || {}).filter(([, x]) => x && x.rol).map(([u, x]) => [u, x.rol]));
     const nickDe = (u) => pub?.jugadores?.[u]?.nick ?? u;
@@ -273,6 +276,11 @@ export async function iniciarAdmin(opciones = {}) {
         borradorDe = pub.rondaId;
         D.leerBorradorNoche(b, pid, pub.rondaId).then((bor) => { if (bor && victimaElegida === null) { victimaElegida = bor.victima; pintar(); } }).catch(() => {});
       }
+      if (pub.fase === R.FASES.VOTACION && pub.votacion && vidVotos !== pub.votacion.id) {
+        if (bajaVotos) bajaVotos();
+        vidVotos = pub.votacion.id; votos = {};
+        bajaVotos = D.escucharVotosAdmin(b, pid, vidVotos, R.vivosDe(pub.jugadores), (m) => { votos = m; pintar(); });
+      }
       if (pub.fase === R.FASES.DESCUBRIMIENTO && resultadoDe !== pub.rondaId && !leyendoResultado) {
         leyendoResultado = true;
         D.leerResultadoNoche(b, pid, pub, roles).then((r) => { resultadoNoche = r; resultadoDe = pub.rondaId; }).catch(() => {}).finally(() => { leyendoResultado = false; pintar(); });
@@ -294,6 +302,8 @@ export async function iniciarAdmin(opciones = {}) {
         cargarDistribucion();
       }
       if (pub.fase !== R.FASES.PREPARACION && !rolesCargados) cargarRoles();
+      // Al entrar en interrogatorios se sortea el orden de los turnos (solo vive en este panel).
+      if (pub.fase === R.FASES.INTERROGATORIOS && faseAntes !== R.FASES.INTERROGATORIOS) { orden = R.barajar(R.vivosDe(pub.jugadores)); turno = -1; }
       // Una fase nueva invalida lo anterior de la víctima (el borrador de otra ronda no aplica).
       if (faseAntes && faseAntes !== pub.fase && pub.fase === R.FASES.NOCHE) { victimaElegida = null; resultadoNoche = null; resultadoDe = null; }
       // Roles se reparten desde el panel: los de este nodo se releen al pasar a "roles".
@@ -303,7 +313,7 @@ export async function iniciarAdmin(opciones = {}) {
     }
 
     limpiar.push(D.escucharPublico(b, pid, alCambiarPublico, (e) => { vaciar(cuerpo); cuerpo.append(h('p', { class: 'as-error' }, mensajeDeError(e))); }));
-    limpiar.push(() => { if (bajaListos) bajaListos(); if (bajaAcciones) bajaAcciones(); });
+    limpiar.push(() => { if (bajaListos) bajaListos(); if (bajaAcciones) bajaAcciones(); if (bajaVotos) bajaVotos(); relojes.splice(0).forEach((f) => f()); });
 
     // ── acciones del conductor ──
     async function guardarConfig() {
@@ -345,6 +355,52 @@ export async function iniciarAdmin(opciones = {}) {
       const quien = victimaElegida === R.SIN_VICTIMA ? 'sin víctima esta noche' : `la víctima será ${nickDe(victimaElegida)}`;
       if (!(await confirmar(`Vas a procesar la noche: ${quien}. Se aplican el resultado, el anuncio y las respuestas privadas. No se puede deshacer.`, { si: 'Procesar la noche' }))) return;
       try { await D.procesarNoche(b, pid, victimaElegida); toast('Noche procesada'); } catch (e) { toast(mensajeDeError(e)); }
+    }
+
+
+    // ── interrogatorios, votación y final ──
+    const hacer = (fn, ok) => async () => { try { await fn(); if (ok) toast(ok); } catch (e) { toast(mensajeDeError(e)); } };
+    const victoria = () => (pub && rolesCargados ? D.victoriaActual(pub, roles) : { terminada: false });
+
+    async function comenzarInterrogatorios() {
+      if (!(await confirmar('¿Empezar los interrogatorios? Vas a dar la palabra de a uno.', { si: 'Comenzar interrogatorios' }))) return;
+      await hacer(() => D.comenzarInterrogatorios(b, pid), 'Interrogatorios abiertos')();
+    }
+    async function darPalabra(i) {
+      const vivosOrden = orden.filter((u) => pub.jugadores[u]?.vivo);
+      if (!vivosOrden.length) return;
+      const idx = Math.max(0, Math.min(i, vivosOrden.length - 1));
+      turno = idx;
+      try { await D.darLaPalabra(b, pid, { uid: vivosOrden[idx], numero: idx + 1, total: vivosOrden.length }); }
+      catch (e) { toast(mensajeDeError(e)); }
+      pintar();
+    }
+    const siguienteTurno = () => darPalabra(turno + 1);
+    const timer = (accion, seg) => hacer(() => D.controlarTimer(b, pid, accion, seg));
+    const abrirDebate = hacer(() => D.anunciar(b, pid, 'Debate abierto: todos pueden hablar. El conductor avisará cuándo termina.'), 'Debate anunciado');
+    async function abrirVotacion() {
+      const faltan = orden.filter((u) => pub.jugadores[u]?.vivo).length - (turno + 1);
+      const texto = turno < 0 || faltan > 0 ? 'Todavía no todos dieron su coartada. ¿Abrir la votación igual?' : '¿Abrir la votación?';
+      if (!(await confirmar(texto, { si: 'Abrir votación' }))) return;
+      await hacer(() => D.abrirVotacion(b, pid), 'Votación abierta')();
+    }
+    async function cerrarVotacion() {
+      const vivos = R.vivosDe(pub.jugadores); const faltan = vivos.length - Object.keys(votos).length;
+      const texto = faltan > 0 ? `Faltan ${faltan} voto${faltan === 1 ? '' : 's'}. Si cerrás, ya no podrán votar. ¿Cerrar igual?` : 'Votaron todos. ¿Cerrar la votación?';
+      if (!(await confirmar(texto, { si: 'Cerrar votación' }))) return;
+      await hacer(() => D.cerrarVotacion(b, pid), 'Votación cerrada')();
+    }
+    async function escrutar() {
+      try {
+        const r = await D.escrutarVotacion(b, pid);
+        toast(r.segundaVotacion ? 'Empate: se abrió la segunda votación' : 'Votos contados');
+      } catch (e) { toast(mensajeDeError(e)); }
+    }
+    async function finalizar() {
+      const v = victoria();
+      const quien = v.ganador === R.EQUIPOS.INOCENTES ? 'los inocentes' : 'los asesinos y sus cómplices';
+      if (!(await confirmar(`Se cumplió una condición de victoria: ganan ${quien}. ¿Declarar el fin de la partida?`, { si: 'Declarar ganadores' }))) return;
+      await hacer(() => D.finalizarPartida(b, pid), 'Partida finalizada')();
     }
 
     // ── piezas de pantalla ──
@@ -403,11 +459,76 @@ export async function iniciarAdmin(opciones = {}) {
             h('span', { class: 'as-chip ' + (i.esAsesino ? 'rol-asesinos' : 'listo') }, i.esAsesino ? 'ES ASESINO' : 'NO ES ASESINO'))))
           : null,
         v.terminada
-          ? h('p', { class: 'as-victoria' }, `Condición de victoria alcanzada: ganan ${v.ganador === R.EQUIPOS.INOCENTES ? 'los inocentes' : 'los asesinos y sus cómplices'}. (El cierre de la partida y la revelación se agregan en las próximas etapas.)`)
+          ? h('p', { class: 'as-victoria' }, `Condición de victoria alcanzada: ganan ${v.ganador === R.EQUIPOS.INOCENTES ? 'los inocentes' : 'los asesinos y sus cómplices'}. Declará el fin de la partida con el botón de abajo.`)
           : h('p', { class: 'as-muted' }, `Siguen en juego ${v.inocentesVivos} inocentes y ${v.malosVivos} del equipo asesino (${v.asesinosVivos} asesino${v.asesinosVivos === 1 ? '' : 's'}).`));
     }
 
+
+    function relojPublico() {
+      const r = reloj(() => pub?.timer, () => b.ahora());
+      relojes.push(r.detener);
+      return r.el;
+    }
+    function panelInterrogatorios() {
+      const vivosOrden = orden.filter((u) => pub.jugadores[u]?.vivo);
+      const t = pub.timer;
+      const filas = vivosOrden.map((u, i) => h('button', { type: 'button', class: 'as-turno' + (i === turno ? ' actual' : i < turno ? ' hablo' : ''), onClick: () => darPalabra(i) },
+        h('span', {}, `${i + 1}. ${nickDe(u)}`), h('span', { class: 'as-chip ' + (i === turno ? 'listo' : 'espera') }, i === turno ? 'Habla ahora' : i < turno ? 'Ya habló' : 'Pendiente')));
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, `Interrogatorios — ronda ${pub.ronda}`),
+        h('p', { class: 'as-muted' }, 'Das la palabra de a uno. El tiempo es solo una guía: nada avanza solo.'),
+        relojPublico(),
+        h('div', { class: 'as-acciones' },
+          h('button', { type: 'button', class: 'as-btn', onClick: siguienteTurno, disabled: turno >= vivosOrden.length - 1 && turno >= 0 }, turno < 0 ? 'Dar la palabra al primero' : 'Siguiente jugador'),
+          turno >= 0 ? h('button', { type: 'button', class: 'as-btn sec', onClick: () => darPalabra(turno) }, 'Repetir turno') : null,
+          t && t.corriendo ? h('button', { type: 'button', class: 'as-btn sec', onClick: timer('pausar') }, 'Pausar') : null,
+          t && !t.corriendo && t.restante > 0 ? h('button', { type: 'button', class: 'as-btn sec', onClick: timer('reanudar') }, 'Reanudar') : null,
+          t && (t.corriendo || t.restante > 0) ? h('button', { type: 'button', class: 'as-btn sec', onClick: timer('detener') }, 'Detener tiempo') : null),
+        h('div', { class: 'as-sub' }, 'Turnos (tocá un nombre para darle la palabra)'), filas,
+        h('p', { class: 'as-muted' }, 'Si recargás este panel, el orden de los turnos se vuelve a sortear.'),
+        h('div', { class: 'as-acciones' },
+          h('button', { type: 'button', class: 'as-btn sec', onClick: abrirDebate }, 'Anunciar debate libre'),
+          h('button', { type: 'button', class: 'as-btn', onClick: abrirVotacion }, 'Abrir votación')));
+    }
+    function panelVotacion() {
+      const v = pub.votacion; if (!v) return null;
+      const vivos = R.vivosDe(pub.jugadores); const cands = Object.keys(v.candidatos || {});
+      const votaron = Object.keys(votos); const faltan = vivos.filter((u) => !votos[u]);
+      const conteo = Object.fromEntries(cands.map((c) => [c, 0])); Object.values(votos).forEach((o) => { if (o in conteo) conteo[o]++; });
+      const segunda = v.id.endsWith('v2');
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, segunda ? 'Segunda votación (desempate)' : `Votación — ronda ${pub.ronda}`),
+        segunda ? h('p', { class: 'as-aviso' }, `Solo se vota entre: ${cands.map(nickDe).join(', ')}.`) : null,
+        v.abierta ? relojPublico() : null,
+        h('p', { class: 'as-muted' }, `${votaron.length} de ${vivos.length} votaron` + (v.abierta ? '' : ' (votación cerrada)')),
+        h('div', { class: 'as-sub' }, 'Conteo en vivo (solo lo ves vos)'),
+        cands.slice().sort((x, y) => conteo[y] - conteo[x]).map((c) => h('div', { class: 'as-accion-fila' }, h('span', {}, nickDe(c)), h('span', { class: 'as-chip ' + (conteo[c] ? 'rol-inocentes' : 'espera') }, `${conteo[c]} voto${conteo[c] === 1 ? '' : 's'}`))),
+        h('div', { class: 'as-sub' }, 'Quién votó a quién (solo lo ves vos)'),
+        votaron.length ? votaron.map((u) => h('div', { class: 'as-accion-fila' }, h('span', {}, nickDe(u)), h('span', { class: 'as-chip listo' }, '→ ' + nickDe(votos[u])))) : h('p', { class: 'as-muted' }, 'Todavía nadie votó.'),
+        faltan.length ? h('p', { class: 'as-muted' }, `Faltan: ${faltan.map(nickDe).join(', ')}.`) : null,
+        h('div', { class: 'as-acciones' },
+          v.abierta ? h('button', { type: 'button', class: 'as-btn', onClick: cerrarVotacion }, 'Cerrar votación') : h('button', { type: 'button', class: 'as-btn', onClick: escrutar }, 'Contar los votos')));
+    }
+    function panelResultadoVotacion() {
+      const r = pub.votacion?.resultado; const v = victoria();
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, `Resultado de la votación — ronda ${pub.ronda}`),
+        h('p', { class: 'as-anuncio' }, 'Anuncio público: ', pub.anuncio),
+        r ? Object.entries(r.conteo).sort((x, y) => y[1] - x[1]).map(([u, n]) => h('div', { class: 'as-accion-fila' }, h('span', {}, nickDe(u)), h('span', { class: 'as-chip ' + (u === r.eliminado ? 'rol-asesinos' : 'espera') }, `${n} voto${n === 1 ? '' : 's'}` + (u === r.eliminado ? ' — eliminado' : '')))) : null,
+        v.terminada
+          ? h('p', { class: 'as-victoria' }, `Condición de victoria alcanzada: ganan ${v.ganador === R.EQUIPOS.INOCENTES ? 'los inocentes' : 'los asesinos y sus cómplices'}.`)
+          : h('p', { class: 'as-muted' }, `Siguen en juego ${v.inocentesVivos} inocentes y ${v.malosVivos} del equipo asesino.`));
+    }
+    function panelFinal() {
+      const g = pub.resultado?.ganador;
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, 'Partida finalizada'),
+        h('p', { class: 'as-victoria' }, g === 'inocentes' ? 'Ganaron los inocentes: todos los asesinos fueron eliminados.' : g === 'asesinos' ? 'Ganaron los asesinos y sus cómplices.' : 'La partida terminó.'),
+        h('p', { class: 'as-muted' }, 'Los jugadores ya ven los roles de todos. La revelación completa (acciones, investigaciones y votos) llega en la próxima etapa.'));
+    }
+
     function pintar() {
+      relojes.splice(0).forEach((f) => f());
       const enfocado = editor && document.activeElement && editor.el.contains(document.activeElement) ? document.activeElement : null;
       btnGuardar = null; btnIniciar = null;
       vaciar(cuerpo);
@@ -429,6 +550,10 @@ export async function iniciarAdmin(opciones = {}) {
       if (pub.fase === R.FASES.NOCHE && rolesCargados) cuerpo.append(panelNoche(vivos, mr));
       if (pub.fase === R.FASES.CIERRE_NOCHE && rolesCargados) cuerpo.append(panelCierre(vivos, mr));
       if (pub.fase === R.FASES.DESCUBRIMIENTO && rolesCargados) cuerpo.append(panelResultado());
+      if (pub.fase === R.FASES.INTERROGATORIOS) cuerpo.append(panelInterrogatorios());
+      if (pub.fase === R.FASES.VOTACION) { const p = panelVotacion(); if (p) cuerpo.append(p); }
+      if (pub.fase === R.FASES.RESULTADO_VOTACION && rolesCargados) cuerpo.append(panelResultadoVotacion());
+      if (pub.fase === R.FASES.FINALIZADA) cuerpo.append(panelFinal());
 
       const filas = uids.map((u) => ({ uid: u, ...pub.jugadores[u] })).sort((x, y) => x.nick.localeCompare(y.nick, 'es', { sensitivity: 'base' }));
       cuerpo.append(h('div', { class: 'as-card' },
@@ -458,16 +583,22 @@ export async function iniciarAdmin(opciones = {}) {
         btnIniciar = h('button', { type: 'button', class: 'as-btn', disabled: !distrib || (v && !v.validacion.ok), onClick: iniciar }, 'Repartir roles y empezar');
         acc.append(btnIniciar);
       }
-      if (pub.fase === R.FASES.ROLES || pub.fase === R.FASES.RESULTADO_VOTACION) {
-        acc.append(h('button', { type: 'button', class: 'as-btn', onClick: comenzarNoche }, 'Comenzar la noche'));
+      const vic = victoria();
+      if (pub.fase === R.FASES.ROLES) acc.append(h('button', { type: 'button', class: 'as-btn', onClick: comenzarNoche }, 'Comenzar la noche'));
+      if (pub.fase === R.FASES.RESULTADO_VOTACION && rolesCargados) {
+        acc.append(vic.terminada
+          ? h('button', { type: 'button', class: 'as-btn', onClick: finalizar }, 'Declarar ganadores')
+          : h('button', { type: 'button', class: 'as-btn', onClick: comenzarNoche }, 'Comenzar la noche'));
       }
-      if (pub.fase === R.FASES.DESCUBRIMIENTO) {
-        acc.append(h('button', { type: 'button', class: 'as-btn', disabled: true, title: 'Llega en la próxima etapa' }, 'Interrogatorios (próxima etapa)'));
+      if (pub.fase === R.FASES.DESCUBRIMIENTO && rolesCargados) {
+        acc.append(vic.terminada
+          ? h('button', { type: 'button', class: 'as-btn', onClick: finalizar }, 'Declarar ganadores')
+          : h('button', { type: 'button', class: 'as-btn', onClick: comenzarInterrogatorios }, 'Comenzar interrogatorios'));
       }
       if (!terminal) acc.append(h('button', { type: 'button', class: 'as-btn peligro', onClick: cancelar }, 'Cancelar partida'));
       cuerpo.append(h('div', { class: 'as-card' }, h('div', { class: 'as-card-label' }, 'Acciones'),
         pub.fase === R.FASES.ROLES ? h('p', { class: 'as-muted' }, 'Los jugadores ya pueden ver su personaje. Cuando estén listos, empezá la noche.') : null,
-        pub.fase === R.FASES.DESCUBRIMIENTO ? h('p', { class: 'as-muted' }, 'Anunciá el resultado por audio. Los interrogatorios y la votación se agregan en las próximas etapas.') : null,
+        pub.fase === R.FASES.DESCUBRIMIENTO ? h('p', { class: 'as-muted' }, 'Anunciá el resultado por audio y después pasá a los interrogatorios (o declará a los ganadores si la partida terminó).') : null,
         acc));
       if (enfocado && document.body.contains(enfocado)) enfocado.focus();
     }
