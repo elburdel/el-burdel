@@ -1,6 +1,7 @@
 // games/asesino-ui.js
 // Utilidades de interfaz compartidas por el panel del conductor y la pantalla del jugador.
 // Todo el contenido dinámico (nicks, nombres) se inserta con textContent: nunca como HTML.
+import * as R from './asesino-reglas.js';
 
 /** Crea un elemento: h('div', {class:'x', onClick: fn}, 'texto', otroNodo) */
 export function h(tag, props = {}, ...hijos) {
@@ -64,4 +65,29 @@ export function mensajeDeError(e) {
     return 'Firebase denegó el acceso. Si estás probando en producción, es normal: las reglas «asesino» todavía no están publicadas.';
   }
   return 'Ocurrió un error: ' + (e?.message ?? e);
+}
+
+/** m:ss a partir de milisegundos. */
+export function formatoMs(ms) {
+  const s = Math.ceil(Math.max(0, ms) / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Reloj de cuenta regresiva basado en `publico/timer` (hora del servidor, igual para todos).
+ * Es solo informativo: al llegar a cero NO cambia nada (el conductor decide).
+ * @returns {{el: HTMLElement, detener: () => void}}
+ */
+export function reloj(obtenerTimer, ahora) {
+  const el = h('div', { class: 'as-reloj oculto' });
+  const pintar = () => {
+    const t = obtenerTimer();
+    if (!t || (!t.corriendo && !(t.restante > 0))) { el.textContent = ''; el.className = 'as-reloj oculto'; return; }
+    const ms = R.timerRestanteMs(t, ahora());
+    el.textContent = (t.corriendo ? '' : '⏸ ') + formatoMs(ms);
+    el.className = 'as-reloj' + (t.corriendo ? '' : ' pausa') + (t.corriendo && ms === 0 ? ' cero' : '');
+  };
+  pintar();
+  const id = setInterval(pintar, 250);
+  return { el, detener: () => clearInterval(id) };
 }
