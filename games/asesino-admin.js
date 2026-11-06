@@ -234,6 +234,13 @@ export async function iniciarAdmin(opciones = {}) {
     let editor = null; let bajaListos = null; let uidsListos = '';
     let cargandoRoles = false;
     let btnGuardar = null; let btnIniciar = null;
+    // Noche
+    let acciones = {}; let bajaAcciones = null; let rondaAcciones = null;
+    let victimaElegida = null; let borradorDe = null;
+    let resultadoNoche = null; let resultadoDe = null; let leyendoResultado = false;
+
+    const mapaRoles = () => Object.fromEntries(Object.entries(roles || {}).filter(([, x]) => x && x.rol).map(([u, x]) => [u, x.rol]));
+    const nickDe = (u) => pub?.jugadores?.[u]?.nick ?? u;
 
     // Al tipear en el editor NO se vuelve a dibujar todo (se perdería el foco): solo se actualizan los botones.
     function actualizarBotones() {
@@ -250,10 +257,30 @@ export async function iniciarAdmin(opciones = {}) {
       if (cargandoRoles) return; cargandoRoles = true;
       try { roles = await D.leerRolesAdmin(b, pid, Object.keys(pub.jugadores || {})); rolesCargados = true; }
       catch (e) { toast(mensajeDeError(e)); } finally { cargandoRoles = false; }
-      pintar();
+      sincronizar(); pintar();
+    }
+
+    // Mantiene al día lo que depende de la ronda: acciones en vivo, borrador de la víctima y resultado.
+    function sincronizar() {
+      if (!pub || !rolesCargados) return;
+      const enNoche = [R.FASES.NOCHE, R.FASES.CIERRE_NOCHE, R.FASES.DESCUBRIMIENTO].includes(pub.fase);
+      if (enNoche && rondaAcciones !== pub.rondaId) {
+        if (bajaAcciones) bajaAcciones();
+        rondaAcciones = pub.rondaId; acciones = {};
+        bajaAcciones = D.escucharAccionesAdmin(b, pid, pub.rondaId, D.actoresNocturnos(roles), (m) => { acciones = m; pintar(); });
+      }
+      if (pub.fase === R.FASES.CIERRE_NOCHE && borradorDe !== pub.rondaId) {
+        borradorDe = pub.rondaId;
+        D.leerBorradorNoche(b, pid, pub.rondaId).then((bor) => { if (bor && victimaElegida === null) { victimaElegida = bor.victima; pintar(); } }).catch(() => {});
+      }
+      if (pub.fase === R.FASES.DESCUBRIMIENTO && resultadoDe !== pub.rondaId && !leyendoResultado) {
+        leyendoResultado = true;
+        D.leerResultadoNoche(b, pid, pub, roles).then((r) => { resultadoNoche = r; resultadoDe = pub.rondaId; }).catch(() => {}).finally(() => { leyendoResultado = false; pintar(); });
+      }
     }
 
     function alCambiarPublico(v) {
+      const faseAntes = pub?.fase;
       pub = v;
       if (!pub) { pintar(); return; }
       const uids = Object.keys(pub.jugadores || {});
@@ -267,12 +294,18 @@ export async function iniciarAdmin(opciones = {}) {
         cargarDistribucion();
       }
       if (pub.fase !== R.FASES.PREPARACION && !rolesCargados) cargarRoles();
+      // Una fase nueva invalida lo anterior de la víctima (el borrador de otra ronda no aplica).
+      if (faseAntes && faseAntes !== pub.fase && pub.fase === R.FASES.NOCHE) { victimaElegida = null; resultadoNoche = null; resultadoDe = null; }
+      // Roles se reparten desde el panel: los de este nodo se releen al pasar a "roles".
+      if (faseAntes === R.FASES.PREPARACION && pub.fase !== R.FASES.PREPARACION) { rolesCargados = false; cargarRoles(); }
+      sincronizar();
       pintar();
     }
 
     limpiar.push(D.escucharPublico(b, pid, alCambiarPublico, (e) => { vaciar(cuerpo); cuerpo.append(h('p', { class: 'as-error' }, mensajeDeError(e))); }));
-    limpiar.push(() => { if (bajaListos) bajaListos(); });
+    limpiar.push(() => { if (bajaListos) bajaListos(); if (bajaAcciones) bajaAcciones(); });
 
+    // ── acciones del conductor ──
     async function guardarConfig() {
       const cfg = editor.leer();
       try { await D.guardarConfiguracion(b, pid, { distribucion: cfg.distribucion, tiempos: cfg.tiempos }); await cargarDistribucion(); toast('Configuración guardada'); pintar(); }
@@ -290,6 +323,89 @@ export async function iniciarAdmin(opciones = {}) {
       if (!(await confirmar('¿Cancelar esta partida? Los jugadores verán que fue cancelada.', { si: 'Cancelar partida', no: 'Volver' }))) return;
       try { await D.cancelarPartida(b, pid); toast('Partida cancelada'); } catch (e) { toast(mensajeDeError(e)); }
     }
+    async function comenzarNoche() {
+      if (!(await confirmar(`¿Empezar la noche ${(pub.ronda ?? 0) + 1}? Los jugadores con acción nocturna podrán elegir.`, { si: 'Comenzar la noche' }))) return;
+      try { await D.comenzarNoche(b, pid); toast('Cae la noche'); } catch (e) { toast(mensajeDeError(e)); }
+    }
+    async function cerrarNoche() {
+      const pend = R.accionesPendientes(acciones, mapaRoles(), R.vivosDe(pub.jugadores));
+      const total = pend.asesinos.length + pend.medicos.length + pend.detectives.length;
+      const texto = total
+        ? `Faltan acciones: asesinos ${pend.asesinos.length}, médicos ${pend.medicos.length}, detectives ${pend.detectives.length}. Si cerrás la noche ya nadie podrá enviarlas. ¿Cerrar igual?`
+        : 'Todos enviaron su acción. ¿Cerrar la noche? Después ya no se podrán cambiar.';
+      if (!(await confirmar(texto, { si: 'Cerrar la noche' }))) return;
+      try { await D.cerrarNoche(b, pid); toast('Noche cerrada'); } catch (e) { toast(mensajeDeError(e)); }
+    }
+    function elegirVictima(valor) {
+      victimaElegida = valor; pintar();
+      D.guardarBorradorNoche(b, pid, pub.rondaId, valor).catch((e) => toast(mensajeDeError(e)));
+    }
+    async function procesarNoche() {
+      if (victimaElegida === null) return;
+      const quien = victimaElegida === R.SIN_VICTIMA ? 'sin víctima esta noche' : `la víctima será ${nickDe(victimaElegida)}`;
+      if (!(await confirmar(`Vas a procesar la noche: ${quien}. Se aplican el resultado, el anuncio y las respuestas privadas. No se puede deshacer.`, { si: 'Procesar la noche' }))) return;
+      try { await D.procesarNoche(b, pid, victimaElegida); toast('Noche procesada'); } catch (e) { toast(mensajeDeError(e)); }
+    }
+
+    // ── piezas de pantalla ──
+    function filaAccion(uid, a) {
+      return h('div', { class: 'as-accion-fila' }, h('span', {}, nickDe(uid)),
+        a ? h('span', { class: 'as-chip listo' }, '→ ' + nickDe(a.objetivo)) : h('span', { class: 'as-chip espera' }, 'Sin acción'));
+    }
+    function gruposDeAcciones(vivos, mr) {
+      return [['asesino', 'Asesinos (proponen una víctima)'], ['medico', 'Médicos (protegen)'], ['detective', 'Detectives (investigan)']].map(([rol, titulo]) => {
+        const lista = vivos.filter((u) => mr[u] === rol);
+        if (!lista.length) return null;
+        return h('div', {}, h('div', { class: 'as-sub' }, titulo), lista.map((u) => filaAccion(u, acciones[u])));
+      });
+    }
+    function panelNoche(vivos, mr) {
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, `Noche ${pub.ronda} — acciones en vivo (solo lo ves vos)`),
+        h('p', { class: 'as-muted' }, 'Los jugadores pueden cambiar su elección hasta que cierres la noche.'),
+        gruposDeAcciones(vivos, mr),
+        h('div', { class: 'as-acciones' }, h('button', { type: 'button', class: 'as-btn', onClick: cerrarNoche }, 'Cerrar la noche')));
+    }
+    function panelCierre(vivos, mr) {
+      const resumen = R.resumenPropuestas(acciones, mr, vivos);
+      const propuestasPorObjetivo = resumen.porObjetivo;
+      const opciones = vivos.map((u) => {
+        const prop = propuestasPorObjetivo[u]?.length || 0;
+        return h('button', { type: 'button', class: 'as-opcion' + (victimaElegida === u ? ' sel' : ''), onClick: () => elegirVictima(u) },
+          h('span', {}, nickDe(u)), prop ? h('small', {}, `propuesto por ${prop} asesino${prop === 1 ? '' : 's'}`) : null);
+      });
+      opciones.push(h('button', { type: 'button', class: 'as-opcion' + (victimaElegida === R.SIN_VICTIMA ? ' sel' : ''), onClick: () => elegirVictima(R.SIN_VICTIMA) }, h('span', {}, 'Sin víctima')));
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, `Cierre de la noche ${pub.ronda} — elegí la víctima`),
+        h('p', { class: 'as-muted' }, 'Las acciones ya están congeladas. La víctima la decidís vos: el sistema no resuelve por mayoría.'),
+        resumen.hayDesacuerdo ? h('p', { class: 'as-aviso' }, 'Los asesinos no propusieron a la misma persona.') : null,
+        resumen.sinPropuesta.length ? h('p', { class: 'as-aviso' }, `Sin propuesta: ${resumen.sinPropuesta.map(nickDe).join(', ')}.`) : null,
+        gruposDeAcciones(vivos, mr),
+        h('div', { class: 'as-sub' }, 'Víctima definitiva'),
+        h('div', { class: 'as-opciones' }, opciones),
+        h('div', { class: 'as-acciones' }, h('button', { type: 'button', class: 'as-btn', disabled: victimaElegida === null, onClick: procesarNoche }, 'Procesar la noche')));
+    }
+    function panelResultado() {
+      const r = resultadoNoche;
+      if (!r) return h('div', { class: 'as-card' }, h('div', { class: 'as-card-label' }, `Resultado de la noche ${pub.ronda}`), h('p', { class: 'as-muted' }, 'Cargando el resultado…'));
+      const v = r.victoria;
+      let linea;
+      if (r.victima === R.SIN_VICTIMA) linea = 'No hubo víctima esta noche.';
+      else if (r.exito) linea = `${nickDe(r.victima)} fue eliminado y ahora es un fantasma.`;
+      else linea = `El ataque contra ${nickDe(r.victima)} fracasó: el médico lo protegió.`;
+      return h('div', { class: 'as-card' },
+        h('div', { class: 'as-card-label' }, `Resultado de la noche ${pub.ronda} (solo lo ves vos)`),
+        h('p', { class: 'as-anuncio' }, 'Anuncio público: ', pub.anuncio),
+        h('p', {}, linea),
+        r.investigaciones.length
+          ? h('div', {}, h('div', { class: 'as-sub' }, 'Investigaciones'), r.investigaciones.map((i) => h('div', { class: 'as-accion-fila' },
+            h('span', {}, `${nickDe(i.detective)} investigó a ${i.objetivoNick}`),
+            h('span', { class: 'as-chip ' + (i.esAsesino ? 'rol-asesinos' : 'listo') }, i.esAsesino ? 'ES ASESINO' : 'NO ES ASESINO'))))
+          : null,
+        v.terminada
+          ? h('p', { class: 'as-victoria' }, `Condición de victoria alcanzada: ganan ${v.ganador === R.EQUIPOS.INOCENTES ? 'los inocentes' : 'los asesinos y sus cómplices'}. (El cierre de la partida y la revelación se agregan en las próximas etapas.)`)
+          : h('p', { class: 'as-muted' }, `Siguen en juego ${v.inocentesVivos} inocentes y ${v.malosVivos} del equipo asesino (${v.asesinosVivos} asesino${v.asesinosVivos === 1 ? '' : 's'}).`));
+    }
 
     function pintar() {
       const enfocado = editor && document.activeElement && editor.el.contains(document.activeElement) ? document.activeElement : null;
@@ -301,12 +417,18 @@ export async function iniciarAdmin(opciones = {}) {
       const enPrep = pub.fase === R.FASES.PREPARACION;
       const terminal = R.esFaseTerminal(pub.fase);
       const nListos = uids.filter((u) => listos[u]).length;
+      const mr = mapaRoles();
+      const vivos = R.vivosDe(pub.jugadores);
 
       cuerpo.append(h('div', { class: 'as-card' },
         h('div', { class: 'as-resumen' },
           h('div', {}, h('div', { class: 'as-card-label' }, 'Partida'), h('div', { class: 'as-resumen-nombre' }, pub.nombre)),
           h('span', { class: 'as-chip ' + pub.fase }, R.ETIQUETA_FASE[pub.fase] || pub.fase)),
-        h('p', { class: 'as-muted' }, `${uids.length} jugadores · creada ${fechaCorta(pub.creadaEn)}` + (enPrep ? ` · ${nListos} listos` : ''))));
+        h('p', { class: 'as-muted' }, `${uids.length} jugadores · ${vivos.length} vivos` + (pub.ronda ? ` · ronda ${pub.ronda}` : '') + ` · creada ${fechaCorta(pub.creadaEn)}` + (enPrep ? ` · ${nListos} listos` : ''))));
+
+      if (pub.fase === R.FASES.NOCHE && rolesCargados) cuerpo.append(panelNoche(vivos, mr));
+      if (pub.fase === R.FASES.CIERRE_NOCHE && rolesCargados) cuerpo.append(panelCierre(vivos, mr));
+      if (pub.fase === R.FASES.DESCUBRIMIENTO && rolesCargados) cuerpo.append(panelResultado());
 
       const filas = uids.map((u) => ({ uid: u, ...pub.jugadores[u] })).sort((x, y) => x.nick.localeCompare(y.nick, 'es', { sensitivity: 'base' }));
       cuerpo.append(h('div', { class: 'as-card' },
@@ -330,19 +452,23 @@ export async function iniciarAdmin(opciones = {}) {
         cuerpo.append(h('div', { class: 'as-card' }, h('div', { class: 'as-card-label' }, 'Distribución usada'), h('p', { class: 'as-muted' }, textoDistribucion(distrib))));
       }
 
-      const acciones = h('div', { class: 'as-acciones' });
+      const acc = h('div', { class: 'as-acciones' });
       if (enPrep) {
         const v = editor ? editor.leer() : null;
         btnIniciar = h('button', { type: 'button', class: 'as-btn', disabled: !distrib || (v && !v.validacion.ok), onClick: iniciar }, 'Repartir roles y empezar');
-        acciones.append(btnIniciar);
+        acc.append(btnIniciar);
       }
-      if (pub.fase === R.FASES.ROLES) {
-        acciones.append(h('button', { type: 'button', class: 'as-btn', disabled: true, title: 'Llega en la próxima etapa' }, 'Comenzar la noche (próxima etapa)'));
+      if (pub.fase === R.FASES.ROLES || pub.fase === R.FASES.RESULTADO_VOTACION) {
+        acc.append(h('button', { type: 'button', class: 'as-btn', onClick: comenzarNoche }, 'Comenzar la noche'));
       }
-      if (!terminal) acciones.append(h('button', { type: 'button', class: 'as-btn peligro', onClick: cancelar }, 'Cancelar partida'));
+      if (pub.fase === R.FASES.DESCUBRIMIENTO) {
+        acc.append(h('button', { type: 'button', class: 'as-btn', disabled: true, title: 'Llega en la próxima etapa' }, 'Interrogatorios (próxima etapa)'));
+      }
+      if (!terminal) acc.append(h('button', { type: 'button', class: 'as-btn peligro', onClick: cancelar }, 'Cancelar partida'));
       cuerpo.append(h('div', { class: 'as-card' }, h('div', { class: 'as-card-label' }, 'Acciones'),
-        pub.fase === R.FASES.ROLES ? h('p', { class: 'as-muted' }, 'Los jugadores ya pueden ver su personaje. La noche, los interrogatorios y la votación se agregan en las próximas etapas.') : null,
-        acciones));
+        pub.fase === R.FASES.ROLES ? h('p', { class: 'as-muted' }, 'Los jugadores ya pueden ver su personaje. Cuando estén listos, empezá la noche.') : null,
+        pub.fase === R.FASES.DESCUBRIMIENTO ? h('p', { class: 'as-muted' }, 'Anunciá el resultado por audio. Los interrogatorios y la votación se agregan en las próximas etapas.') : null,
+        acc));
       if (enfocado && document.body.contains(enfocado)) enfocado.focus();
     }
 
