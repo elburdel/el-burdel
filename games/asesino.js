@@ -4,7 +4,7 @@
 // elegir la acción del rol, recibir resultados privados y ver el estado de fantasma.
 import * as R from './asesino-reglas.js';
 import * as D from './asesino-datos.js';
-import { h, vaciar, toast, modoDemo, bannerDemo, mensajeDeError } from './asesino-ui.js';
+import { h, vaciar, toast, modoDemo, bannerDemo, mensajeDeError, reloj } from './asesino-ui.js';
 
 export async function iniciarJugador(opciones = {}) {
   const raiz = document.getElementById('as-root');
@@ -74,7 +74,9 @@ export async function iniciarJugador(opciones = {}) {
       h('p', { class: 'as-centro' }, 'No tenés una invitación a una partida activa.'),
       h('p', { class: 'as-muted as-centro' }, 'Solo pueden entrar los jugadores que el conductor invitó. Cuando te invite, la partida va a aparecer acá.'),
       ultima ? h('p', { class: 'as-muted as-centro' }, `Tu última partida, «${ultima.nombre}», terminó (${R.ETIQUETA_FASE[ultima.fase] || ultima.fase}).`) : null,
-      h('div', { class: 'as-acciones centrado' }, h('button', { type: 'button', class: 'as-btn sec', onClick: arrancar }, 'Volver a buscar'))));
+      h('div', { class: 'as-acciones centrado' },
+        ultima && ultima.fase === R.FASES.FINALIZADA ? h('button', { type: 'button', class: 'as-btn', onClick: () => pantallaPartida(ultima.pid, true) }, `Ver el final de «${ultima.nombre}»`) : null,
+        h('button', { type: 'button', class: 'as-btn sec', onClick: arrancar }, 'Volver a buscar'))));
   }
 
   function pantallaElegir(activas) {
@@ -89,6 +91,8 @@ export async function iniciarJugador(opciones = {}) {
     let pub; let listo = false; let rol = null; let equipo = null; let revelado = false;
     let miAccion = null; let rondaEscuchada = null; let bajaAccion = null;
     let miNoche = null; let misResultados = null; let seleccion = null; let enviando = false;
+    let miVoto = null; let vidEscuchado = null; let bajaVoto = null; let seleccionVoto = null; let votando = false;
+    let revelacion = null; let bajaRev = null; const relojes = [];
     const cuerpo = h('div');
     raiz.append(cuerpo);
 
@@ -98,7 +102,7 @@ export async function iniciarJugador(opciones = {}) {
     limpiar.push(D.escucharMiEquipo(b, pid, uid, (v) => { equipo = v; pintar(); }));
     limpiar.push(D.escucharMiNoche(b, pid, uid, (v) => { miNoche = v; pintar(); }));
     limpiar.push(D.escucharMisResultados(b, pid, uid, (v) => { misResultados = v; pintar(); }));
-    limpiar.push(() => { if (bajaAccion) bajaAccion(); });
+    limpiar.push(() => { if (bajaAccion) bajaAccion(); if (bajaVoto) bajaVoto(); if (bajaRev) bajaRev(); relojes.splice(0).forEach((f) => f()); });
 
     // Mi acción depende de la ronda: al cambiar de ronda se vuelve a escuchar.
     function alCambiarPublico() {
@@ -107,7 +111,25 @@ export async function iniciarJugador(opciones = {}) {
         rondaEscuchada = pub.rondaId; miAccion = null; seleccion = null;
         bajaAccion = D.escucharMiAccion(b, pid, pub.rondaId, uid, (v) => { miAccion = v; pintar(); });
       }
+      // Mi voto depende de la votación vigente (r1v1, r1v2…): al cambiar se vuelve a escuchar.
+      const vid = pub?.votacion?.id ?? null;
+      if (vid !== vidEscuchado) {
+        if (bajaVoto) bajaVoto();
+        vidEscuchado = vid; miVoto = null; seleccionVoto = null; bajaVoto = null;
+        if (vid) bajaVoto = D.escucharMiVoto(b, pid, vid, uid, (v) => { miVoto = v; pintar(); });
+      }
+      // La revelación solo se puede leer cuando la partida terminó.
+      if (pub?.fase === R.FASES.FINALIZADA && !bajaRev) bajaRev = D.escucharRevelacion(b, pid, (v) => { revelacion = v; pintar(); });
       pintar();
+    }
+
+    async function votar() {
+      if (!seleccionVoto || votando) return;
+      votando = true; pintar();
+      try {
+        await D.enviarVoto(b, pid, { vid: pub.votacion.id, uid, objetivo: seleccionVoto, candidatos: Object.keys(pub.votacion.candidatos || {}) });
+        toast('Voto registrado');
+      } catch (e) { toast(mensajeDeError(e)); } finally { votando = false; pintar(); }
     }
 
     async function alternarListo() {
@@ -199,7 +221,55 @@ export async function iniciarJugador(opciones = {}) {
       return null;
     }
 
+
+    function relojPublico() {
+      const r = reloj(() => pub?.timer, () => b.ahora());
+      relojes.push(r.detener);
+      return r.el;
+    }
+
+    function tarjetaInterrogatorios(yoVivo) {
+      return tarjeta('Interrogatorios', relojPublico(),
+        h('p', {}, yoVivo ? 'Cuando el conductor te dé la palabra, tenés unos segundos para dar tu coartada. También podés interrogar, responder, acusar… y mentir.' : 'Escuchá con atención. Los fantasmas no pueden hablar.'));
+    }
+
+    function tarjetaVotacion(yoVivo) {
+      const v = pub.votacion; if (!v) return null;
+      const segunda = v.id.endsWith('v2');
+      const titulo = segunda ? 'Segunda votación (desempate)' : 'Votación';
+      if (!yoVivo) return tarjeta(titulo, h('p', { class: 'as-muted' }, 'Los fantasmas no votan. Esperá el resultado.'));
+      if (!v.abierta) return tarjeta(titulo, h('p', { class: 'as-muted' }, miVoto ? `Tu voto: ${pub.jugadores?.[miVoto]?.nick ?? '…'}. La votación se cerró; esperá el resultado.` : 'La votación se cerró; esperá el resultado.'));
+      if (miVoto) return tarjeta(titulo, relojPublico(), h('p', {}, `Tu voto quedó registrado: ${pub.jugadores?.[miVoto]?.nick ?? '…'}.`), h('p', { class: 'as-muted' }, 'El voto es definitivo y secreto. Esperá a que el conductor cierre la votación.'));
+      const lista = Object.keys(v.candidatos || {}).filter((u) => u !== uid && pub.jugadores?.[u]?.vivo)
+        .map((u) => ({ uid: u, nick: pub.jugadores[u].nick })).sort((x, y) => x.nick.localeCompare(y.nick, 'es', { sensitivity: 'base' }));
+      return tarjeta(titulo, relojPublico(),
+        h('p', { class: 'as-muted' }, segunda ? 'Hubo empate: votá solo entre los empatados.' : '¿Quién creés que es el asesino? Tu voto es secreto y definitivo.'),
+        h('div', { class: 'as-opciones' }, lista.map((c) => h('button', { type: 'button', class: 'as-opcion' + (seleccionVoto === c.uid ? ' sel' : ''), onClick: () => { seleccionVoto = c.uid; pintar(); } }, h('span', {}, c.nick)))),
+        h('div', { class: 'as-acciones centrado' }, h('button', { type: 'button', class: 'as-btn', disabled: !seleccionVoto || votando, onClick: votar }, votando ? 'Enviando…' : 'Votar')));
+    }
+
+    function tarjetaResultadoVotacion() {
+      const r = pub.votacion?.resultado; if (!r) return null;
+      const filas = Object.entries(r.conteo).sort((x, y) => y[1] - x[1]);
+      return tarjeta('Resultado de la votación',
+        filas.map(([u, n]) => h('div', { class: 'as-accion-fila' }, h('span', {}, pub.jugadores?.[u]?.nick ?? u),
+          h('span', { class: 'as-chip ' + (u === r.eliminado ? 'rol-asesinos' : 'espera') }, `${n} voto${n === 1 ? '' : 's'}` + (u === r.eliminado ? ' — eliminado' : '')))));
+    }
+
+    function tarjetaFinal() {
+      const g = pub.resultado?.ganador;
+      const gano = rol && ((g === 'inocentes' && R.equipoDe(rol) === R.EQUIPOS.INOCENTES) || (g === 'asesinos' && R.equipoDe(rol) === R.EQUIPOS.ASESINOS));
+      const filas = revelacion ? Object.values(revelacion.roles).sort((x, y) => x.nick.localeCompare(y.nick, 'es', { sensitivity: 'base' })) : [];
+      return tarjeta('Fin de la partida',
+        h('div', { class: 'as-rol-nombre ' + (g === 'asesinos' ? 'asesinos' : 'inocentes') }, g === 'inocentes' ? 'Ganan los inocentes' : g === 'asesinos' ? 'Ganan los asesinos' : 'Fin'),
+        rol ? h('p', { class: 'as-aviso' }, gano ? '¡Tu equipo ganó!' : 'Tu equipo perdió esta vez.') : null,
+        h('div', { class: 'as-sub' }, 'Los personajes de todos'),
+        filas.length ? filas.map((f) => h('div', { class: 'as-accion-fila' + (f.vivo ? '' : ' fantasma'), }, h('span', {}, (f.vivo ? '' : '👻 ') + f.nick),
+          h('span', { class: 'as-chip rol-' + (R.DESCRIPCION_ROL[f.rol]?.equipo ?? 'x') }, R.DESCRIPCION_ROL[f.rol]?.nombre ?? f.rol))) : h('p', { class: 'as-muted' }, 'Cargando la revelación…'));
+    }
+
     function pintar() {
+      relojes.splice(0).forEach((f) => f());
       vaciar(cuerpo);
       if (pub === undefined) { cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, 'Cargando la partida…'))); return; }
       if (!pub) { cuerpo.append(tarjeta('Partida', h('p', { class: 'as-error' }, 'No se encontró la partida.'))); return; }
@@ -225,6 +295,10 @@ export async function iniciarJugador(opciones = {}) {
         cuerpo.append(tarjeta('Partida cancelada', h('p', { class: 'as-muted' }, 'El conductor canceló esta partida.')));
       } else {
         if (pub.fase === R.FASES.NOCHE || pub.fase === R.FASES.CIERRE_NOCHE) cuerpo.append(tarjetaNoche(yoVivo));
+        if (pub.fase === R.FASES.INTERROGATORIOS) cuerpo.append(tarjetaInterrogatorios(yoVivo));
+        if (pub.fase === R.FASES.VOTACION) { const c = tarjetaVotacion(yoVivo); if (c) cuerpo.append(c); }
+        if (pub.fase === R.FASES.RESULTADO_VOTACION) { const c = tarjetaResultadoVotacion(); if (c) cuerpo.append(c); }
+        if (pub.fase === R.FASES.FINALIZADA) cuerpo.append(tarjetaFinal());
         if (pub.fase === R.FASES.DESCUBRIMIENTO) {
           const priv = yoVivo ? tarjetaResultadoPrivado() : null;
           if (priv) cuerpo.append(priv);
@@ -233,9 +307,9 @@ export async function iniciarJugador(opciones = {}) {
         if (pub.fase === R.FASES.ROLES) {
           cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, 'Esperá la señal del conductor: pronto empieza la noche.')));
         } else if (pub.fase === R.FASES.DESCUBRIMIENTO) {
-          cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, 'Escuchá el anuncio del conductor. Los interrogatorios y la votación llegan en las próximas etapas.')));
-        } else if (![R.FASES.NOCHE, R.FASES.CIERRE_NOCHE].includes(pub.fase)) {
-          cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, `La partida está en «${R.ETIQUETA_FASE[pub.fase] || pub.fase}». Esta versión todavía no muestra esa fase en tu pantalla: seguí las instrucciones del conductor por audio.`)));
+          cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, 'Escuchá el anuncio del conductor y esperá a que dé la señal para seguir.')));
+        } else if (pub.fase === R.FASES.RESULTADO_VOTACION) {
+          cuerpo.append(tarjeta(null, h('p', { class: 'as-muted' }, 'Escuchá al conductor: enseguida sigue la partida.')));
         }
       }
 
