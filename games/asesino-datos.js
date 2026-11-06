@@ -46,6 +46,9 @@ export const RUTA = Object.freeze({
   resultados: (pid, uid) => `${A}/partidas/${pid}/privado/${uid}/resultados`,
   controlNoche: (pid, rid) => `${A}/partidas/${pid}/control/noche/${rid}`,
   autoprotecciones: (pid) => `${A}/partidas/${pid}/control/autoprotecciones`,
+  voto: (pid, vid, uid) => `${A}/partidas/${pid}/votos/${vid}/${uid}`,
+  controlVotacion: (pid, vid) => `${A}/partidas/${pid}/control/votaciones/${vid}`,
+  revelacion: (pid) => `${A}/partidas/${pid}/revelacion`,
 });
 
 const UID_RE = /^[A-Za-z0-9]{1,40}$/;
@@ -281,6 +284,10 @@ export async function comenzarNoche(b, pid) {
   if (pub.fase !== R.FASES.ROLES && pub.fase !== R.FASES.RESULTADO_VOTACION) {
     throw new ErrorJuego('Solo se puede empezar una noche después del reparto de roles o de una votación.');
   }
+  if (pub.fase === R.FASES.RESULTADO_VOTACION) {
+    const { roles, vivos } = await rolesYVivos(b, pid, pub);
+    if (R.evaluarVictoria(roles, vivos).terminada) throw new ErrorJuego('La partida ya tiene ganadores: declaralos en lugar de empezar otra noche.');
+  }
   const numero = (pub.ronda ?? 0) + 1;
   let rid;
   try { rid = R.rondaId(numero); } catch { throw new ErrorJuego('Se alcanzó el máximo de rondas.'); }
@@ -290,6 +297,7 @@ export async function comenzarNoche(b, pid) {
     [`${RUTA.publico(pid)}/ronda`]: numero,
     [`${RUTA.publico(pid)}/rondaId`]: rid,
     [`${RUTA.publico(pid)}/anuncio`]: `Cae la noche (ronda ${numero}). Todos cierran los ojos.`,
+    [`${RUTA.publico(pid)}/timer`]: R.timerDetener(),
     [`${RUTA.indicePartida(pid)}/fase`]: R.FASES.NOCHE,
   });
   return rid;
@@ -423,3 +431,204 @@ export function escucharMiAccion(b, pid, rondaId, uid, cb) { return b.escuchar(R
 export function escucharMiNoche(b, pid, uid, cb) { return b.escuchar(RUTA.noche(pid, uid), cb, () => cb(null)); }
 /** Respuestas del detective: { rondaId: {objetivoNick, esAsesino} }. Solo lo lee quien sigue vivo. */
 export function escucharMisResultados(b, pid, uid, cb) { return b.escuchar(RUTA.resultados(pid, uid), cb, () => cb(null)); }
+
+
+// ═════════════════════════ INTERROGATORIOS, VOTACIÓN Y VICTORIA (ETAPA 4) ═══
+
+/** Roles de todos { uid: rol } (solo el conductor los puede leer). */
+async function rolesYVivos(b, pid, pub) {
+  const rolesAdmin = await leerRolesAdmin(b, pid, Object.keys(pub.jugadores || {}));
+  const roles = mapaDeRoles(rolesAdmin);
+  return { rolesAdmin, roles, vivos: R.vivosDe(pub.jugadores) };
+}
+
+/** Estado de victoria actual de una partida (para el panel del conductor). */
+export function victoriaActual(pub, rolesAdmin) {
+  return R.evaluarVictoria(mapaDeRoles(rolesAdmin), R.vivosDe(pub.jugadores));
+}
+
+/** Descubrimiento → Interrogatorios (si la partida no terminó). */
+export async function comenzarInterrogatorios(b, pid) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  if (pub.fase !== R.FASES.DESCUBRIMIENTO) throw new ErrorJuego('Los interrogatorios empiezan después del descubrimiento.');
+  const { roles, vivos } = await rolesYVivos(b, pid, pub);
+  if (R.evaluarVictoria(roles, vivos).terminada) throw new ErrorJuego('La partida ya tiene ganadores: declaralos en lugar de seguir.');
+  await aplicarCambioDeFase(b, {
+    [`${RUTA.publico(pid)}/fase`]: R.FASES.INTERROGATORIOS,
+    [`${RUTA.publico(pid)}/seq`]: pub.seq + 1,
+    [`${RUTA.publico(pid)}/anuncio`]: 'Comienzan los interrogatorios. Esperá a que el conductor te dé la palabra.',
+    [`${RUTA.publico(pid)}/timer`]: R.timerDetener(),
+    [`${RUTA.indicePartida(pid)}/fase`]: R.FASES.INTERROGATORIOS,
+  });
+}
+
+/** Cambia el anuncio público (por ejemplo, para abrir el debate). */
+export async function anunciar(b, pid, texto) {
+  const t = String(texto ?? '').trim();
+  if (!t) throw new ErrorJuego('El anuncio no puede estar vacío.');
+  await b.escribir(`${RUTA.publico(pid)}/anuncio`, R.recortarAnuncio(t));
+}
+
+/** Da la palabra a un jugador: anuncia su turno y arranca el temporizador de coartada. Nada avanza solo. */
+export async function darLaPalabra(b, pid, { uid, numero, total }) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub || pub.fase !== R.FASES.INTERROGATORIOS) throw new ErrorJuego('No estamos en interrogatorios.');
+  const j = pub.jugadores?.[uid];
+  if (!j || !j.vivo) throw new ErrorJuego('Ese jugador no está en juego.');
+  const seg = pub.config.tiempos.coartada;
+  await b.actualizar({
+    [`${RUTA.publico(pid)}/anuncio`]: R.recortarAnuncio(`Turno de ${j.nick} (${numero} de ${total}). Tiene ${seg} segundos para dar su coartada.`),
+    [`${RUTA.publico(pid)}/timer`]: R.timerIniciar(seg, b.ahora()),
+  });
+}
+
+/** Controles del temporizador: pausar, reanudar, detener o iniciar uno de N segundos. */
+export async function controlarTimer(b, pid, accion, segundos) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  const t = pub.timer || R.timerDetener();
+  const ahora = b.ahora();
+  let nuevo;
+  if (accion === 'pausar') nuevo = R.timerPausar(t, ahora);
+  else if (accion === 'reanudar') nuevo = R.timerReanudar(t, ahora);
+  else if (accion === 'detener') nuevo = R.timerDetener();
+  else if (accion === 'iniciar') {
+    if (!Number.isFinite(segundos) || segundos < 5 || segundos > 900) throw new ErrorJuego('El tiempo debe estar entre 5 y 900 segundos.');
+    nuevo = R.timerIniciar(segundos, ahora);
+  } else throw new ErrorJuego('Acción de temporizador desconocida.');
+  await b.escribir(`${RUTA.publico(pid)}/timer`, nuevo);
+}
+
+/** Interrogatorios → Votación (primera votación de la ronda, entre todos los vivos). */
+export async function abrirVotacion(b, pid) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  if (pub.fase !== R.FASES.INTERROGATORIOS) throw new ErrorJuego('La votación se abre después de los interrogatorios.');
+  const vivos = R.vivosDe(pub.jugadores);
+  if (vivos.length < 2) throw new ErrorJuego('Hacen falta al menos dos jugadores vivos para votar.');
+  const vid = R.votacionId(pub.ronda, 1);
+  await aplicarCambioDeFase(b, {
+    [`${RUTA.publico(pid)}/votacion`]: { id: vid, abierta: true, candidatos: Object.fromEntries(vivos.map((u) => [u, true])) },
+    [RUTA.controlVotacion(pid, vid)]: { rondaId: pub.rondaId, numero: 1, estado: 'abierta', creadaEn: b.ahora() },
+    [`${RUTA.publico(pid)}/fase`]: R.FASES.VOTACION,
+    [`${RUTA.publico(pid)}/seq`]: pub.seq + 1,
+    [`${RUTA.publico(pid)}/anuncio`]: 'Se abrió la votación. Cada jugador vivo vota en privado a quien cree que es el asesino.',
+    [`${RUTA.publico(pid)}/timer`]: R.timerIniciar(pub.config.tiempos.votacion, b.ahora()),
+    [`${RUTA.indicePartida(pid)}/fase`]: R.FASES.VOTACION,
+  });
+  return vid;
+}
+
+/** Votos de la votación actual (solo el conductor los ve). cb recibe { uid: objetivo }. */
+export function escucharVotosAdmin(b, pid, vid, uids, cb) {
+  const estado = {};
+  const bajas = uids.map((uid) => b.escuchar(RUTA.voto(pid, vid, uid), (v) => {
+    if (v) estado[uid] = v.objetivo; else delete estado[uid];
+    cb({ ...estado });
+  }, () => {}));
+  return () => bajas.forEach((f) => f && f());
+}
+
+/** Voto definitivo del jugador (uno por votación; sin autovoto ni voto en blanco). */
+export async function enviarVoto(b, pid, { vid, uid, objetivo, candidatos }) {
+  if (!candidatos.includes(objetivo)) throw new ErrorJuego('Esa persona no es candidata en esta votación.');
+  if (objetivo === uid) throw new ErrorJuego('No podés votarte a vos mismo.');
+  try {
+    await b.escribir(RUTA.voto(pid, vid, uid), { objetivo });
+  } catch (e) {
+    if (esPermisoDenegado(e)) throw new ErrorJuego('No se pudo registrar tu voto: la votación puede haberse cerrado o ya votaste.', 'voto');
+    throw e;
+  }
+}
+export function escucharMiVoto(b, pid, vid, uid, cb) { return b.escuchar(RUTA.voto(pid, vid, uid), (v) => cb(v ? v.objetivo : null), () => cb(null)); }
+
+/** Cierra la votación (nadie puede votar más) sin cambiar de fase. */
+export async function cerrarVotacion(b, pid) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  if (pub.fase !== R.FASES.VOTACION || !pub.votacion?.abierta) throw new ErrorJuego('No hay una votación abierta.');
+  await b.actualizar({
+    [`${RUTA.publico(pid)}/votacion/abierta`]: false,
+    [`${RUTA.publico(pid)}/timer`]: R.timerDetener(),
+    [`${RUTA.publico(pid)}/anuncio`]: 'Se cerró la votación. El conductor está contando los votos.',
+    [`${RUTA.controlVotacion(pid, pub.votacion.id)}/estado`]: 'cerrada',
+  });
+}
+
+/**
+ * Cuenta los votos de una votación cerrada.
+ *  • Empate en la 1ª votación → se abre la 2ª solo entre los empatados.
+ *  • Si no, queda un eliminado (o nadie, si hay empate en la 2ª o nadie votó) y se pasa al resultado.
+ */
+export async function escrutarVotacion(b, pid) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  if (pub.fase !== R.FASES.VOTACION) throw new ErrorJuego('No estamos en una votación.');
+  if (!pub.votacion || pub.votacion.abierta) throw new ErrorJuego('Primero cerrá la votación.');
+  const vid = pub.votacion.id;
+  const numero = Number(vid.slice(-1));
+  const vivos = R.vivosDe(pub.jugadores);
+  const votos = {};
+  await Promise.all(vivos.map(async (u) => { const v = await b.leer(RUTA.voto(pid, vid, u)); if (v) votos[u] = v.objetivo; }));
+  const nicks = Object.fromEntries(Object.keys(pub.jugadores).map((u) => [u, pub.jugadores[u].nick]));
+  const res = R.escrutar({ votos, candidatos: Object.keys(pub.votacion.candidatos), votantes: vivos, numero });
+  const texto = R.recortarAnuncio(R.textoResultadoVotacion(res, nicks));
+
+  if (res.segundaVotacion) {
+    const vid2 = R.votacionId(pub.ronda, 2);
+    await aplicarCambioDeFase(b, {
+      [`${RUTA.publico(pid)}/votacion`]: { id: vid2, abierta: true, candidatos: Object.fromEntries(res.candidatosSegunda.map((u) => [u, true])) },
+      [`${RUTA.publico(pid)}/seq`]: pub.seq + 1,
+      [`${RUTA.publico(pid)}/anuncio`]: texto,
+      [`${RUTA.publico(pid)}/timer`]: R.timerIniciar(pub.config.tiempos.votacion, b.ahora()),
+      [`${RUTA.controlVotacion(pid, vid)}/estado`]: 'escrutada',
+      [RUTA.controlVotacion(pid, vid2)]: { rondaId: pub.rondaId, numero: 2, estado: 'abierta', creadaEn: b.ahora() },
+    });
+    return { res, segundaVotacion: true, victoria: null };
+  }
+
+  const updates = {
+    [`${RUTA.publico(pid)}/votacion/resultado`]: R.resultadoPublicoVotacion(res),
+    [`${RUTA.publico(pid)}/fase`]: R.FASES.RESULTADO_VOTACION,
+    [`${RUTA.publico(pid)}/seq`]: pub.seq + 1,
+    [`${RUTA.publico(pid)}/anuncio`]: texto,
+    [`${RUTA.publico(pid)}/timer`]: R.timerDetener(),
+    [`${RUTA.controlVotacion(pid, vid)}/estado`]: 'escrutada',
+    [`${RUTA.indicePartida(pid)}/fase`]: R.FASES.RESULTADO_VOTACION,
+  };
+  if (res.eliminado) updates[`${RUTA.publico(pid)}/jugadores/${res.eliminado}/vivo`] = false;
+  await aplicarCambioDeFase(b, updates);
+  const { roles } = await rolesYVivos(b, pid, pub);
+  const vivosDespues = vivos.filter((u) => u !== res.eliminado);
+  return { res, segundaVotacion: false, victoria: R.evaluarVictoria(roles, vivosDespues) };
+}
+
+/**
+ * Declara el fin de la partida cuando se cumplió una condición de victoria
+ * (desde Descubrimiento o Resultado de la votación). Guarda el ganador y los roles para la revelación.
+ */
+export async function finalizarPartida(b, pid) {
+  const pub = await b.leer(RUTA.publico(pid));
+  if (!pub) throw new ErrorJuego('La partida no existe.');
+  if (pub.fase !== R.FASES.DESCUBRIMIENTO && pub.fase !== R.FASES.RESULTADO_VOTACION) {
+    throw new ErrorJuego('La partida solo puede terminar después del descubrimiento o de una votación.');
+  }
+  const { roles, vivos } = await rolesYVivos(b, pid, pub);
+  const v = R.evaluarVictoria(roles, vivos);
+  if (!v.terminada) throw new ErrorJuego('Todavía no se cumplió ninguna condición de victoria.');
+  const revelacionRoles = Object.fromEntries(Object.keys(pub.jugadores).map((u) => [u, { nick: pub.jugadores[u].nick, rol: roles[u], vivo: pub.jugadores[u].vivo === true }]));
+  await aplicarCambioDeFase(b, {
+    [RUTA.revelacion(pid)]: { ganador: v.ganador, roles: revelacionRoles },
+    [`${RUTA.publico(pid)}/resultado`]: { ganador: v.ganador },
+    [`${RUTA.publico(pid)}/fase`]: R.FASES.FINALIZADA,
+    [`${RUTA.publico(pid)}/seq`]: pub.seq + 1,
+    [`${RUTA.publico(pid)}/anuncio`]: R.textoVictoria(v.ganador),
+    [`${RUTA.publico(pid)}/timer`]: R.timerDetener(),
+    [`${RUTA.indicePartida(pid)}/fase`]: R.FASES.FINALIZADA,
+  });
+  return v;
+}
+
+/** Revelación final (solo se puede leer cuando la partida está finalizada). */
+export function escucharRevelacion(b, pid, cb) { return b.escuchar(RUTA.revelacion(pid), cb, () => cb(null)); }
