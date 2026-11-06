@@ -160,6 +160,22 @@ body.as-body main { flex: 1; }
 .as-veredicto.no { color: #8fd19f; }
 .as-victoria { margin-top: 10px; padding: 12px 14px; border: 1px solid rgba(245, 200, 66, 0.5); border-radius: 8px; background: rgba(200, 150, 0, 0.1); color: var(--dorado-claro); font-size: 14px; line-height: 1.5; }
 
+/* ── Interrogatorios y votación (etapa 4) ── */
+.as-reloj { font-family: var(--font-title); font-size: 64px; letter-spacing: 4px; color: var(--dorado); text-align: center; line-height: 1; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
+.as-reloj.oculto { display: none; }
+.as-reloj.pausa { color: var(--crema-3); }
+.as-reloj.cero { color: #ff6060; animation: as-parpadeo 0.9s steps(2, start) infinite; }
+@keyframes as-parpadeo { to { opacity: 0.35; } }
+.as-turno {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; margin-bottom: 6px;
+  background: var(--negro-2); border: 1px solid rgba(200, 150, 0, 0.14); border-radius: 8px; color: var(--crema); cursor: pointer;
+  font-family: var(--font-body); font-size: 14px; text-align: left;
+}
+.as-turno:hover { border-color: rgba(200, 150, 0, 0.5); }
+.as-turno.actual { border-color: var(--dorado); background: rgba(200, 150, 0, 0.14); }
+.as-turno.hablo { opacity: 0.55; }
+.as-accion-fila.fantasma { opacity: 0.6; }
+
 @media (max-width: 520px) {
   .as-title { font-size: 28px; }
   .as-rol-nombre { font-size: 38px; }
