@@ -17,6 +17,7 @@ import { ref, get, set, update, remove } from "https://www.gstatic.com/firebasej
 import {
   ADMIN_UID, FASES_ETIQUETA, leerFase, estructuraEditable, nuevoId, validarPersona, validarCategoria,
   leerPersonas, leerCategorias, proximoOrden, moverNominado, avisosConfiguracion, fotoDesdeArchivo,
+  leerPlantel, yaCargada, fotoDesdePlantel,
 } from "./awards-datos.js";
 
 const $ = (id) => document.getElementById(id);
@@ -108,7 +109,7 @@ function renderEstado() {
   for (const a of avisos) cont.appendChild(el("li", "", a));
   $("aw-resumen").textContent = `${categorias.length} categoría(s) · ${personas.length} persona(s) cargadas.`;
   for (const id of ["aw-c-form", "aw-p-form"]) $(id).classList.toggle("aw-bloqueada", bloqueado);
-  for (const id of ["aw-c-nombre", "aw-c-orden", "aw-c-tipo", "aw-c-guardar", "aw-p-nombre", "aw-p-uid", "aw-p-archivo", "aw-p-guardar", "aw-p-quitar-foto"]) {
+  for (const id of ["aw-i-abrir", "aw-i-importar", "aw-i-marcar", "aw-c-nombre", "aw-c-orden", "aw-c-tipo", "aw-c-guardar", "aw-p-nombre", "aw-p-uid", "aw-p-archivo", "aw-p-guardar", "aw-p-quitar-foto"]) {
     $(id).disabled = bloqueado;
   }
 }
@@ -250,6 +251,100 @@ async function eliminarPersona(id) {
     mensaje("aw-p-msg", "Persona eliminada.", "ok");
   } catch (e) {
     mensaje("aw-p-msg", errorLegible(e), "error");
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+//  Importar desde «Armá tu equipo»
+// ────────────────────────────────────────────────────────────
+let plantel = null;           // null = todavía no se cargó
+const marcados = new Set();   // ids del plantel tildados
+
+async function abrirPlantel() {
+  mensaje("aw-i-msg", "Cargando el plantel...");
+  try {
+    const snap = await get(ref(db, "armaequipo/plantel"));
+    plantel = leerPlantel(snap.val());
+    marcados.clear();
+    $("aw-i-panel").classList.remove("hidden");
+    $("aw-i-abrir").textContent = "Actualizar plantel";
+    mensaje("aw-i-msg", plantel.length ? "" : "El plantel de Armá tu equipo está vacío.");
+    renderPlantel();
+  } catch (e) {
+    mensaje("aw-i-msg", /PERMISSION_DENIED/i.test(String((e && (e.code || e.message)) || "")) ? "Sin permiso para leer el plantel de Armá tu equipo." : "No se pudo cargar el plantel.", "error");
+  }
+}
+
+function renderPlantel() {
+  const cont = $("aw-i-grid");
+  cont.textContent = "";
+  if (!plantel) return;
+  const q = $("aw-i-buscar").value.trim().toLowerCase();
+  for (const j of plantel.filter((x) => !q || x.nombre.toLowerCase().includes(q))) {
+    const ya = yaCargada(j.nombre, personas);
+    const item = el("label", "aw-i-item" + (ya ? " ya" : ""));
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.disabled = ya || !editable();
+    cb.checked = !ya && marcados.has(j.id);
+    cb.addEventListener("change", () => { if (cb.checked) marcados.add(j.id); else marcados.delete(j.id); actualizarBotonImportar(); });
+    item.appendChild(cb);
+    item.appendChild(avatar(j.nombre, j.foto));
+    const t = el("div", "aw-i-txt", j.nombre);
+    const notas = [];
+    if (ya) notas.push("Ya cargada");
+    if (!j.foto) notas.push("Sin foto");
+    if (!j.activo) notas.push("Desactivada");
+    if (notas.length) t.appendChild(el("small", "", notas.join(" · ")));
+    item.appendChild(t);
+    cont.appendChild(item);
+  }
+  actualizarBotonImportar();
+}
+
+function actualizarBotonImportar() {
+  const n = [...marcados].filter((id) => plantel && plantel.some((j) => j.id === id && !yaCargada(j.nombre, personas))).length;
+  $("aw-i-importar").textContent = n ? `Importar seleccionados (${n})` : "Importar seleccionados";
+  $("aw-i-importar").disabled = !editable() || !n;
+}
+
+function marcarFaltantes() {
+  if (!plantel) return;
+  for (const j of plantel) if (!yaCargada(j.nombre, personas)) marcados.add(j.id);
+  renderPlantel();
+}
+
+async function importarSeleccionados() {
+  if (!editable() || !plantel) return;
+  const lista = plantel.filter((j) => marcados.has(j.id) && !yaCargada(j.nombre, personas));
+  if (!lista.length) return;
+  $("aw-i-importar").disabled = true;
+  let sinFoto = 0, hechas = 0;
+  try {
+    for (let i = 0; i < lista.length; i += 10) {
+      const lote = lista.slice(i, i + 10);
+      const cambios = {};
+      for (const j of lote) {
+        mensaje("aw-i-msg", `Importando ${hechas + 1} de ${lista.length}...`);
+        const obj = { nombre: j.nombre };
+        if (j.foto) {
+          try { obj.foto = await fotoDesdePlantel(j.foto); } catch (e) { sinFoto++; }
+        } else sinFoto++;
+        cambios[`awards/personas/${nuevoId("p")}`] = obj;
+        hechas++;
+      }
+      await update(ref(db), cambios);
+    }
+    await cargarTodo();
+    marcados.clear();
+    renderTodo();
+    renderPlantel();
+    mensaje("aw-i-msg", `Se importaron ${hechas} persona(s).` + (sinFoto ? ` ${sinFoto} quedaron sin foto: podés subirla desde «Editar».` : ""), "ok");
+  } catch (e) {
+    await cargarTodo().catch(() => {});
+    renderTodo();
+    renderPlantel();
+    mensaje("aw-i-msg", errorLegible(e), "error");
   }
 }
 
@@ -456,6 +551,7 @@ function renderTodo() {
   renderCategorias();
   renderFormPersona();
   renderFormCategoria();
+  if (plantel) renderPlantel();
 }
 
 function mostrarTab(cual) {
@@ -476,6 +572,11 @@ async function iniciar() {
   $("aw-p-cancelar").addEventListener("click", () => { limpiarFormPersona(); mensaje("aw-p-msg", ""); });
   $("aw-p-nombre").addEventListener("input", renderFormPersona);
   $("aw-p-buscar").addEventListener("input", renderPersonas);
+  $("aw-i-abrir").addEventListener("click", abrirPlantel);
+  $("aw-i-buscar").addEventListener("input", renderPlantel);
+  $("aw-i-marcar").addEventListener("click", marcarFaltantes);
+  $("aw-i-desmarcar").addEventListener("click", () => { marcados.clear(); renderPlantel(); });
+  $("aw-i-importar").addEventListener("click", importarSeleccionados);
   $("aw-c-guardar").addEventListener("click", guardarCategoria);
   $("aw-c-cancelar").addEventListener("click", () => { limpiarFormCategoria(); mensaje("aw-c-msg", ""); });
   try {
