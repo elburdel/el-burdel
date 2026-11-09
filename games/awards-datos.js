@@ -250,3 +250,115 @@ export async function fotoDesdePlantel(foto) {
   const blob = await resp.blob();
   return fotoDesdeArchivo(blob);
 }
+
+// ════════════════════════════════════════════════════════════
+//  ETAPA 3 — Primera votación pública
+// ════════════════════════════════════════════════════════════
+
+// Categorías que entran en la primera votación: normales y con al menos un nominado.
+export function categoriasPublicables(categorias) {
+  return categorias.filter((c) => c.tipo === "normal" && c.nominados.length >= 1);
+}
+
+// Controles antes de abrir la primera votación. {error, avisos}
+export function validarApertura(categorias, personas) {
+  const pub = categoriasPublicables(categorias);
+  if (!pub.length) return { error: "No hay ninguna categoría normal con nominados. Cargalas antes de abrir la votación.", avisos: [] };
+  const ids = new Set(personas.map((p) => p.id));
+  for (const c of pub) {
+    if (c.nominados.some((n) => !ids.has(n.pid))) return { error: `«${c.nombre}» tiene nominados que ya no existen. Corregilo antes de abrir.`, avisos: [] };
+  }
+  const avisos = [];
+  const vacias = categorias.filter((c) => c.tipo === "normal" && !c.nominados.length);
+  if (vacias.length) avisos.push(`No se publicarán por no tener nominados: ${vacias.map((c) => c.nombre).join(", ")}.`);
+  const chicas = pub.filter((c) => c.nominados.length < 2);
+  if (chicas.length) avisos.push(`Tienen un solo nominado: ${chicas.map((c) => c.nombre).join(", ")}.`);
+  const usadas = new Set(pub.flatMap((c) => c.nominados.map((n) => n.pid)));
+  const sinFoto = personas.filter((p) => usadas.has(p.id) && !p.foto).length;
+  if (sinFoto) avisos.push(`${sinFoto} nominado(s) no tienen foto (se verán con sus iniciales).`);
+  const oro = categorias.find((c) => c.tipo === "oro");
+  if (oro) avisos.push("Burdel de Oro NO se publica: aparece recién en la segunda votación.");
+  return { error: null, avisos };
+}
+
+// Cambios (una sola escritura atómica) para abrir la primera votación.
+// Solo se marcan visibles (r1) las personas nominadas en categorías normales:
+// quien esté únicamente en Burdel de Oro nunca queda público.
+export function armarApertura(categorias) {
+  const cambios = {};
+  const visibles = new Set();
+  for (const c of categoriasPublicables(categorias)) {
+    const nominados = {};
+    for (const n of c.nominados) { nominados[n.pid] = { orden: n.orden }; visibles.add(n.pid); }
+    cambios[`awards/ronda1/${c.id}`] = { nombre: c.nombre, orden: c.orden, nominados };
+  }
+  for (const pid of visibles) cambios[`awards/personas/${pid}/r1`] = true;
+  cambios["awards/estado"] = "ronda1_abierta";
+  return { cambios, visibles: [...visibles] };
+}
+
+// raw = awards/votos1  →  {cid: {token: {p, ts}}}.
+// Solo cuenta votos a nominados reales de esa categoría. Devuelve {cid: {total, conteo:{pid:n}}}.
+export function contarVotos(raw, publicables) {
+  const out = {};
+  for (const c of publicables) {
+    const validos = new Set(c.nominados.map((n) => n.pid));
+    const conteo = {};
+    for (const n of c.nominados) conteo[n.pid] = 0;
+    let total = 0;
+    const votos = raw && typeof raw === "object" && raw[c.id] && typeof raw[c.id] === "object" ? raw[c.id] : {};
+    for (const v of Object.values(votos)) {
+      if (v && typeof v.p === "string" && validos.has(v.p)) { conteo[v.p]++; total++; }
+    }
+    out[c.id] = { total, conteo };
+  }
+  return out;
+}
+
+// Ranking de una categoría: [{pid, votos, pct, puesto}] de más a menos votado (empates comparten puesto).
+export function armarRanking(categoria, datos) {
+  const total = datos ? datos.total : 0;
+  const filas = categoria.nominados.map((n) => ({
+    pid: n.pid,
+    votos: datos && datos.conteo[n.pid] ? datos.conteo[n.pid] : 0,
+    orden: n.orden,
+  }));
+  filas.sort((a, b) => (b.votos - a.votos) || (a.orden - b.orden));
+  let puesto = 0, prev = null;
+  return filas.map((f, i) => {
+    if (f.votos !== prev) { puesto = i + 1; prev = f.votos; }
+    return { pid: f.pid, votos: f.votos, pct: total ? Math.round((f.votos / total) * 1000) / 10 : 0, puesto };
+  });
+}
+
+// Sugerencia: los 3 más votados + todos los que empaten con el tercero.
+export function sugerirFinalistas(ranking, n = 3) {
+  if (ranking.length <= n) return ranking.map((r) => r.pid);
+  const corte = ranking[n - 1].votos;
+  return ranking.filter((r, i) => i < n || r.votos === corte).map((r) => r.pid);
+}
+
+// ¿Hay un empate que afecta quién entra entre los primeros n?
+export function hayEmpateEnCorte(ranking, n = 3) {
+  return ranking.length > n && ranking[n - 1].votos === ranking[n].votos;
+}
+
+// Finalistas definitivos de una categoría: {pid: {orden}} siguiendo el orden del ranking.
+export function armarFinalistas(ranking, seleccion) {
+  const out = {};
+  let k = 1;
+  for (const r of ranking) if (seleccion.has(r.pid)) out[r.pid] = { orden: k++ };
+  return out;
+}
+
+// ── Votante público (sin cuenta) ──
+export function tokenValido(t) {
+  return typeof t === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(t);
+}
+export function nuevoToken() {
+  const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = typeof crypto !== "undefined" && crypto.getRandomValues ? crypto.getRandomValues(new Uint8Array(32)) : Array.from({ length: 32 }, () => Math.floor(Math.random() * 256));
+  let t = "";
+  for (let i = 0; i < 32; i++) t += abc[bytes[i] % abc.length];
+  return t;
+}
