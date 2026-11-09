@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin BURDEL AWARDS 2026 — El Burdel</title>
+  <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <style>
+    .aw-main { padding: 24px 20px 60px; max-width: 900px; margin: 0 auto; }
+    .aw-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .aw-title { font-family: var(--font-title); font-size: 24px; letter-spacing: 2px; color: var(--dorado); }
+
+    .aw-btn {
+      font-family: var(--font-body); font-size: 12px; font-weight: 500; letter-spacing: 0.5px;
+      padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(200,150,0,0.25);
+      background: transparent; color: var(--crema-2); cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .aw-btn:hover { color: var(--crema); background: rgba(200,150,0,0.08); }
+    .aw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .aw-btn-primario { background: var(--dorado); border-color: var(--dorado); color: var(--negro); font-weight: 700; }
+    .aw-btn-primario:hover { background: var(--dorado-claro); color: var(--negro); }
+    .aw-btn-peligro { border-color: rgba(255,138,138,0.35); color: #ff8a8a; }
+    .aw-btn-peligro:hover { background: rgba(255,138,138,0.1); color: #ffb0b0; }
+    .aw-btn-mini { padding: 6px 9px; min-width: 32px; }
+
+    .aw-estado { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; color: var(--crema-2); }
+    .aw-estado strong { color: var(--dorado-claro); letter-spacing: 1px; text-transform: uppercase; font-size: 12px; }
+    .aw-resumen { font-size: 13px; color: var(--crema-2); margin-bottom: 12px; }
+    .aw-resumen.aviso { color: var(--dorado-claro); }
+    .aw-bloqueo { background: rgba(200,150,0,0.1); border: 1px solid rgba(200,150,0,0.35); color: var(--dorado-claro); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; }
+    .aw-avisos { margin: 0 0 14px; padding: 10px 12px 10px 28px; background: var(--negro-2); border: 1px solid rgba(200,150,0,0.2); border-radius: 10px; font-size: 13px; color: var(--crema-2); }
+
+    .aw-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .aw-tab { flex: 1; padding: 10px 12px; background: rgba(200,150,0,0.06); border: 1px solid rgba(200,150,0,0.2); border-radius: 8px; color: var(--crema-2); font-family: var(--font-body); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+    .aw-tab.active { background: var(--dorado); border-color: var(--dorado); color: var(--negro); font-weight: 700; }
+
+    .aw-bloque { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.12); border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+    .aw-bloque.aw-bloqueada { opacity: 0.6; }
+    .aw-bloque-titulo { font-family: var(--font-title); font-weight: 400; font-size: 20px; letter-spacing: 2px; color: var(--dorado); margin-bottom: 12px; }
+
+    .aw-campos { display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-bottom: 12px; }
+    .aw-campos.tres { grid-template-columns: 1fr 150px 90px; }
+    .aw-campo { margin-bottom: 10px; }
+    .aw-campos .aw-campo { margin-bottom: 0; }
+    .aw-campo label { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--crema-3); margin-bottom: 4px; }
+    .aw-input { width: 100%; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.25); border-radius: 8px; color: var(--crema); font-family: var(--font-body); font-size: 14px; padding: 9px 10px; }
+    .aw-input:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
+    .aw-input:disabled { opacity: 0.5; }
+
+    .aw-foto { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+    .aw-foto-ayuda { font-size: 12px; color: var(--crema-3); flex: 1 1 200px; }
+    .aw-foto-ayuda p { margin-top: 6px; }
+
+    .aw-avatar { position: relative; display: block; width: 44px; height: 44px; flex: none; border-radius: 50%; overflow: hidden; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.3); }
+    .aw-avatar.grande { width: 84px; height: 84px; }
+    .aw-avatar-ini { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-title); font-size: 16px; color: var(--dorado); }
+    .aw-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+
+    .aw-botones { display: flex; gap: 8px; flex-wrap: wrap; }
+    .aw-msg { margin-top: 10px; font-size: 13px; min-height: 1.2em; }
+    .aw-msg.ok { color: var(--dorado-claro); }
+    .aw-msg.error { color: #ff8a8a; }
+
+    .aw-lista { display: flex; flex-direction: column; gap: 8px; }
+    .aw-fila { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.12); border-radius: 10px; }
+    .aw-datos { flex: 1; min-width: 0; }
+    .aw-nombre { font-size: 14px; color: var(--crema); overflow-wrap: anywhere; }
+    .aw-sub { font-size: 12px; color: var(--crema-3); overflow-wrap: anywhere; }
+    .aw-acciones { display: flex; gap: 6px; flex: none; }
+    .aw-vacio { font-size: 13px; color: var(--crema-3); }
+
+    .aw-cat { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.15); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+    .aw-cat.oro { border-color: var(--dorado); box-shadow: 0 0 0 1px rgba(245,200,66,0.2) inset; }
+    .aw-cat-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .aw-cat-tit { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .aw-cat-nombre { font-family: var(--font-title); font-size: 20px; letter-spacing: 1.5px; color: var(--dorado-claro); overflow-wrap: anywhere; }
+    .aw-badge { align-self: flex-start; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: var(--dorado); color: var(--negro); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+    .aw-agregar { margin-top: 10px; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 560px) {
+      .aw-campos, .aw-campos.tres { grid-template-columns: 1fr; }
+      .aw-fila { flex-wrap: wrap; }
+      .aw-fila .aw-acciones { width: 100%; justify-content: flex-end; }
+      .aw-fila.chica .aw-acciones { width: auto; }
+      .aw-fila.chica { flex-wrap: nowrap; }
+    }
+  </style>
+</head>
+<body>
+<main class="aw-main">
+
+  <div class="aw-topbar">
+    <div class="aw-title">🏆 BURDEL AWARDS 2026</div>
+    <a href="admin.html" class="aw-btn">← Volver al admin</a>
+  </div>
+
+  <div class="aw-estado">Etapa actual: <strong id="aw-fase">Cargando...</strong></div>
+  <p class="aw-resumen" id="aw-resumen">Cargando...</p>
+  <div class="aw-bloqueo hidden" id="aw-bloqueo">La configuración está bloqueada porque la etapa ya no es «Configuración». Las categorías, personas y nominados solo se editan en esa etapa.</div>
+  <ul class="aw-avisos hidden" id="aw-avisos"></ul>
+
+  <div class="aw-tabs" role="tablist">
+    <button type="button" class="aw-tab active" id="aw-tab-categorias" role="tab" aria-selected="true">Categorías</button>
+    <button type="button" class="aw-tab" id="aw-tab-personas" role="tab" aria-selected="false">Personas</button>
+  </div>
+
+  <!-- ── CATEGORÍAS ── -->
+  <div id="aw-pane-categorias">
+    <section class="aw-bloque" id="aw-c-form">
+      <h2 class="aw-bloque-titulo" id="aw-c-form-titulo">Agregar categoría</h2>
+      <div class="aw-campos tres">
+        <div class="aw-campo">
+          <label for="aw-c-nombre">Nombre</label>
+          <input type="text" class="aw-input" id="aw-c-nombre" maxlength="60" autocomplete="off" placeholder="Ej: Mejor anécdota" />
+        </div>
+        <div class="aw-campo">
+          <label for="aw-c-tipo">Tipo</label>
+          <select class="aw-input" id="aw-c-tipo">
+            <option value="normal">Normal</option>
+            <option value="oro">Burdel de Oro (solo 2ª votación)</option>
+          </select>
+        </div>
+        <div class="aw-campo">
+          <label for="aw-c-orden">Orden</label>
+          <input type="number" class="aw-input" id="aw-c-orden" step="1" />
+        </div>
+      </div>
+      <div class="aw-botones">
+        <button type="button" class="aw-btn aw-btn-primario" id="aw-c-guardar">Agregar</button>
+        <button type="button" class="aw-btn hidden" id="aw-c-cancelar">Cancelar edición</button>
+      </div>
+      <p class="aw-msg" id="aw-c-msg"></p>
+    </section>
+    <div id="aw-c-lista"></div>
+  </div>
+
+  <!-- ── PERSONAS ── -->
+  <div id="aw-pane-personas" class="hidden">
+    <section class="aw-bloque" id="aw-p-form">
+      <h2 class="aw-bloque-titulo" id="aw-p-form-titulo">Agregar persona</h2>
+      <div class="aw-campos tres" style="grid-template-columns: 1fr 1fr;">
+        <div class="aw-campo">
+          <label for="aw-p-nombre">Nombre o apodo</label>
+          <input type="text" class="aw-input" id="aw-p-nombre" maxlength="40" autocomplete="off" placeholder="Nombre de la persona nominada" />
+        </div>
+        <div class="aw-campo">
+          <label for="aw-p-uid">Usuario de El Burdel (opcional)</label>
+          <select class="aw-input" id="aw-p-uid"><option value="">— Sin cuenta / sin vincular —</option></select>
+        </div>
+      </div>
+      <div class="aw-foto">
+        <div id="aw-p-previa"></div>
+        <div class="aw-foto-ayuda">
+          <input type="file" id="aw-p-archivo" accept="image/*" />
+          <p>La foto se reduce sola (lado mayor de 480 px) y se guarda comprimida. Si no subís una, se ven las iniciales.</p>
+          <button type="button" class="aw-btn hidden" id="aw-p-quitar-foto" style="margin-top:8px;">Quitar foto</button>
+        </div>
+      </div>
+      <div class="aw-botones">
+        <button type="button" class="aw-btn aw-btn-primario" id="aw-p-guardar">Agregar</button>
+        <button type="button" class="aw-btn hidden" id="aw-p-cancelar">Cancelar edición</button>
+      </div>
+      <p class="aw-msg" id="aw-p-msg"></p>
+    </section>
+
+    <div class="aw-campo">
+      <input type="search" class="aw-input" id="aw-p-buscar" placeholder="Buscar persona..." autocomplete="off" />
+    </div>
+    <div class="aw-lista" id="aw-p-lista"></div>
+  </div>
+
+</main>
+
+<script type="module" src="games/awards-admin.js"></script>
+
+<script type="module">
+  import { initNavbar } from "./js/navbar.js";
+  import { mountAdminSidebar } from "./js/admin-sidebar.js";
+  initNavbar();
+  mountAdminSidebar("awards");
+</script>
+
+</body>
+</html>
