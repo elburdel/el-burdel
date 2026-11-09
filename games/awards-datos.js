@@ -1,0 +1,206 @@
+// ============================================================
+//  BURDEL AWARDS 2026 — lógica pura y constantes compartidas
+//  Archivo: games/awards-datos.js
+// ============================================================
+//  Sin Firebase: solo constantes, validaciones y lectura tolerante de datos.
+//  Lo usan admin-awards.html (games/awards-admin.js) y, más adelante, la
+//  votación pública y la vista de ganadores.
+//
+//  Estructura en Firebase (nodo "awards"):
+//    awards/estado                              etapa actual (texto)
+//    awards/personas/{pid}                      {nombre, foto?, uid?, r1?, r2?}   (foto en base64 JPEG)
+//    awards/admin/categorias/{cid}              {nombre, orden, tipo, nominados:{pid:{orden}}}
+//    (las demás ramas —ronda1, ronda2, votos, resultados, publicados— llegan en etapas siguientes)
+// ============================================================
+
+export const ADMIN_UID = "rRE0YhtRhqNvGWGFDkcbhNIwvOz1";
+export const NOMBRE_OFICIAL = "BURDEL AWARDS 2026";
+
+export const FASES = [
+  "configuracion",
+  "ronda1_abierta",
+  "ronda1_cerrada",
+  "finalistas_definidos",
+  "ronda2_abierta",
+  "ronda2_cerrada",
+  "publicado",
+];
+
+export const FASES_ETIQUETA = {
+  configuracion: "Configuración",
+  ronda1_abierta: "Primera votación abierta",
+  ronda1_cerrada: "Primera votación cerrada",
+  finalistas_definidos: "Finalistas definidos",
+  ronda2_abierta: "Segunda votación abierta",
+  ronda2_cerrada: "Segunda votación cerrada",
+  publicado: "Resultados publicados",
+};
+
+export const RE_ID = /^[a-z0-9_]{1,30}$/;
+const RE_NOMBRE_PROHIBIDO = /[<>"\\/]/;
+const RE_FOTO_DATA = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
+
+export const LADO_FOTO = 480;           // lado mayor de la foto, en píxeles
+export const MAX_FOTO_CHARS = 140000;   // las reglas aceptan hasta 150000
+
+// Si el nodo todavía no existe (o tiene un valor raro) se considera "configuracion".
+export function leerFase(valor) {
+  return FASES.includes(valor) ? valor : "configuracion";
+}
+
+// La estructura (categorías, personas, nominados) solo se edita en configuración.
+export function estructuraEditable(fase) {
+  return leerFase(fase) === "configuracion";
+}
+
+export function nuevoId(prefijo = "x") {
+  const g = typeof crypto !== "undefined" && crypto.getRandomValues ? crypto.getRandomValues(new Uint32Array(2)) : null;
+  const azar = g ? (g[0].toString(36) + g[1].toString(36)).slice(0, 6) : Math.random().toString(36).slice(2, 8);
+  return (prefijo + Date.now().toString(36) + azar).slice(0, 30);
+}
+
+export function fotoValida(f) {
+  return typeof f === "string" && f.length <= MAX_FOTO_CHARS && RE_FOTO_DATA.test(f);
+}
+
+// Devuelve un texto de error o null.
+export function validarNombre(nombre, max) {
+  const n = String(nombre || "").trim();
+  if (n.length < 1) return "Falta el nombre.";
+  if (n.length > max) return `El nombre puede tener hasta ${max} caracteres.`;
+  if (RE_NOMBRE_PROHIBIDO.test(n)) return "El nombre no puede tener los caracteres < > \" \\ /";
+  return null;
+}
+
+export function validarPersona({ nombre }) {
+  return validarNombre(nombre, 40);
+}
+
+// categorias: lista ya leída (leerCategorias). editandoId: id de la que se está editando, si hay.
+export function validarCategoria({ nombre, orden, tipo }, categorias, editandoId) {
+  const e = validarNombre(nombre, 60);
+  if (e) return e;
+  if (!Number.isFinite(orden)) return "El orden debe ser un número.";
+  if (tipo !== "normal" && tipo !== "oro") return "Tipo de categoría inválido.";
+  if (tipo === "oro" && categorias.some((c) => c.tipo === "oro" && c.id !== editandoId)) {
+    return "Ya existe la categoría especial Burdel de Oro. Solo puede haber una.";
+  }
+  return null;
+}
+
+// ── Lectura tolerante (los datos pueden venir incompletos o con basura) ──
+
+export function leerPersonas(raw) {
+  const lista = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return lista;
+  for (const [id, v] of Object.entries(raw)) {
+    if (!RE_ID.test(id) || !v || typeof v !== "object") continue;
+    const nombre = typeof v.nombre === "string" ? v.nombre.trim().slice(0, 40) : "";
+    if (!nombre) continue;
+    lista.push({
+      id,
+      nombre,
+      foto: fotoValida(v.foto) ? v.foto : null,
+      uid: typeof v.uid === "string" && v.uid ? v.uid : null,
+    });
+  }
+  lista.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  return lista;
+}
+
+export function leerCategorias(raw) {
+  const lista = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return lista;
+  for (const [id, v] of Object.entries(raw)) {
+    if (!RE_ID.test(id) || !v || typeof v !== "object") continue;
+    const nombre = typeof v.nombre === "string" ? v.nombre.trim().slice(0, 60) : "";
+    if (!nombre) continue;
+    const nominados = [];
+    if (v.nominados && typeof v.nominados === "object") {
+      for (const [pid, n] of Object.entries(v.nominados)) {
+        if (!RE_ID.test(pid)) continue;
+        nominados.push({ pid, orden: n && Number.isFinite(n.orden) ? n.orden : 9999 });
+      }
+    }
+    nominados.sort((a, b) => (a.orden - b.orden) || a.pid.localeCompare(b.pid));
+    lista.push({
+      id,
+      nombre,
+      orden: Number.isFinite(v.orden) ? v.orden : 9999,
+      tipo: v.tipo === "oro" ? "oro" : "normal",
+      nominados,
+    });
+  }
+  lista.sort((a, b) => (a.orden - b.orden) || a.nombre.localeCompare(b.nombre, "es"));
+  return lista;
+}
+
+export function proximoOrden(items) {
+  return items.reduce((m, x) => Math.max(m, Number.isFinite(x.orden) && x.orden !== 9999 ? x.orden : 0), 0) + 1;
+}
+
+// Mueve un nominado una posición (delta -1 sube, +1 baja) y devuelve los cambios
+// {pid: nuevoOrden} necesarios para dejar los órdenes como 1..n. Objeto vacío si no hay cambio.
+export function moverNominado(nominados, pid, delta) {
+  const ids = nominados.map((n) => n.pid);
+  const i = ids.indexOf(pid);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= ids.length) return {};
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  const cambios = {};
+  ids.forEach((id, k) => {
+    const actual = nominados.find((n) => n.pid === id).orden;
+    if (actual !== k + 1) cambios[id] = k + 1;
+  });
+  return cambios;
+}
+
+// Avisos para el admin antes de abrir la primera votación (no bloquean nada).
+export function avisosConfiguracion(categorias, personas) {
+  const avisos = [];
+  const normales = categorias.filter((c) => c.tipo === "normal");
+  if (!normales.length) avisos.push("Todavía no hay categorías para la primera votación.");
+  for (const c of normales) {
+    if (c.nominados.length < 2) avisos.push(`«${c.nombre}» tiene menos de 2 nominados.`);
+  }
+  const ids = new Set(personas.map((p) => p.id));
+  for (const c of categorias) {
+    if (c.nominados.some((n) => !ids.has(n.pid))) avisos.push(`«${c.nombre}» tiene nominados que ya no existen.`);
+  }
+  const usadas = new Set(categorias.flatMap((c) => c.nominados.map((n) => n.pid)));
+  const sinFoto = personas.filter((p) => usadas.has(p.id) && !p.foto).length;
+  if (sinFoto) avisos.push(`${sinFoto} nominado(s) sin fotografía.`);
+  return avisos;
+}
+
+// ── Fotografía (solo navegador) ──
+// Reduce el lado mayor a 480 px (o menos si hace falta) y comprime a JPEG hasta que entre en el tope.
+export async function fotoDesdeArchivo(file) {
+  if (!file || !String(file.type).startsWith("image/")) throw new Error("El archivo no es una imagen.");
+  if (file.size > 25 * 1024 * 1024) throw new Error("La imagen es demasiado grande (máximo 25 MB).");
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const w0 = img.naturalWidth, h0 = img.naturalHeight;
+    if (!w0 || !h0) throw new Error("No se pudo leer la imagen.");
+    for (const lado of [LADO_FOTO, 400, 320, 240]) {
+      const k = Math.min(1, lado / Math.max(w0, h0));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(w0 * k));
+      canvas.height = Math.max(1, Math.round(h0 * k));
+      const g = canvas.getContext("2d");
+      g.fillStyle = "#000";
+      g.fillRect(0, 0, canvas.width, canvas.height);
+      g.drawImage(img, 0, 0, canvas.width, canvas.height);
+      for (const q of [0.85, 0.75, 0.65, 0.55, 0.45]) {
+        const data = canvas.toDataURL("image/jpeg", q);
+        if (data.startsWith("data:image/jpeg;base64,") && data.length <= MAX_FOTO_CHARS) return data;
+      }
+    }
+    throw new Error("La foto es demasiado pesada incluso comprimida. Probá con otra.");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
