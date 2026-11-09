@@ -1,0 +1,49 @@
+/* ============================================================
+   BURDEL AWARDS 2026 — página pública (awards.html)
+   ============================================================ */
+.awp-body { background: var(--negro); color: var(--crema); font-family: var(--font-body); min-height: 100vh;
+  background-image: radial-gradient(ellipse at 50% -10%, rgba(200,150,0,0.18), transparent 60%); }
+.hidden { display: none !important; }
+
+.awp-head { display: flex; justify-content: center; padding: 18px 16px 0; }
+.awp-logo { font-family: var(--font-title); font-size: 18px; letter-spacing: 4px; color: var(--dorado); text-decoration: none; }
+
+.awp-main { max-width: 960px; margin: 0 auto; padding: 8px 16px 70px; }
+.awp-hero { text-align: center; padding: 26px 0 22px; }
+.awp-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--crema-3); }
+.awp-titulo { font-family: var(--font-title); font-weight: 400; font-size: clamp(44px, 12vw, 84px); line-height: 1; letter-spacing: 5px; color: var(--dorado-claro); margin: 8px 0 10px; text-shadow: 0 0 28px rgba(200,150,0,0.35); }
+.awp-titulo span { color: var(--crema); }
+.awp-sub { font-size: 14px; color: var(--crema-2); max-width: 520px; margin: 0 auto; line-height: 1.5; }
+
+.awp-aviso { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.35); border-radius: 14px; padding: 22px 18px; text-align: center; color: var(--crema-2); font-size: 15px; line-height: 1.5; margin: 10px auto; max-width: 560px; }
+.awp-aviso strong { display: block; font-family: var(--font-title); font-weight: 400; font-size: 26px; letter-spacing: 2px; color: var(--dorado-claro); margin-bottom: 6px; }
+
+.awp-progreso { position: sticky; top: 0; z-index: 5; text-align: center; font-size: 13px; letter-spacing: 0.5px; color: var(--crema); background: rgba(8,8,8,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid rgba(200,150,0,0.25); padding: 10px 12px; margin: 0 -16px 18px; }
+.awp-progreso b { color: var(--dorado-claro); }
+
+.awp-cat { margin-bottom: 34px; }
+.awp-cat-titulo { font-family: var(--font-title); font-weight: 400; font-size: clamp(26px, 6vw, 36px); letter-spacing: 2px; color: var(--dorado); text-align: center; margin-bottom: 4px; }
+.awp-cat-estado { text-align: center; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--crema-3); margin-bottom: 14px; }
+.awp-cat.votada .awp-cat-estado { color: var(--dorado-claro); }
+
+.awp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 560px) { .awp-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 860px) { .awp-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.awp-card { position: relative; background: var(--negro-2); border: 1px solid rgba(200,150,0,0.18); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, opacity .15s; }
+.awp-card.elegida { border-color: var(--dorado-claro); box-shadow: 0 0 0 2px rgba(245,200,66,0.35), 0 0 22px rgba(200,150,0,0.3); }
+.awp-cat.votada .awp-card:not(.elegida) { opacity: 0.45; }
+.awp-foto { position: relative; width: 100%; aspect-ratio: 4 / 5; background: var(--negro-3); }
+.awp-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+.awp-ini { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-title); font-size: 52px; color: var(--dorado-oscuro); }
+.awp-foto::after { content: ""; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(transparent, rgba(8,8,8,0.9)); }
+.awp-nombre { position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 1; font-family: var(--font-title); font-size: 22px; letter-spacing: 1.5px; color: var(--crema); line-height: 1.05; overflow-wrap: anywhere; }
+.awp-acc { padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 52px; justify-content: center; }
+.awp-btn { width: 100%; padding: 11px 8px; border-radius: 9px; border: 1px solid var(--dorado); background: transparent; color: var(--dorado-claro); font-family: var(--font-body); font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; }
+.awp-btn:hover { background: rgba(200,150,0,0.12); }
+.awp-btn.primario { background: var(--dorado); color: var(--negro); }
+.awp-btn.primario:hover { background: var(--dorado-claro); }
+.awp-btn:disabled { opacity: 0.5; cursor: wait; }
+.awp-conf { font-size: 12px; text-align: center; color: var(--crema-2); }
+.awp-ok { text-align: center; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--dorado-claro); }
+.awp-error { text-align: center; font-size: 12px; color: #ff8a8a; margin-top: 8px; }
