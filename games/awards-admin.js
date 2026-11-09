@@ -13,11 +13,13 @@
 
 import { auth, db } from "../js/firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { ref, get, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { ref, get, set, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import {
   ADMIN_UID, FASES_ETIQUETA, leerFase, estructuraEditable, nuevoId, validarPersona, validarCategoria,
   leerPersonas, leerCategorias, proximoOrden, moverNominado, avisosConfiguracion, fotoDesdeArchivo,
   leerPlantel, yaCargada, fotoDesdePlantel,
+  categoriasPublicables, validarApertura, armarApertura, contarVotos, armarRanking, sugerirFinalistas,
+  hayEmpateEnCorte, armarFinalistas,
 } from "./awards-datos.js";
 
 const $ = (id) => document.getElementById(id);
@@ -100,6 +102,7 @@ async function cargarUsuarios() {
 // ────────────────────────────────────────────────────────────
 function renderEstado() {
   $("aw-fase").textContent = FASES_ETIQUETA[fase];
+  renderEtapa();
   const bloqueado = !editable();
   $("aw-bloqueo").classList.toggle("hidden", !bloqueado);
   const avisos = avisosConfiguracion(categorias, personas);
@@ -537,6 +540,263 @@ function renderCategorias() {
 }
 
 // ────────────────────────────────────────────────────────────
+//  Control de etapas (todo manual; nada avanza solo)
+// ────────────────────────────────────────────────────────────
+const AYUDA_ETAPA = {
+  configuracion: "Cargá categorías, personas y nominados. Cuando estés listo, abrí la primera votación pública.",
+  ronda1_abierta: "La votación pública está abierta: cualquiera con el enlace puede votar. Cerrala cuando quieras.",
+  ronda1_cerrada: "La votación pública está cerrada. Revisá los votos en la pestaña «1ª votación», elegí los finalistas de cada categoría y confirmalos.",
+  finalistas_definidos: "Finalistas definidos. Lo que sigue (Burdel de Oro y segunda votación para usuarios registrados) llega en la próxima etapa.",
+  ronda2_abierta: "Segunda votación abierta.",
+  ronda2_cerrada: "Segunda votación cerrada.",
+  publicado: "Resultados publicados.",
+};
+
+function botonEtapa(texto, fn, clase) {
+  const b = el("button", "aw-btn " + (clase || ""), texto);
+  b.type = "button";
+  b.addEventListener("click", async () => {
+    for (const x of document.querySelectorAll("#aw-etapa-acciones button")) x.disabled = true;
+    try { await fn(); } finally { renderEtapa(); }
+  });
+  return b;
+}
+
+function renderEtapa() {
+  const cont = $("aw-etapa-acciones");
+  cont.textContent = "";
+  $("aw-etapa-ayuda").textContent = AYUDA_ETAPA[fase] || "";
+  if (fase === "configuracion") cont.appendChild(botonEtapa("Abrir primera votación", abrirPrimera, "aw-btn-primario"));
+  else if (fase === "ronda1_abierta") cont.appendChild(botonEtapa("Cerrar primera votación", cerrarPrimera, "aw-btn-primario"));
+  else if (fase === "ronda1_cerrada") {
+    cont.appendChild(botonEtapa("Reabrir primera votación", reabrirPrimera));
+    cont.appendChild(botonEtapa("Confirmar finalistas", confirmarFinalistas, "aw-btn-primario"));
+  } else if (fase === "finalistas_definidos") cont.appendChild(botonEtapa("Volver a editar finalistas", volverAEditar));
+}
+
+async function abrirPrimera() {
+  if (fase !== "configuracion") return;
+  const v = validarApertura(categorias, personas);
+  if (v.error) { mensaje("aw-etapa-msg", v.error, "error"); return; }
+  const n = categoriasPublicables(categorias).length;
+  const texto = `Vas a ABRIR la primera votación pública con ${n} categoría(s).\n\n` + (v.avisos.length ? v.avisos.map((a) => "• " + a).join("\n") + "\n\n" : "") +
+    "Mientras esté abierta no se podrá editar la configuración. ¿Abrir ahora?";
+  if (!window.confirm(texto)) return;
+  try {
+    await update(ref(db), armarApertura(categorias).cambios); // una sola escritura: todo o nada
+    fase = "ronda1_abierta";
+    await cargarTodo();
+    mensaje("aw-etapa-msg", "Primera votación abierta. Compartí el enlace de la pestaña «1ª votación».", "ok");
+    renderTodo();
+  } catch (e) {
+    mensaje("aw-etapa-msg", errorLegible(e), "error");
+  }
+}
+
+async function cerrarPrimera() {
+  if (fase !== "ronda1_abierta") return;
+  if (!window.confirm("¿Cerrar la primera votación? Nadie podrá votar más (podés reabrirla después si hace falta).")) return;
+  try {
+    await set(ref(db, "awards/estado"), "ronda1_cerrada"); // primero se cierra, después se cuenta
+    fase = "ronda1_cerrada";
+    renderTodo();
+  } catch (e) {
+    mensaje("aw-etapa-msg", errorLegible(e), "error");
+    return;
+  }
+  try {
+    votacion.cargado = false; // la selección de finalistas se vuelve a leer al abrir la pestaña
+    await cargarVotos();
+    await guardarSnapshot();
+    mensaje("aw-etapa-msg", "Votación cerrada y votos contabilizados. Elegí los finalistas en la pestaña «1ª votación».", "ok");
+  } catch (e) {
+    mensaje("aw-etapa-msg", "La votación quedó cerrada, pero falló el conteo. Usá «Actualizar conteo» en la pestaña «1ª votación».", "error");
+  }
+  renderTodo();
+  mostrarTab("votacion");
+}
+
+async function reabrirPrimera() {
+  if (fase !== "ronda1_cerrada") return;
+  if (!window.confirm("¿Reabrir la primera votación? Volverá a aceptar votos del público.")) return;
+  try {
+    await set(ref(db, "awards/estado"), "ronda1_abierta");
+    fase = "ronda1_abierta";
+    mensaje("aw-etapa-msg", "Primera votación reabierta.", "ok");
+    renderTodo();
+  } catch (e) { mensaje("aw-etapa-msg", errorLegible(e), "error"); }
+}
+
+async function volverAEditar() {
+  if (fase !== "finalistas_definidos") return;
+  if (!window.confirm("¿Volver a editar los finalistas? Los ya elegidos se conservan.")) return;
+  try {
+    await set(ref(db, "awards/estado"), "ronda1_cerrada");
+    fase = "ronda1_cerrada";
+    mensaje("aw-etapa-msg", "Podés editar los finalistas de nuevo.", "ok");
+    renderTodo();
+    cargarVotacion(true);
+  } catch (e) { mensaje("aw-etapa-msg", errorLegible(e), "error"); }
+}
+
+// ────────────────────────────────────────────────────────────
+//  Primera votación: conteo, ranking y elección de finalistas
+// ────────────────────────────────────────────────────────────
+let votacion = { conteo: null, seleccion: {}, cargado: false };
+
+async function cargarVotos() {
+  const snap = await get(ref(db, "awards/votos1")); // lectura de la colección completa (solo admin)
+  votacion.conteo = contarVotos(snap.val(), categoriasPublicables(categorias));
+}
+
+async function guardarSnapshot() {
+  const cats = {};
+  let total = 0;
+  for (const [cid, d] of Object.entries(votacion.conteo || {})) { cats[cid] = { total: d.total, conteo: d.conteo }; total += d.total; }
+  await set(ref(db, "awards/resultados/ronda1"), { total, categorias: cats, cerradoEn: serverTimestamp() });
+}
+
+async function cargarVotacion(forzar) {
+  if (fase === "configuracion") { renderVotacion(); return; }
+  if (votacion.cargado && !forzar && fase !== "ronda1_abierta") { renderVotacion(); return; }
+  mensaje("aw-v-msg", "Leyendo los votos...");
+  try {
+    await cargarVotos();
+    const sel = await get(ref(db, "awards/admin/seleccion"));
+    votacion.seleccion = {};
+    const raw = sel.val() || {};
+    for (const [cid, v] of Object.entries(raw)) if (v && typeof v === "object") votacion.seleccion[cid] = new Set(Object.keys(v));
+    votacion.cargado = true;
+    mensaje("aw-v-msg", "");
+  } catch (e) {
+    mensaje("aw-v-msg", errorLegible(e), "error");
+  }
+  renderVotacion();
+}
+
+function seleccionEfectiva(cat, ranking) {
+  const guardada = votacion.seleccion[cat.id];
+  return guardada && guardada.size ? guardada : new Set(sugerirFinalistas(ranking, 3));
+}
+
+async function alternarFinalista(cat, ranking, pid, marcado) {
+  if (fase !== "ronda1_cerrada") return;
+  const nueva = new Set(seleccionEfectiva(cat, ranking));
+  if (marcado) nueva.add(pid); else nueva.delete(pid);
+  const obj = {};
+  for (const id of nueva) obj[id] = true;
+  try {
+    if (nueva.size) await set(ref(db, `awards/admin/seleccion/${cat.id}`), obj);
+    else await remove(ref(db, `awards/admin/seleccion/${cat.id}`));
+    votacion.seleccion[cat.id] = nueva;
+    mensaje("aw-v-msg", "");
+  } catch (e) {
+    mensaje("aw-v-msg", errorLegible(e), "error");
+  }
+  renderVotacion();
+}
+
+async function usarSugerencia() {
+  if (fase !== "ronda1_cerrada") return;
+  if (!window.confirm("¿Descartar tu selección y usar la sugerencia del sistema (3 más votados y empates) en todas las categorías?")) return;
+  try {
+    await remove(ref(db, "awards/admin/seleccion"));
+    votacion.seleccion = {};
+    renderVotacion();
+  } catch (e) { mensaje("aw-v-msg", errorLegible(e), "error"); }
+}
+
+function copiarEnlace() {
+  const inp = $("aw-v-enlace");
+  inp.select();
+  try { navigator.clipboard.writeText(inp.value); mensaje("aw-v-msg", "Enlace copiado.", "ok"); } catch (e) { document.execCommand && document.execCommand("copy"); }
+}
+
+function renderVotacion() {
+  const lista = $("aw-v-lista");
+  lista.textContent = "";
+  const abierta = fase === "ronda1_abierta", cerrada = fase === "ronda1_cerrada", definidos = fase === "finalistas_definidos";
+  $("aw-v-sugerir").classList.toggle("hidden", !cerrada);
+  $("aw-v-actualizar").classList.toggle("hidden", fase === "configuracion");
+  const estados = {
+    configuracion: "Todavía no se abrió la primera votación. El enlace de abajo mostrará un aviso hasta que la abras.",
+    ronda1_abierta: "Abierta. Estos números son solo para vos: los visitantes no ven ningún conteo.",
+    ronda1_cerrada: "Cerrada. Tildá los finalistas de cada categoría (pueden ser 3, 4, 5 o más) y después confirmalos arriba.",
+    finalistas_definidos: "Finalistas confirmados. Para cambiarlos, usá «Volver a editar finalistas».",
+  };
+  $("aw-v-estado").textContent = estados[fase] || "La primera votación ya terminó.";
+  if (fase === "configuracion" || !votacion.conteo) return;
+  const pubs = categoriasPublicables(categorias);
+  let totalVotos = 0;
+  for (const c of pubs) totalVotos += (votacion.conteo[c.id] || { total: 0 }).total;
+  lista.appendChild(el("p", "aw-resumen", `${totalVotos} voto(s) en total en ${pubs.length} categoría(s).`));
+  for (const c of pubs) {
+    const datos = votacion.conteo[c.id] || { total: 0, conteo: {} };
+    const ranking = armarRanking(c, datos);
+    const sel = seleccionEfectiva(c, ranking);
+    const caja = el("section", "aw-rk-cat");
+    const cab = el("div", "aw-rk-cab");
+    cab.appendChild(el("span", "aw-cat-nombre", c.nombre));
+    cab.appendChild(el("span", "aw-sub", `${datos.total} voto(s)` + ((cerrada || definidos) ? ` · ${sel.size} finalista(s)` : "")));
+    caja.appendChild(cab);
+    if ((cerrada || definidos) && hayEmpateEnCorte(ranking, 3)) {
+      const corte = ranking[2].votos;
+      const empatados = ranking.filter((r) => r.votos === corte).map((r) => (personaPorId(r.pid) || { nombre: "?" }).nombre);
+      caja.appendChild(el("div", "aw-empate", `Empate en el puesto 3 con ${corte} voto(s): ${empatados.join(", ")}. Decidí vos quién pasa.`));
+    }
+    const maximo = ranking.length ? Math.max(1, ranking[0].votos) : 1;
+    for (const r of ranking) {
+      const p = personaPorId(r.pid);
+      const fila = el("div", "aw-rk" + ((cerrada || definidos) && sel.has(r.pid) ? " sel" : ""));
+      fila.appendChild(el("div", "aw-rk-pos", String(r.puesto)));
+      fila.appendChild(avatar(p ? p.nombre : "?", p ? p.foto : null));
+      const d = el("div", "aw-datos");
+      d.appendChild(el("div", "aw-nombre", p ? p.nombre : "(persona eliminada)"));
+      const barra = el("div", "aw-rk-barra");
+      const i = document.createElement("i");
+      i.style.width = Math.round((r.votos / maximo) * 100) + "%";
+      barra.appendChild(i);
+      d.appendChild(barra);
+      fila.appendChild(d);
+      fila.appendChild(el("div", "aw-rk-num", `${r.votos} · ${r.pct}%`));
+      if (cerrada || definidos) {
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = sel.has(r.pid);
+        cb.disabled = !cerrada;
+        cb.title = "Finalista";
+        cb.addEventListener("change", () => alternarFinalista(c, ranking, r.pid, cb.checked));
+        fila.appendChild(cb);
+      }
+      caja.appendChild(fila);
+    }
+    lista.appendChild(caja);
+  }
+}
+
+async function confirmarFinalistas() {
+  if (fase !== "ronda1_cerrada") return;
+  if (!votacion.cargado) await cargarVotacion(true);
+  const pubs = categoriasPublicables(categorias);
+  const finalistas = {};
+  const resumen = [];
+  for (const c of pubs) {
+    const ranking = armarRanking(c, votacion.conteo[c.id] || { total: 0, conteo: {} });
+    const sel = seleccionEfectiva(c, ranking);
+    if (sel.size < 2) { mensaje("aw-etapa-msg", `«${c.nombre}» necesita al menos 2 finalistas (tiene ${sel.size}).`, "error"); return; }
+    finalistas[c.id] = armarFinalistas(ranking, sel);
+    resumen.push(`• ${c.nombre}: ${sel.size}`);
+  }
+  if (!window.confirm("Finalistas por categoría:\n" + resumen.join("\n") + "\n\n¿Confirmar? Todavía no se abre ninguna votación nueva.")) return;
+  try {
+    await update(ref(db), { "awards/admin/finalistas": finalistas, "awards/estado": "finalistas_definidos" });
+    fase = "finalistas_definidos";
+    mensaje("aw-etapa-msg", "Finalistas confirmados.", "ok");
+    renderTodo();
+  } catch (e) { mensaje("aw-etapa-msg", errorLegible(e), "error"); }
+}
+
+// ────────────────────────────────────────────────────────────
 //  Pantalla
 // ────────────────────────────────────────────────────────────
 function errorLegible(e) {
@@ -552,20 +812,28 @@ function renderTodo() {
   renderFormPersona();
   renderFormCategoria();
   if (plantel) renderPlantel();
+  renderVotacion();
 }
 
 function mostrarTab(cual) {
   $("aw-pane-categorias").classList.toggle("hidden", cual !== "categorias");
   $("aw-pane-personas").classList.toggle("hidden", cual !== "personas");
-  for (const [id, k] of [["aw-tab-categorias", "categorias"], ["aw-tab-personas", "personas"]]) {
+  $("aw-pane-votacion").classList.toggle("hidden", cual !== "votacion");
+  for (const [id, k] of [["aw-tab-categorias", "categorias"], ["aw-tab-personas", "personas"], ["aw-tab-votacion", "votacion"]]) {
     $(id).classList.toggle("active", cual === k);
     $(id).setAttribute("aria-selected", cual === k ? "true" : "false");
   }
+  if (cual === "votacion") cargarVotacion();
 }
 
 async function iniciar() {
   $("aw-tab-categorias").addEventListener("click", () => mostrarTab("categorias"));
   $("aw-tab-personas").addEventListener("click", () => mostrarTab("personas"));
+  $("aw-tab-votacion").addEventListener("click", () => mostrarTab("votacion"));
+  $("aw-v-actualizar").addEventListener("click", () => cargarVotacion(true));
+  $("aw-v-sugerir").addEventListener("click", usarSugerencia);
+  $("aw-v-copiar").addEventListener("click", copiarEnlace);
+  $("aw-v-enlace").value = new URL("awards.html", window.location.href).href;
   $("aw-p-archivo").addEventListener("change", onArchivoPersona);
   $("aw-p-quitar-foto").addEventListener("click", quitarFoto);
   $("aw-p-guardar").addEventListener("click", guardarPersona);
