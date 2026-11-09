@@ -86,6 +86,19 @@
     .aw-i-item .aw-avatar { width: 36px; height: 36px; }
     .aw-i-txt { min-width: 0; font-size: 13px; color: var(--crema); overflow-wrap: anywhere; }
     .aw-i-txt small { display: block; font-size: 11px; color: var(--crema-3); }
+    .aw-etapa { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+    .aw-etapa-fila { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+    .aw-enlace { display: flex; gap: 8px; margin: 8px 0 12px; }
+    .aw-rk-cat { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.15); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+    .aw-rk-cab { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; align-items: baseline; }
+    .aw-empate { font-size: 12px; color: var(--dorado-claro); background: rgba(200,150,0,0.12); border: 1px solid rgba(200,150,0,0.35); border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; }
+    .aw-rk { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border-radius: 10px; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.1); margin-bottom: 6px; }
+    .aw-rk.sel { border-color: var(--dorado); background: rgba(200,150,0,0.1); }
+    .aw-rk-pos { width: 22px; text-align: center; font-family: var(--font-title); font-size: 18px; color: var(--dorado); flex: none; }
+    .aw-rk-barra { height: 6px; border-radius: 3px; background: rgba(200,150,0,0.15); margin-top: 5px; overflow: hidden; }
+    .aw-rk-barra i { display: block; height: 100%; background: var(--dorado); }
+    .aw-rk-num { text-align: right; font-size: 13px; color: var(--crema); flex: none; min-width: 74px; }
+    .aw-rk input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--dorado); flex: none; }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -107,7 +120,14 @@
     <a href="admin.html" class="aw-btn">← Volver al admin</a>
   </div>
 
-  <div class="aw-estado">Etapa actual: <strong id="aw-fase">Cargando...</strong></div>
+  <div class="aw-etapa">
+    <div class="aw-etapa-fila">
+      <div class="aw-estado" style="margin:0;">Etapa actual: <strong id="aw-fase">Cargando...</strong></div>
+      <div class="aw-botones" id="aw-etapa-acciones"></div>
+    </div>
+    <p class="aw-sub" id="aw-etapa-ayuda" style="margin-top:8px;"></p>
+    <p class="aw-msg" id="aw-etapa-msg"></p>
+  </div>
   <p class="aw-resumen" id="aw-resumen">Cargando...</p>
   <div class="aw-bloqueo hidden" id="aw-bloqueo">La configuración está bloqueada porque la etapa ya no es «Configuración». Las categorías, personas y nominados solo se editan en esa etapa.</div>
   <ul class="aw-avisos hidden" id="aw-avisos"></ul>
@@ -115,6 +135,7 @@
   <div class="aw-tabs" role="tablist">
     <button type="button" class="aw-tab active" id="aw-tab-categorias" role="tab" aria-selected="true">Categorías</button>
     <button type="button" class="aw-tab" id="aw-tab-personas" role="tab" aria-selected="false">Personas</button>
+    <button type="button" class="aw-tab" id="aw-tab-votacion" role="tab" aria-selected="false">1ª votación</button>
   </div>
 
   <!-- ── CATEGORÍAS ── -->
@@ -200,6 +221,24 @@
       <input type="search" class="aw-input" id="aw-p-buscar" placeholder="Buscar persona..." autocomplete="off" />
     </div>
     <div class="aw-lista" id="aw-p-lista"></div>
+  </div>
+
+  <!-- ── PRIMERA VOTACIÓN ── -->
+  <div id="aw-pane-votacion" class="hidden">
+    <section class="aw-bloque">
+      <h2 class="aw-bloque-titulo">Primera votación pública</h2>
+      <p class="aw-sub" id="aw-v-estado"></p>
+      <div class="aw-enlace">
+        <input type="text" class="aw-input" id="aw-v-enlace" readonly />
+        <button type="button" class="aw-btn" id="aw-v-copiar">Copiar enlace</button>
+      </div>
+      <div class="aw-botones">
+        <button type="button" class="aw-btn" id="aw-v-actualizar">Actualizar conteo</button>
+        <button type="button" class="aw-btn hidden" id="aw-v-sugerir">Usar la sugerencia del sistema</button>
+      </div>
+      <p class="aw-msg" id="aw-v-msg"></p>
+    </section>
+    <div id="aw-v-lista"></div>
   </div>
 
 </main>
