@@ -80,6 +80,8 @@
     .aw-badge { align-self: flex-start; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: var(--dorado); color: var(--negro); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
     .aw-agregar { margin-top: 10px; }
     .hidden { display: none !important; }
+    /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
+    body.aw-oculto { visibility: hidden; }
 
     @media (max-width: 560px) {
       .aw-campos, .aw-campos.tres { grid-template-columns: 1fr; }
@@ -90,7 +92,7 @@
     }
   </style>
 </head>
-<body>
+<body class="aw-oculto">
 <main class="aw-main">
 
   <div class="aw-topbar">
