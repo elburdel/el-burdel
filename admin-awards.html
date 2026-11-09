@@ -79,6 +79,13 @@
     .aw-cat-nombre { font-family: var(--font-title); font-size: 20px; letter-spacing: 1.5px; color: var(--dorado-claro); overflow-wrap: anywhere; }
     .aw-badge { align-self: flex-start; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: var(--dorado); color: var(--negro); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
     .aw-agregar { margin-top: 10px; }
+    .aw-i-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; max-height: 360px; overflow-y: auto; padding: 2px; }
+    .aw-i-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.15); border-radius: 10px; cursor: pointer; }
+    .aw-i-item.ya { opacity: 0.45; cursor: default; }
+    .aw-i-item input { accent-color: var(--dorado); flex: none; }
+    .aw-i-item .aw-avatar { width: 36px; height: 36px; }
+    .aw-i-txt { min-width: 0; font-size: 13px; color: var(--crema); overflow-wrap: anywhere; }
+    .aw-i-txt small { display: block; font-size: 11px; color: var(--crema-3); }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -167,6 +174,26 @@
         <button type="button" class="aw-btn hidden" id="aw-p-cancelar">Cancelar edición</button>
       </div>
       <p class="aw-msg" id="aw-p-msg"></p>
+    </section>
+
+    <section class="aw-bloque" id="aw-i-bloque">
+      <h2 class="aw-bloque-titulo">Importar desde Armá tu equipo</h2>
+      <p class="aw-sub">Copia el nombre y la foto de integrantes del plantel. La foto se copia una sola vez: si después la cambiás en Armá tu equipo, acá no se actualiza. Podés reemplazarla desde «Editar».</p>
+      <div class="aw-botones" style="margin-top:10px;">
+        <button type="button" class="aw-btn" id="aw-i-abrir">Mostrar plantel</button>
+      </div>
+      <div id="aw-i-panel" class="hidden">
+        <div class="aw-campo" style="margin-top:12px;">
+          <input type="search" class="aw-input" id="aw-i-buscar" placeholder="Buscar en el plantel..." autocomplete="off" />
+        </div>
+        <div class="aw-i-grid" id="aw-i-grid"></div>
+        <div class="aw-botones">
+          <button type="button" class="aw-btn" id="aw-i-marcar">Marcar los que faltan</button>
+          <button type="button" class="aw-btn" id="aw-i-desmarcar">Desmarcar todo</button>
+          <button type="button" class="aw-btn aw-btn-primario" id="aw-i-importar">Importar seleccionados</button>
+        </div>
+      </div>
+      <p class="aw-msg" id="aw-i-msg"></p>
     </section>
 
     <div class="aw-campo">
