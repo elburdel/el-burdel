@@ -495,6 +495,7 @@ function arrancar() {
     if (!user || user.uid !== ADMIN_UID) { window.location.href = "/login.html"; return; }
     if (iniciado) return;
     iniciado = true;
+    document.body.classList.remove("aw-oculto"); // recién ahora se muestra la pantalla
     iniciar();
   });
 }
