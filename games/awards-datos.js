@@ -204,3 +204,49 @@ export async function fotoDesdeArchivo(file) {
     URL.revokeObjectURL(url);
   }
 }
+
+// ── Importación desde «Armá tu equipo» ──
+// armaequipo/plantel/{id} = {nombre, foto, activo, orden}. La foto puede ser una ruta del repositorio
+// (assets/img/plantel/x.jpg) o una imagen JPEG en base64 subida desde el admin de ese juego.
+const RE_FOTO_RUTA = /^assets\/img\/plantel\/[a-z0-9_-]{1,60}\.(jpg|jpeg|png|webp)$/;
+
+export function leerPlantel(raw) {
+  const lista = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return lista;
+  for (const [id, v] of Object.entries(raw)) {
+    if (!RE_ID.test(id) || !v || typeof v !== "object") continue;
+    const nombre = typeof v.nombre === "string" ? v.nombre.trim().slice(0, 40) : "";
+    if (!nombre) continue;
+    const f = v.foto;
+    const foto = typeof f === "string" && (RE_FOTO_RUTA.test(f) || (f.length <= 60000 && RE_FOTO_DATA.test(f))) ? f : null;
+    lista.push({ id, nombre, foto, activo: v.activo === true, orden: Number.isFinite(v.orden) ? v.orden : 9999 });
+  }
+  lista.sort((a, b) => (a.orden - b.orden) || a.nombre.localeCompare(b.nombre, "es"));
+  return lista;
+}
+
+// Para detectar a quien ya está cargado: sin mayúsculas, acentos ni espacios de más.
+export function normalizarNombre(n) {
+  return String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+export function yaCargada(nombre, personas) {
+  const k = normalizarNombre(nombre);
+  return personas.some((p) => normalizarNombre(p.nombre) === k);
+}
+
+// Devuelve una foto lista para Awards (JPEG base64 dentro del tope) a partir de la del plantel.
+// - Si ya es una imagen base64, se copia tal cual.
+// - Si es una ruta del repositorio, se descarga del propio sitio y se recomprime.
+// Lanza un Error si no se puede.
+export async function fotoDesdePlantel(foto) {
+  if (!foto) throw new Error("Sin foto");
+  if (foto.startsWith("data:image/jpeg;base64,")) {
+    if (foto.length > MAX_FOTO_CHARS) throw new Error("Foto demasiado pesada");
+    return foto;
+  }
+  const resp = await fetch("/" + foto, { cache: "no-store" });
+  if (!resp.ok) throw new Error("No se pudo descargar la foto");
+  const blob = await resp.blob();
+  return fotoDesdeArchivo(blob);
+}
