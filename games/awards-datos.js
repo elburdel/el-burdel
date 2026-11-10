@@ -476,3 +476,19 @@ export function leerRonda2(raw) {
   }
   return ordenarRonda2(lista);
 }
+
+// Agregar varios nominados de una sola vez a una categoría.
+// Devuelve {cambios, cantidad}: una escritura multi-ruta con los órdenes seguidos a los ya existentes.
+// Ignora ids repetidos, ya nominados o que no existen.
+export function armarNominados(categoria, pids, personas) {
+  const existentes = new Set(categoria.nominados.map((n) => n.pid));
+  const validos = new Set(personas.map((p) => p.id));
+  const nuevos = [];
+  for (const pid of pids) {
+    if (validos.has(pid) && !existentes.has(pid) && !nuevos.includes(pid)) nuevos.push(pid);
+  }
+  let orden = proximoOrden(categoria.nominados);
+  const cambios = {};
+  for (const pid of nuevos) cambios[`awards/admin/categorias/${categoria.id}/nominados/${pid}`] = { orden: orden++ };
+  return { cambios, cantidad: nuevos.length };
+}
