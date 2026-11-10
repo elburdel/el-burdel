@@ -103,6 +103,10 @@
     .aw-agregar select { flex: 1 1 200px; width: auto; }
     .aw-varios { margin-top: 10px; padding: 10px; background: var(--negro-3); border: 1px solid rgba(200,150,0,0.2); border-radius: 10px; }
     .aw-varios .aw-botones { margin-top: 8px; }
+    .aw-nom-barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .aw-tira { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; }
+    .aw-avatar.mini { width: 30px; height: 30px; }
+    .aw-avatar.mini .aw-avatar-ini { font-size: 11px; }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -170,6 +174,10 @@
       </div>
       <p class="aw-msg" id="aw-c-msg"></p>
     </section>
+    <div class="aw-botones" style="margin-bottom:12px;">
+      <button type="button" class="aw-btn" id="aw-c-expandir">Mostrar todos los nominados</button>
+      <button type="button" class="aw-btn" id="aw-c-contraer">Ocultar todos los nominados</button>
+    </div>
     <div id="aw-c-lista"></div>
   </div>
 
