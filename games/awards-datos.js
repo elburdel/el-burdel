@@ -362,3 +362,117 @@ export function nuevoToken() {
   for (let i = 0; i < 32; i++) t += abc[bytes[i] % abc.length];
   return t;
 }
+
+// ════════════════════════════════════════════════════════════
+//  ETAPA 4 — Burdel de Oro y segunda votación (solo registrados)
+// ════════════════════════════════════════════════════════════
+
+// Burdel de Oro y las personas se pueden editar también después de cerrar la primera votación,
+// porque Oro se arma recién en esa etapa. El resto de la estructura sigue bloqueada.
+export function oroEditable(fase) {
+  const f = leerFase(fase);
+  return f === "configuracion" || f === "ronda1_cerrada" || f === "finalistas_definidos";
+}
+export const personasEditable = oroEditable;
+
+// awards/admin/finalistas → {cid: [{pid, orden}]}
+export function leerFinalistas(raw) {
+  const out = {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [cid, v] of Object.entries(raw)) {
+    if (!RE_ID.test(cid) || !v || typeof v !== "object") continue;
+    const lista = [];
+    for (const [pid, f] of Object.entries(v)) {
+      if (RE_ID.test(pid)) lista.push({ pid, orden: f && Number.isFinite(f.orden) ? f.orden : 9999 });
+    }
+    lista.sort((a, b) => (a.orden - b.orden) || a.pid.localeCompare(b.pid));
+    out[cid] = lista;
+  }
+  return out;
+}
+
+// Categorías de la segunda votación: las normales con sus finalistas, y Burdel de Oro al final
+// (con todos sus nominados, sin tope).
+export function categoriasRonda2(categorias, finalistas) {
+  const lista = categoriasPublicables(categorias).map((c) => ({
+    id: c.id, nombre: c.nombre, orden: c.orden, tipo: "normal", finalistas: (finalistas && finalistas[c.id]) || [],
+  }));
+  const oro = categorias.find((c) => c.tipo === "oro" && c.nominados.length >= 1);
+  if (oro) lista.push({ id: oro.id, nombre: oro.nombre, orden: oro.orden, tipo: "oro", finalistas: oro.nominados.map((n) => ({ pid: n.pid, orden: n.orden })) });
+  return lista;
+}
+
+export function validarApertura2(categorias, personas, finalistas) {
+  const lista = categoriasRonda2(categorias, finalistas);
+  const normales = lista.filter((c) => c.tipo === "normal");
+  if (!normales.length) return { error: "No hay categorías con finalistas definidos.", avisos: [] };
+  const ids = new Set(personas.map((p) => p.id));
+  for (const c of lista) {
+    if (c.finalistas.length < 2) return { error: `«${c.nombre}» necesita al menos 2 ${c.tipo === "oro" ? "nominados" : "finalistas"} para abrir la votación.`, avisos: [] };
+    if (c.finalistas.some((f) => !ids.has(f.pid))) return { error: `«${c.nombre}» tiene personas que ya no existen.`, avisos: [] };
+  }
+  const avisos = [];
+  if (!lista.some((c) => c.tipo === "oro")) avisos.push("Burdel de Oro no tiene nominados: no aparecerá en la segunda votación.");
+  const usadas = new Set(lista.flatMap((c) => c.finalistas.map((f) => f.pid)));
+  const sinFoto = personas.filter((p) => usadas.has(p.id) && !p.foto).length;
+  if (sinFoto) avisos.push(`${sinFoto} finalista(s)/nominado(s) no tienen foto (se verán con sus iniciales).`);
+  return { error: null, avisos };
+}
+
+// Una sola escritura atómica para abrir la segunda votación.
+export function armarApertura2(categorias, finalistas) {
+  const cambios = {};
+  const visibles = new Set();
+  for (const c of categoriasRonda2(categorias, finalistas)) {
+    const fin = {};
+    for (const f of c.finalistas) { fin[f.pid] = { orden: f.orden }; visibles.add(f.pid); }
+    cambios[`awards/ronda2/${c.id}`] = { nombre: c.nombre, orden: c.orden, tipo: c.tipo, finalistas: fin };
+  }
+  for (const pid of visibles) cambios[`awards/personas/${pid}/r2`] = true;
+  cambios["awards/estado"] = "ronda2_abierta";
+  return { cambios, visibles: [...visibles] };
+}
+
+// Orden de presentación en la segunda votación: normales por orden, Burdel de Oro siempre al final.
+export function ordenarRonda2(cats) {
+  return [...cats].sort((a, b) => ((a.tipo === "oro") - (b.tipo === "oro")) || (a.orden - b.orden) || a.nombre.localeCompare(b.nombre, "es"));
+}
+
+// Participación en la segunda votación (solo el administrador la ve):
+// raw = awards/votos2 → {cid: {uid: {p, ts}}}. Devuelve {porCategoria:{cid:n}, votantes:n}.
+export function contarParticipacion(raw, cats) {
+  const porCategoria = {};
+  const votantes = new Set();
+  for (const c of cats) {
+    const validos = new Set(c.finalistas.map((f) => f.pid));
+    let n = 0;
+    const votos = raw && typeof raw === "object" && raw[c.id] && typeof raw[c.id] === "object" ? raw[c.id] : {};
+    for (const [uid, v] of Object.entries(votos)) {
+      if (v && typeof v.p === "string" && validos.has(v.p)) { n++; votantes.add(uid); }
+    }
+    porCategoria[c.id] = n;
+  }
+  return { porCategoria, votantes: votantes.size };
+}
+
+// awards/ronda2 (lo que ve el usuario registrado) → [{id, nombre, orden, tipo, finalistas:[{pid, orden}]}]
+// con las categorías normales por orden y Burdel de Oro al final.
+export function leerRonda2(raw) {
+  const lista = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return lista;
+  for (const [id, v] of Object.entries(raw)) {
+    if (!RE_ID.test(id) || !v || typeof v !== "object") continue;
+    const nombre = typeof v.nombre === "string" ? v.nombre.trim().slice(0, 60) : "";
+    if (!nombre) continue;
+    const finalistas = [];
+    if (v.finalistas && typeof v.finalistas === "object") {
+      for (const [pid, f] of Object.entries(v.finalistas)) {
+        if (RE_ID.test(pid)) finalistas.push({ pid, orden: f && Number.isFinite(f.orden) ? f.orden : 9999 });
+      }
+    }
+    finalistas.sort((a, b) => (a.orden - b.orden) || a.pid.localeCompare(b.pid));
+    if (!finalistas.length) continue;
+    lista.push({ id, nombre, orden: Number.isFinite(v.orden) ? v.orden : 9999, tipo: v.tipo === "oro" ? "oro" : "normal", finalistas });
+  }
+  return ordenarRonda2(lista);
+}
