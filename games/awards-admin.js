@@ -20,7 +20,8 @@ import {
   leerPlantel, yaCargada, fotoDesdePlantel,
   categoriasPublicables, validarApertura, armarApertura, contarVotos, armarRanking, sugerirFinalistas,
   hayEmpateEnCorte, armarFinalistas,
-  armarNominados,
+  armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
+  validarPublicacionNuevas, armarPublicacionNuevas,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
 
@@ -37,13 +38,16 @@ let fase = "configuracion";
 let personas = [];
 let categorias = [];
 let usuarios = []; // [{uid, nick}]
+let publicadas = new Set(); // ids de categorías ya publicadas en la primera votación (awards/ronda1)
 const formP = { editando: null, foto: null, fotoCambiada: false };
 const formC = { editando: null };
 
 const editable = () => estructuraEditable(fase);          // categorías y nominados de la 1ª votación
 const personasOk = () => personasEditable(fase);           // alta/edición de personas
 const oroOk = () => oroEditable(fase);                     // nominados de Burdel de Oro
-const puedeNominar = (c) => (c.tipo === "oro" ? oroOk() : editable());
+const catEditable = (c) => categoriaEditable(fase, c, publicadas);   // ¿esta categoría se puede editar ahora?
+const puedeNominar = (c) => (c.tipo === "oro" ? oroOk() : catEditable(c));
+const votadas = () => categoriasVotadas(categorias, publicadas);      // categorías que están en la votación pública
 const personaPorId = (id) => personas.find((p) => p.id === id) || null;
 const nickDe = (uid) => (usuarios.find((u) => u.uid === uid) || {}).nick || null;
 
@@ -69,11 +73,13 @@ function avatar(nombre, foto, clase) {
 //  Carga de datos
 // ────────────────────────────────────────────────────────────
 async function cargarTodo() {
-  const [fSnap, pSnap, cSnap] = await Promise.all([
+  const [fSnap, pSnap, cSnap, rSnap] = await Promise.all([
     get(ref(db, "awards/estado")),
     get(ref(db, "awards/personas")),
     get(ref(db, "awards/admin/categorias")),
+    get(ref(db, "awards/ronda1")),
   ]);
+  publicadas = new Set(Object.keys(rSnap.val() && typeof rSnap.val() === "object" ? rSnap.val() : {}));
   fase = leerFase(fSnap.val());
   personas = leerPersonas(pSnap.val());
   categorias = leerCategorias(cSnap.val());
@@ -108,22 +114,27 @@ async function cargarUsuarios() {
 function renderEstado() {
   $("aw-fase").textContent = FASES_ETIQUETA[fase];
   renderEtapa();
+  const abierta1 = fase === "ronda1_abierta";
   const bloqueado = !editable();
-  const bloqueoTotal = bloqueado && !oroOk();
+  const bloqueoTotal = bloqueado && !oroOk() && !abierta1;
   const bq = $("aw-bloqueo");
   bq.classList.toggle("hidden", !bloqueado);
-  bq.textContent = bloqueoTotal
-    ? "La configuración está bloqueada porque la etapa ya no es «Configuración»."
-    : "Las categorías y los nominados de la primera votación están bloqueados. Todavía podés cargar personas y armar los nominados de Burdel de Oro.";
+  bq.textContent = abierta1
+    ? "Las categorías ya publicadas están bloqueadas para no alterar los votos. Podés crear categorías nuevas, armarles sus nominados y sumarlas con «Publicar categorías nuevas»."
+    : bloqueoTotal
+      ? "La configuración está bloqueada porque la etapa ya no es «Configuración»."
+      : "Las categorías y los nominados de la primera votación están bloqueados. Todavía podés cargar personas y armar los nominados de Burdel de Oro.";
   const avisos = avisosConfiguracion(categorias, personas);
   const cont = $("aw-avisos");
   cont.textContent = "";
-  cont.classList.toggle("hidden", !avisos.length || bloqueado);
+  cont.classList.toggle("hidden", !avisos.length || (bloqueado && !abierta1));
   for (const a of avisos) cont.appendChild(el("li", "", a));
   $("aw-resumen").textContent = `${categorias.length} categoría(s) · ${personas.length} persona(s) cargadas.`;
-  $("aw-c-form").classList.toggle("aw-bloqueada", bloqueado);
+  $("aw-c-form").classList.toggle("aw-bloqueada", !puedeCrearCategoria(fase));
   $("aw-p-form").classList.toggle("aw-bloqueada", !personasOk());
-  for (const id of ["aw-c-nombre", "aw-c-orden", "aw-c-tipo", "aw-c-guardar"]) $(id).disabled = bloqueado;
+  for (const id of ["aw-c-nombre", "aw-c-orden", "aw-c-tipo", "aw-c-guardar"]) $(id).disabled = !puedeCrearCategoria(fase);
+  // Con la votación abierta solo se pueden crear categorías normales: Burdel de Oro se arma después.
+  $("aw-c-tipo").querySelector('option[value="oro"]').disabled = abierta1;
   for (const id of ["aw-i-abrir", "aw-i-importar", "aw-i-marcar", "aw-p-nombre", "aw-p-uid", "aw-p-archivo", "aw-p-guardar", "aw-p-quitar-foto"]) $(id).disabled = !personasOk();
 }
 
@@ -253,7 +264,7 @@ async function eliminarPersona(id) {
   if (!p) return;
   const cats = categoriasDe(id);
   // Después de abrir la primera votación, quien está nominado en una categoría normal no se puede borrar.
-  if (!editable() && cats.some((c) => c.tipo === "normal")) {
+  if (!editable() && cats.some((c) => c.tipo === "normal" && (fase !== "ronda1_abierta" || publicadas.has(c.id)))) {
     mensaje("aw-p-msg", `«${p.nombre}» figura en la primera votación y no se puede eliminar en esta etapa.`, "error");
     return;
   }
@@ -396,9 +407,14 @@ function editarCategoria(id) {
 }
 
 async function guardarCategoria() {
-  if (!editable()) return;
+  if (!puedeCrearCategoria(fase)) return;
   const datos = { nombre: $("aw-c-nombre").value.trim(), orden: Number($("aw-c-orden").value), tipo: $("aw-c-tipo").value };
   if ($("aw-c-orden").value.trim() === "") datos.orden = NaN;
+  if (formC.editando) {
+    const actual = categorias.find((x) => x.id === formC.editando);
+    if (!actual || !catEditable(actual)) { mensaje("aw-c-msg", "Esa categoría ya está publicada y no se puede editar.", "error"); return; }
+  }
+  if (fase === "ronda1_abierta" && datos.tipo !== "normal") { mensaje("aw-c-msg", "Con la votación abierta solo se pueden crear categorías normales. Burdel de Oro se arma después de cerrarla.", "error"); return; }
   const err = validarCategoria(datos, categorias, formC.editando);
   if (err) { mensaje("aw-c-msg", err, "error"); return; }
   const id = formC.editando || nuevoId("c");
@@ -413,14 +429,13 @@ async function guardarCategoria() {
   } catch (e) {
     mensaje("aw-c-msg", errorLegible(e), "error");
   } finally {
-    $("aw-c-guardar").disabled = !editable();
+    $("aw-c-guardar").disabled = !puedeCrearCategoria(fase);
   }
 }
 
 async function eliminarCategoria(id) {
-  if (!editable()) return;
   const c = categorias.find((x) => x.id === id);
-  if (!c) return;
+  if (!c || !catEditable(c)) return;
   if (!window.confirm(`¿Eliminar la categoría «${c.nombre}» y su lista de nominados? Las personas no se borran.`)) return;
   try {
     await remove(ref(db, `awards/admin/categorias/${id}`));
@@ -550,16 +565,17 @@ function renderCategorias() {
     const tit = el("div", "aw-cat-tit");
     tit.appendChild(el("span", "aw-cat-nombre", c.nombre));
     if (c.tipo === "oro") tit.appendChild(el("span", "aw-badge", "Solo 2ª votación"));
+    else if (fase === "ronda1_abierta") tit.appendChild(el("span", "aw-badge" + (publicadas.has(c.id) ? "" : " gris"), publicadas.has(c.id) ? "Publicada" : "Sin publicar"));
     tit.appendChild(el("span", "aw-sub", `Orden ${c.orden === 9999 ? "—" : c.orden} · ${c.nominados.length} nominado(s)`));
     cab.appendChild(tit);
     const acc = el("div", "aw-acciones");
     const be = el("button", "aw-btn", "Editar");
     be.type = "button";
-    be.disabled = !editable();
+    be.disabled = !catEditable(c);
     be.addEventListener("click", () => editarCategoria(c.id));
     const bd = el("button", "aw-btn aw-btn-peligro", "Eliminar");
     bd.type = "button";
-    bd.disabled = !editable();
+    bd.disabled = !catEditable(c);
     bd.addEventListener("click", () => eliminarCategoria(c.id));
     acc.append(be, bd);
     cab.appendChild(acc);
@@ -649,7 +665,7 @@ function renderCategorias() {
 // ────────────────────────────────────────────────────────────
 const AYUDA_ETAPA = {
   configuracion: "Cargá categorías, personas y nominados. Cuando estés listo, abrí la primera votación pública.",
-  ronda1_abierta: "La votación pública está abierta: cualquiera con el enlace puede votar. Cerrala cuando quieras.",
+  ronda1_abierta: "La votación pública está abierta: cualquiera con el enlace puede votar. Si creás categorías nuevas, publicalas cuando estén listas: quienes ya votaron conservan sus votos. Cerrala cuando quieras.",
   ronda1_cerrada: "La votación pública está cerrada. Revisá los votos en la pestaña «1ª votación», elegí los finalistas de cada categoría y confirmalos.",
   finalistas_definidos: "Finalistas definidos. Armá los nominados de Burdel de Oro en la pestaña «Categorías» y revisá la pestaña «2ª votación». Cuando estés listo, abrí la segunda votación (solo usuarios registrados).",
   ronda2_abierta: "Segunda votación abierta: solo la ven y la votan los usuarios registrados, desde su panel. Cerrala cuando quieras.",
@@ -672,7 +688,11 @@ function renderEtapa() {
   cont.textContent = "";
   $("aw-etapa-ayuda").textContent = AYUDA_ETAPA[fase] || "";
   if (fase === "configuracion") cont.appendChild(botonEtapa("Abrir primera votación", abrirPrimera, "aw-btn-primario"));
-  else if (fase === "ronda1_abierta") cont.appendChild(botonEtapa("Cerrar primera votación", cerrarPrimera, "aw-btn-primario"));
+  else if (fase === "ronda1_abierta") {
+    const pend = categoriasPendientes(categorias, publicadas).length;
+    if (pend) cont.appendChild(botonEtapa(`Publicar categorías nuevas (${pend})`, publicarNuevas, "aw-btn-primario"));
+    cont.appendChild(botonEtapa("Cerrar primera votación", cerrarPrimera, pend ? "" : "aw-btn-primario"));
+  }
   else if (fase === "ronda1_cerrada") {
     cont.appendChild(botonEtapa("Reabrir primera votación", reabrirPrimera));
     cont.appendChild(botonEtapa("Confirmar finalistas", confirmarFinalistas, "aw-btn-primario"));
@@ -687,9 +707,9 @@ async function abrirPrimera() {
   if (fase !== "configuracion") return;
   const v = validarApertura(categorias, personas);
   if (v.error) { mensaje("aw-etapa-msg", v.error, "error"); return; }
-  const n = categoriasPublicables(categorias).length;
+  const n = categoriasPublicables(categorias).length; // al abrir se publican todas las que tengan nominados
   const texto = `Vas a ABRIR la primera votación pública con ${n} categoría(s).\n\n` + (v.avisos.length ? v.avisos.map((a) => "• " + a).join("\n") + "\n\n" : "") +
-    "Mientras esté abierta no se podrá editar la configuración. ¿Abrir ahora?";
+    "Las categorías publicadas quedarán bloqueadas, pero después vas a poder sumar categorías nuevas. ¿Abrir ahora?";
   if (!window.confirm(texto)) return;
   try {
     await update(ref(db), armarApertura(categorias).cambios); // una sola escritura: todo o nada
@@ -702,9 +722,30 @@ async function abrirPrimera() {
   }
 }
 
+async function publicarNuevas() {
+  if (fase !== "ronda1_abierta") return;
+  const v = validarPublicacionNuevas(categorias, personas, publicadas);
+  if (v.error) { mensaje("aw-etapa-msg", v.error, "error"); return; }
+  const pub = armarPublicacionNuevas(categorias, publicadas);
+  const nombres = categoriasPendientes(categorias, publicadas).map((c) => `• ${c.nombre} (${c.nominados.length} nominados)`);
+  const texto = "Vas a sumar a la votación pública:\n" + nombres.join("\n") + "\n\n" + (v.avisos.length ? v.avisos.map((a) => "• " + a).join("\n") + "\n\n" : "") +
+    "Quienes ya votaron conservan sus votos. Una vez publicadas, estas categorías quedan bloqueadas. ¿Publicar?";
+  if (!window.confirm(texto)) return;
+  try {
+    await update(ref(db), pub.cambios); // una sola escritura: se publican todas o ninguna; no cambia la etapa
+    await cargarTodo();
+    mensaje("aw-etapa-msg", `Se publicaron ${pub.ids.length} categoría(s). Aparecen solas en la página de votación.`, "ok");
+    renderTodo();
+  } catch (e) {
+    mensaje("aw-etapa-msg", errorLegible(e), "error");
+  }
+}
+
 async function cerrarPrimera() {
   if (fase !== "ronda1_abierta") return;
-  if (!window.confirm("¿Cerrar la primera votación? Nadie podrá votar más (podés reabrirla después si hace falta).")) return;
+  const sinPublicar = categoriasPendientes(categorias, publicadas);
+  const aviso = sinPublicar.length ? `\n\nATENCIÓN: hay categorías sin publicar que NO se votarán: ${sinPublicar.map((c) => c.nombre).join(", ")}.` : "";
+  if (!window.confirm("¿Cerrar la primera votación? Nadie podrá votar más (podés reabrirla después si hace falta)." + aviso)) return;
   try {
     await set(ref(db, "awards/estado"), "ronda1_cerrada"); // primero se cierra, después se cuenta
     fase = "ronda1_cerrada";
@@ -755,7 +796,7 @@ let votacion = { conteo: null, seleccion: {}, cargado: false };
 
 async function cargarVotos() {
   const snap = await get(ref(db, "awards/votos1")); // lectura de la colección completa (solo admin)
-  votacion.conteo = contarVotos(snap.val(), categoriasPublicables(categorias));
+  votacion.conteo = contarVotos(snap.val(), votadas());
 }
 
 async function guardarSnapshot() {
@@ -836,7 +877,7 @@ function renderVotacion() {
   };
   $("aw-v-estado").textContent = estados[fase] || "La primera votación ya terminó.";
   if (fase === "configuracion" || !votacion.conteo) return;
-  const pubs = categoriasPublicables(categorias);
+  const pubs = votadas();
   let totalVotos = 0;
   for (const c of pubs) totalVotos += (votacion.conteo[c.id] || { total: 0 }).total;
   lista.appendChild(el("p", "aw-resumen", `${totalVotos} voto(s) en total en ${pubs.length} categoría(s).`));
@@ -887,7 +928,7 @@ function renderVotacion() {
 async function confirmarFinalistas() {
   if (fase !== "ronda1_cerrada") return;
   if (!votacion.cargado) await cargarVotacion(true);
-  const pubs = categoriasPublicables(categorias);
+  const pubs = votadas();
   const finalistas = {};
   const resumen = [];
   for (const c of pubs) {
