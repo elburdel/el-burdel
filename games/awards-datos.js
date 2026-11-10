@@ -373,7 +373,12 @@ export function oroEditable(fase) {
   const f = leerFase(fase);
   return f === "configuracion" || f === "ronda1_cerrada" || f === "finalistas_definidos";
 }
-export const personasEditable = oroEditable;
+// Las personas se pueden cargar/editar mientras se arma Oro y también con la primera votación abierta
+// (para sumar categorías nuevas).
+export function personasEditable(fase) {
+  const f = leerFase(fase);
+  return oroEditable(f) || f === "ronda1_abierta";
+}
 
 // awards/admin/finalistas → {cid: [{pid, orden}]}
 export function leerFinalistas(raw) {
@@ -394,8 +399,8 @@ export function leerFinalistas(raw) {
 // Categorías de la segunda votación: las normales con sus finalistas, y Burdel de Oro al final
 // (con todos sus nominados, sin tope).
 export function categoriasRonda2(categorias, finalistas) {
-  const lista = categoriasPublicables(categorias).map((c) => ({
-    id: c.id, nombre: c.nombre, orden: c.orden, tipo: "normal", finalistas: (finalistas && finalistas[c.id]) || [],
+  const lista = categoriasPublicables(categorias).filter((c) => finalistas && finalistas[c.id]).map((c) => ({
+    id: c.id, nombre: c.nombre, orden: c.orden, tipo: "normal", finalistas: finalistas[c.id],
   }));
   const oro = categorias.find((c) => c.tipo === "oro" && c.nominados.length >= 1);
   if (oro) lista.push({ id: oro.id, nombre: oro.nombre, orden: oro.orden, tipo: "oro", finalistas: oro.nominados.map((n) => ({ pid: n.pid, orden: n.orden })) });
@@ -412,6 +417,8 @@ export function validarApertura2(categorias, personas, finalistas) {
     if (c.finalistas.some((f) => !ids.has(f.pid))) return { error: `«${c.nombre}» tiene personas que ya no existen.`, avisos: [] };
   }
   const avisos = [];
+  const omitidas = categoriasPublicables(categorias).filter((c) => !(finalistas && finalistas[c.id]));
+  if (omitidas.length) avisos.push(`No se votaron en la primera ronda y no estarán en la segunda: ${omitidas.map((c) => c.nombre).join(", ")}.`);
   if (!lista.some((c) => c.tipo === "oro")) avisos.push("Burdel de Oro no tiene nominados: no aparecerá en la segunda votación.");
   const usadas = new Set(lista.flatMap((c) => c.finalistas.map((f) => f.pid)));
   const sinFoto = personas.filter((p) => usadas.has(p.id) && !p.foto).length;
@@ -491,4 +498,64 @@ export function armarNominados(categoria, pids, personas) {
   const cambios = {};
   for (const pid of nuevos) cambios[`awards/admin/categorias/${categoria.id}/nominados/${pid}`] = { orden: orden++ };
   return { cambios, cantidad: nuevos.length };
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  Publicación parcial: sumar categorías con la primera votación ya abierta
+// ════════════════════════════════════════════════════════════
+
+// Con la votación abierta solo se editan las categorías que todavía no se publicaron
+// (así los votos ya emitidos nunca quedan sobre una lista que cambió).
+export function categoriaEditable(fase, c, publicadas) {
+  const f = leerFase(fase);
+  if (f === "configuracion") return true;
+  if (f === "ronda1_abierta") return c.tipo === "normal" && !publicadas.has(c.id);
+  return false;
+}
+
+export function puedeCrearCategoria(fase) {
+  const f = leerFase(fase);
+  return f === "configuracion" || f === "ronda1_abierta";
+}
+
+// Categorías normales con nominados que ya están en la votación pública.
+export function categoriasVotadas(categorias, publicadas) {
+  return categorias.filter((c) => c.tipo === "normal" && c.nominados.length >= 1 && publicadas.has(c.id));
+}
+
+// Categorías normales con nominados que todavía no se publicaron.
+export function categoriasPendientes(categorias, publicadas) {
+  return categorias.filter((c) => c.tipo === "normal" && c.nominados.length >= 1 && !publicadas.has(c.id));
+}
+
+export function validarPublicacionNuevas(categorias, personas, publicadas) {
+  const pend = categoriasPendientes(categorias, publicadas);
+  if (!pend.length) return { error: "No hay categorías nuevas con nominados para publicar.", avisos: [] };
+  const ids = new Set(personas.map((p) => p.id));
+  for (const c of pend) {
+    if (c.nominados.some((n) => !ids.has(n.pid))) return { error: `«${c.nombre}» tiene nominados que ya no existen.`, avisos: [] };
+  }
+  const avisos = [];
+  const chicas = pend.filter((c) => c.nominados.length < 2);
+  if (chicas.length) avisos.push(`Tienen un solo nominado: ${chicas.map((c) => c.nombre).join(", ")}.`);
+  const usadas = new Set(pend.flatMap((c) => c.nominados.map((n) => n.pid)));
+  const sinFoto = personas.filter((p) => usadas.has(p.id) && !p.foto).length;
+  if (sinFoto) avisos.push(`${sinFoto} nominado(s) no tienen foto (se verán con sus iniciales).`);
+  return { error: null, avisos };
+}
+
+// Una sola escritura atómica: suma las categorías nuevas a la votación (no cambia la etapa ni toca lo ya publicado).
+export function armarPublicacionNuevas(categorias, publicadas) {
+  const cambios = {};
+  const visibles = new Set();
+  const ids = [];
+  for (const c of categoriasPendientes(categorias, publicadas)) {
+    const nominados = {};
+    for (const n of c.nominados) { nominados[n.pid] = { orden: n.orden }; visibles.add(n.pid); }
+    cambios[`awards/ronda1/${c.id}`] = { nombre: c.nombre, orden: c.orden, nominados };
+    ids.push(c.id);
+  }
+  for (const pid of visibles) cambios[`awards/personas/${pid}/r1`] = true;
+  return { cambios, ids, visibles: [...visibles] };
 }
