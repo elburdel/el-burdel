@@ -440,6 +440,7 @@ async function agregarNominado(cid, pid) {
     await set(ref(db, `awards/admin/categorias/${cid}/nominados/${pid}`), { orden: proximoOrden(c.nominados) });
     await cargarTodo();
     renderTodo();
+    mensaje("aw-c-msg", `Nominado agregado a «${c.nombre}».`, "ok");
   } catch (e) {
     mensaje("aw-c-msg", errorLegible(e), "error");
   }
@@ -533,6 +534,9 @@ async function agregarVarios(cid, pids) {
   }
 }
 
+// Categorías con la lista de nominados desplegada (por defecto todas ocultas, para que la página no se haga larguísima).
+const expandidas = new Set();
+
 function renderCategorias() {
   const cont = $("aw-c-lista");
   cont.textContent = "";
@@ -561,6 +565,22 @@ function renderCategorias() {
     cab.appendChild(acc);
     caja.appendChild(cab);
 
+    const abierta = expandidas.has(c.id);
+    if (c.nominados.length) {
+      const barra = el("div", "aw-nom-barra");
+      const bt = el("button", "aw-btn", abierta ? "Ocultar nominados" : `Ver nominados (${c.nominados.length})`);
+      bt.type = "button";
+      bt.addEventListener("click", () => { if (abierta) expandidas.delete(c.id); else expandidas.add(c.id); renderCategorias(); });
+      barra.appendChild(bt);
+      if (!abierta) {
+        // Con la lista oculta se ve una tira de fotos para reconocer de un vistazo quiénes están.
+        const tira = el("div", "aw-tira");
+        for (const n of c.nominados.slice(0, 12)) { const p = personaPorId(n.pid); tira.appendChild(avatar(p ? p.nombre : "?", p ? p.foto : null, "mini")); }
+        if (c.nominados.length > 12) tira.appendChild(el("span", "aw-sub", `+${c.nominados.length - 12}`));
+        barra.appendChild(tira);
+      }
+      caja.appendChild(barra);
+    }
     const lista = el("div", "aw-lista");
     if (!c.nominados.length) lista.appendChild(el("p", "aw-vacio", "Sin nominados todavía."));
     c.nominados.forEach((n, i) => {
@@ -590,7 +610,7 @@ function renderCategorias() {
       fila.appendChild(a2);
       lista.appendChild(fila);
     });
-    caja.appendChild(lista);
+    if (abierta || !c.nominados.length) caja.appendChild(lista);
 
     // Agregar nominado: solo personas que todavía no están en esta categoría.
     const libres = personas.filter((p) => !c.nominados.some((n) => n.pid === p.id));
@@ -1038,6 +1058,8 @@ async function iniciar() {
   $("aw-tab-votacion").addEventListener("click", () => mostrarTab("votacion"));
   $("aw-tab-votacion2").addEventListener("click", () => mostrarTab("votacion2"));
   $("aw-v2-actualizar").addEventListener("click", () => cargarVotacion2(true));
+  $("aw-c-expandir").addEventListener("click", () => { for (const c of categorias) expandidas.add(c.id); renderCategorias(); });
+  $("aw-c-contraer").addEventListener("click", () => { expandidas.clear(); renderCategorias(); });
   $("aw-v-actualizar").addEventListener("click", () => cargarVotacion(true));
   $("aw-v-sugerir").addEventListener("click", usarSugerencia);
   $("aw-v-copiar").addEventListener("click", copiarEnlace);
