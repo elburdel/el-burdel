@@ -20,6 +20,7 @@ import {
   leerPlantel, yaCargada, fotoDesdePlantel,
   categoriasPublicables, validarApertura, armarApertura, contarVotos, armarRanking, sugerirFinalistas,
   hayEmpateEnCorte, armarFinalistas,
+  armarNominados,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
 
@@ -473,6 +474,65 @@ async function mover(cid, pid, delta) {
   }
 }
 
+// Panel para tildar varias personas y agregarlas juntas a una categoría.
+function panelVarios(c, libres) {
+  const box = el("div", "aw-varios");
+  const buscar = document.createElement("input");
+  buscar.type = "search";
+  buscar.className = "aw-input";
+  buscar.placeholder = "Buscar persona...";
+  buscar.autocomplete = "off";
+  const grid = el("div", "aw-i-grid");
+  const marcados = new Set();
+  const btn = el("button", "aw-btn aw-btn-primario", "Agregar seleccionados");
+  btn.type = "button";
+  const actualizar = () => {
+    btn.textContent = marcados.size ? `Agregar seleccionados (${marcados.size})` : "Agregar seleccionados";
+    btn.disabled = !marcados.size || !puedeNominar(c);
+  };
+  const items = [];
+  for (const p of libres) {
+    const item = el("label", "aw-i-item");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.addEventListener("change", () => { if (cb.checked) marcados.add(p.id); else marcados.delete(p.id); actualizar(); });
+    item.appendChild(cb);
+    item.appendChild(avatar(p.nombre, p.foto));
+    item.appendChild(el("div", "aw-i-txt", p.nombre));
+    items.push({ p, item, cb });
+    grid.appendChild(item);
+  }
+  const visible = ({ p }) => { const q = buscar.value.trim().toLowerCase(); return !q || p.nombre.toLowerCase().includes(q); };
+  buscar.addEventListener("input", () => { for (const it of items) it.item.style.display = visible(it) ? "" : "none"; });
+  const bt = el("button", "aw-btn", "Marcar todos");
+  bt.type = "button";
+  bt.addEventListener("click", () => { for (const it of items) if (visible(it)) { it.cb.checked = true; marcados.add(it.p.id); } actualizar(); });
+  const bn = el("button", "aw-btn", "Desmarcar todo");
+  bn.type = "button";
+  bn.addEventListener("click", () => { for (const it of items) it.cb.checked = false; marcados.clear(); actualizar(); });
+  btn.addEventListener("click", () => agregarVarios(c.id, [...marcados]));
+  const fila = el("div", "aw-botones");
+  fila.append(bt, bn, btn);
+  box.append(buscar, grid, fila);
+  actualizar();
+  return box;
+}
+
+async function agregarVarios(cid, pids) {
+  const c = categorias.find((x) => x.id === cid);
+  if (!c || !puedeNominar(c) || !pids.length) return;
+  const { cambios, cantidad } = armarNominados(c, pids, personas);
+  if (!cantidad) return;
+  try {
+    await update(ref(db), cambios); // una sola escritura: se agregan todos o ninguno
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-c-msg", `Se agregaron ${cantidad} nominado(s) a «${c.nombre}».`, "ok");
+  } catch (e) {
+    mensaje("aw-c-msg", errorLegible(e), "error");
+  }
+}
+
 function renderCategorias() {
   const cont = $("aw-c-lista");
   cont.textContent = "";
@@ -547,7 +607,19 @@ function renderCategorias() {
     }
     sel.addEventListener("change", () => { if (sel.value) agregarNominado(c.id, sel.value); });
     add.appendChild(sel);
-    caja.appendChild(add);
+    if (libres.length) {
+      const bv = el("button", "aw-btn", "Agregar varios...");
+      bv.type = "button";
+      bv.disabled = !puedeNominar(c);
+      const panel = panelVarios(c, libres);
+      panel.classList.add("hidden");
+      bv.addEventListener("click", () => panel.classList.toggle("hidden"));
+      add.appendChild(bv);
+      caja.appendChild(add);
+      caja.appendChild(panel);
+    } else {
+      caja.appendChild(add);
+    }
     cont.appendChild(caja);
   }
 }
