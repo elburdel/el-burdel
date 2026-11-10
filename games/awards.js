@@ -43,7 +43,8 @@ let fase = null;
 let categorias = [];
 let personas = {};     // pid -> {nombre, foto}
 let cargada = false;   // ya se leyeron categorías y nominados
-let cargando = false;
+let offRonda1 = null;  // cancelar la escucha de awards/ronda1
+let versionRonda1 = 0; // para descartar lecturas viejas
 let pendiente = null;  // {cid, pid} esperando confirmación
 let enviando = false;
 let errorVoto = "";
@@ -59,11 +60,15 @@ function aviso(titulo, texto) {
 function mostrarSegunFase() {
   $("awp-aviso").classList.add("hidden");
   if (fase === "ronda1_abierta") {
-    $("awp-sub").textContent = "Elegí a tus favoritos en cada categoría. Un voto por categoría, y no se puede cambiar.";
-    if (!cargada) { cargarRonda1(); return; }
-    renderLista();
+    $("awp-sub").textContent = cargada
+      ? "Elegí a tus favoritos en cada categoría. Un voto por categoría, y no se puede cambiar."
+      : "Cargando categorías...";
+    suscribirRonda1();
+    if (cargada) renderLista();
     return;
   }
+  // Cualquier otra etapa: se deja de escuchar (las reglas solo permiten leer las categorías con la votación abierta).
+  dejarDeEscucharRonda1();
   $("awp-lista").textContent = "";
   $("awp-progreso").classList.add("hidden");
   if (fase === "configuracion") {
@@ -84,31 +89,40 @@ function mostrarSegunFase() {
   }
 }
 
-async function cargarRonda1() {
-  if (cargando) return;
-  cargando = true;
-  $("awp-sub").textContent = "Cargando categorías...";
-  try {
-    const snap = await get(ref(db, "awards/ronda1"));
-    categorias = leerCategorias(snap.val()).filter((c) => c.nominados.length);
-    const ids = [...new Set(categorias.flatMap((c) => c.nominados.map((n) => n.pid)))];
-    // Cada persona se lee por su id (la colección completa no es pública).
-    await Promise.all(ids.map(async (pid) => {
-      try {
-        const s = await get(ref(db, `awards/personas/${pid}`));
-        const v = s.val();
-        if (v && typeof v.nombre === "string") personas[pid] = { nombre: v.nombre.slice(0, 40), foto: fotoValida(v.foto) ? v.foto : null };
-      } catch (e) { /* esa persona no se muestra */ }
-    }));
-    cargada = true;
-    $("awp-sub").textContent = "Elegí a tus favoritos en cada categoría. Un voto por categoría, y no se puede cambiar.";
-    renderLista();
-  } catch (e) {
+// Las categorías se escuchan en vivo: si el admin suma categorías nuevas con la votación abierta,
+// aparecen solas, y los votos ya emitidos (guardados por categoría) se conservan.
+function suscribirRonda1() {
+  if (offRonda1) return;
+  offRonda1 = onValue(ref(db, "awards/ronda1"), (snap) => { aplicarRonda1(snap.val()); }, () => {
     $("awp-sub").textContent = "";
     aviso("No se pudo cargar", "Revisá tu conexión y recargá la página.");
-  } finally {
-    cargando = false;
-  }
+  });
+}
+
+function dejarDeEscucharRonda1() {
+  if (typeof offRonda1 === "function") offRonda1();
+  offRonda1 = null;
+  cargada = false;
+  versionRonda1++;
+}
+
+async function aplicarRonda1(raw) {
+  const version = ++versionRonda1;
+  const lista = leerCategorias(raw).filter((c) => c.nominados.length);
+  const faltan = [...new Set(lista.flatMap((c) => c.nominados.map((n) => n.pid)))].filter((pid) => !personas[pid]);
+  // Cada persona se lee por su id (la colección completa no es pública).
+  await Promise.all(faltan.map(async (pid) => {
+    try {
+      const s = await get(ref(db, `awards/personas/${pid}`));
+      const v = s.val();
+      if (v && typeof v.nombre === "string") personas[pid] = { nombre: v.nombre.slice(0, 40), foto: fotoValida(v.foto) ? v.foto : null };
+    } catch (e) { /* esa persona no se muestra */ }
+  }));
+  if (version !== versionRonda1 || fase !== "ronda1_abierta") return; // llegó una lectura más nueva o se cerró
+  categorias = lista;
+  cargada = true;
+  $("awp-sub").textContent = "Elegí a tus favoritos en cada categoría. Un voto por categoría, y no se puede cambiar.";
+  renderLista();
 }
 
 // ── Votar ──
