@@ -529,17 +529,19 @@
     }
 
     // ── BURDEL AWARDS 2026: tarjeta según la etapa (solo lectura de awards/estado, que es pública) ──
+    // 1ª votación abierta → lleva a la página pública (awards.html); 2ª votación → pantalla de socios.
     function initAwardsCard() {
       onValue(ref(db, "awards/estado"), (snap) => {
         const fase = snap.val();
         const card = document.getElementById("game-card-awards");
         const st = document.getElementById("status-awards");
         if (!card || !st) return;
-        const textos = { ronda2_abierta: "Votar ahora", ronda2_cerrada: "Votación cerrada", publicado: "Ver ganadores" };
+        const textos = { ronda1_abierta: "Votar ahora", ronda2_abierta: "Votar ahora", ronda2_cerrada: "Votación cerrada", publicado: "Ver ganadores" };
         const visible = Object.prototype.hasOwnProperty.call(textos, fase);
         card.style.display = visible ? "" : "none";
         if (visible) st.textContent = textos[fase];
-        const activo = fase === "ronda2_abierta";
+        card.setAttribute("href", fase === "ronda1_abierta" ? "awards.html" : "awards-usuario.html");
+        const activo = fase === "ronda1_abierta" || fase === "ronda2_abierta";
         st.className = activo ? "dash-game-status active" : "dash-game-status";
         card.classList.toggle("active", activo);
       }, () => {
