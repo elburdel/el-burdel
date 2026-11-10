@@ -136,6 +136,7 @@
     <button type="button" class="aw-tab active" id="aw-tab-categorias" role="tab" aria-selected="true">Categorías</button>
     <button type="button" class="aw-tab" id="aw-tab-personas" role="tab" aria-selected="false">Personas</button>
     <button type="button" class="aw-tab" id="aw-tab-votacion" role="tab" aria-selected="false">1ª votación</button>
+    <button type="button" class="aw-tab" id="aw-tab-votacion2" role="tab" aria-selected="false">2ª votación</button>
   </div>
 
   <!-- ── CATEGORÍAS ── -->
@@ -239,6 +240,19 @@
       <p class="aw-msg" id="aw-v-msg"></p>
     </section>
     <div id="aw-v-lista"></div>
+  </div>
+
+  <!-- ── SEGUNDA VOTACIÓN ── -->
+  <div id="aw-pane-votacion2" class="hidden">
+    <section class="aw-bloque">
+      <h2 class="aw-bloque-titulo">Segunda votación (solo registrados)</h2>
+      <p class="aw-sub" id="aw-v2-estado"></p>
+      <div class="aw-botones" style="margin-top:10px;">
+        <button type="button" class="aw-btn" id="aw-v2-actualizar">Actualizar</button>
+      </div>
+      <p class="aw-msg" id="aw-v2-msg"></p>
+    </section>
+    <div id="aw-v2-lista"></div>
   </div>
 
 </main>
