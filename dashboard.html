@@ -143,6 +143,13 @@
         <p class="dash-lobby-sub">Los juegos activos se iluminan solos. Si no hay ninguno activo, podés practicar Wordle o esperar al admin.</p>
         <div class="dash-games-grid" id="dash-games-grid">
 
+          <!-- BURDEL AWARDS 2026: aparece solo cuando hay algo para votar o ver (la etapa se lee de awards/estado) -->
+          <a class="dash-game-card" id="game-card-awards" href="awards-usuario.html" style="--gc: var(--dorado); display:none;">
+            <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8h20v10a10 10 0 0 1-20 0z"/><path d="M14 11H7v3a7 7 0 0 0 7 7"/><path d="M34 11h7v3a7 7 0 0 1-7 7"/><line x1="24" y1="28" x2="24" y2="36"/><path d="M16 41h16"/><path d="M18 36h12v5H18z"/></svg>
+            <div class="dash-game-name">BURDEL AWARDS 2026</div>
+            <div class="dash-game-status" id="status-awards">Votar</div>
+          </a>
+
           <a class="dash-game-card" id="game-card-taboo" href="taboo.html" style="--gc: var(--c-taboo);">
             <svg class="dash-game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
               <rect x="8" y="9" width="32" height="28" rx="3"/>
@@ -366,6 +373,7 @@
       initNavbar();
       renderUserSummary(data);
       initDashboard();
+      initAwardsCard();
 
       // ── Listener en tiempo real del equipo asignado ──
       onValue(ref(db, `users/${user.uid}/team`), (snap) => {
@@ -517,6 +525,26 @@
           el.className = activo ? "dash-game-status active" : "dash-game-status";
         }
         if (card) card.classList.toggle("active", activo);
+      });
+    }
+
+    // ── BURDEL AWARDS 2026: tarjeta según la etapa (solo lectura de awards/estado, que es pública) ──
+    function initAwardsCard() {
+      onValue(ref(db, "awards/estado"), (snap) => {
+        const fase = snap.val();
+        const card = document.getElementById("game-card-awards");
+        const st = document.getElementById("status-awards");
+        if (!card || !st) return;
+        const textos = { ronda2_abierta: "Votar ahora", ronda2_cerrada: "Votación cerrada", publicado: "Ver ganadores" };
+        const visible = Object.prototype.hasOwnProperty.call(textos, fase);
+        card.style.display = visible ? "" : "none";
+        if (visible) st.textContent = textos[fase];
+        const activo = fase === "ronda2_abierta";
+        st.className = activo ? "dash-game-status active" : "dash-game-status";
+        card.classList.toggle("active", activo);
+      }, () => {
+        const card = document.getElementById("game-card-awards");
+        if (card) card.style.display = "none";
       });
     }
 
