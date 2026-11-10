@@ -72,6 +72,15 @@ function mostrarSegunFase() {
   } else {
     $("awp-sub").textContent = "Los premios de El Burdel.";
     aviso("La votación pública ya cerró", "¡Gracias por participar! Los resultados se conocerán en la entrega de premios.");
+    if (fase === "ronda2_abierta") {
+      const a = $("awp-aviso");
+      a.appendChild(document.createElement("br"));
+      a.appendChild(document.createTextNode("La votación final está abierta para los usuarios registrados de El Burdel. "));
+      const l = document.createElement("a");
+      l.href = "login.html";
+      l.textContent = "Entrar";
+      a.appendChild(l);
+    }
   }
 }
 
