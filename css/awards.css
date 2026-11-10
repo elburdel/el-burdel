@@ -47,3 +47,9 @@
 .awp-conf { font-size: 12px; text-align: center; color: var(--crema-2); }
 .awp-ok { text-align: center; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--dorado-claro); }
 .awp-error { text-align: center; font-size: 12px; color: #ff8a8a; margin-top: 8px; }
+
+/* ── Segunda votación (usuarios registrados): categoría especial Burdel de Oro ── */
+.awp-cat.oro .awp-cat-titulo { color: var(--dorado-claro); text-shadow: 0 0 22px rgba(245,200,66,0.45); }
+.awp-cat.oro .awp-cat-titulo::before, .awp-cat.oro .awp-cat-titulo::after { content: "★"; font-size: 0.6em; margin: 0 10px; vertical-align: middle; color: var(--dorado); }
+.awp-cat.oro .awp-card { border-color: rgba(245,200,66,0.4); }
+.awp-aviso a { color: var(--dorado-claro); }
