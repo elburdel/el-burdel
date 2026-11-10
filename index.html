@@ -3,1919 +3,288 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin — El Burdel</title>
+  <title>El Burdel</title>
   <!-- SEO & Open Graph -->
-  <meta name="description" content="Panel de administración de El Burdel." />
+  <meta name="description" content="Juegos en vivo para pasar la mejor noche. Wordle, Taboo y más." />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="El Burdel" />
-  <meta property="og:title" content="Admin — El Burdel" />
-  <meta property="og:description" content="Panel de administración de El Burdel." />
-  <meta property="og:url" content="https://elburdel.com.ar/admin.html" />
+  <meta property="og:title" content="El Burdel — Juegos de la noche" />
+  <meta property="og:description" content="Juegos en vivo para pasar la mejor noche. Wordle, Taboo y más." />
+  <meta property="og:url" content="https://elburdel.com.ar/index.html" />
   <meta property="og:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Admin — El Burdel" />
-  <meta name="twitter:description" content="Panel de administración de El Burdel." />
+  <meta name="twitter:title" content="El Burdel — Juegos de la noche" />
+  <meta name="twitter:description" content="Juegos en vivo para pasar la mejor noche. Wordle, Taboo y más." />
   <meta name="twitter:image" content="https://elburdel.com.ar/assets/img/og-cover.jpg" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/admin.css" />
-  <link rel="stylesheet" href="css/noticias.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-
-  <style>
-    .admin-game-bar {
-      background: var(--negro-2);
-      border-bottom: 1px solid rgba(200,150,0,0.12);
-      padding: 12px 20px;
-      position: sticky;
-      top: 56px;
-      z-index: 90;
-    }
-    .admin-game-bar-inner {
-      max-width: 900px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .admin-game-bar-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--crema-3);
-      white-space: nowrap;
-    }
-
-    .admin-game-bar-active {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--dorado);
-      letter-spacing: 1px;
-    }
-
-    .admin-title {
-      font-family: var(--font-title) !important;
-      font-size: 38px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      color: var(--dorado);
-      margin-top: 4px;
-      line-height: 1;
-    }
-
-    /* ── El Millón ── */
-    .mil-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
-    .mil-stat { background:rgba(212,168,0,0.05); border:1px solid rgba(212,168,0,0.12); border-radius:10px; padding:12px; text-align:center; }
-    .mil-stat-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--crema-3); margin-bottom:4px; }
-    .mil-stat-value { font-family:var(--font-display); font-size:26px; color:#f5c842; letter-spacing:1px; }
-    .mil-player-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--negro-3); border-radius:8px; margin-bottom:6px; gap:8px; flex-wrap:wrap; }
-    .mil-player-row.dead { opacity:0.4; }
-    .mil-player-nick { font-size:14px; color:var(--crema); font-weight:500; flex:1; min-width:80px; }
-    .mil-tag { font-size:10px; padding:2px 8px; border-radius:10px; letter-spacing:1px; white-space:nowrap; }
-    .mil-tag.millonario { background:rgba(212,168,0,0.15); color:#f5c842; border:1px solid rgba(212,168,0,0.3); }
-    .mil-tag.inmune     { background:rgba(50,150,50,0.2); color:#6c6; border:1px solid rgba(50,150,50,0.3); }
-    .mil-tag.eliminado  { background:rgba(100,100,100,0.15); color:#888; border:1px solid rgba(100,100,100,0.2); }
-    .mil-tag.completo   { background:rgba(50,150,200,0.15); color:#8cf; border:1px solid rgba(50,150,200,0.3); }
-    .mil-mission-badge { font-size:11px; padding:2px 7px; border-radius:8px; cursor:default; white-space:nowrap; }
-    .mil-mission-badge.none     { color:var(--crema-3); }
-    .mil-mission-badge.millon   { background:rgba(212,168,0,0.12); color:#f5c842; border:1px solid rgba(212,168,0,0.25); }
-    .mil-mission-badge.tercero  { background:rgba(100,100,200,0.12); color:#aaf; border:1px solid rgba(100,100,200,0.25); }
-    .mil-vote-btn-row { display:flex; gap:6px; flex-wrap:wrap; }
-    .mil-vote-btn-row button { flex:1; min-width:80px; }
-    .mil-timer-big { font-family:var(--font-display); font-size:64px; letter-spacing:4px; color:#f5c842; text-align:center; line-height:1; text-shadow:0 0 30px rgba(212,168,0,0.4); }
-    .mil-timer-big.urgent { color:#e05050; text-shadow:0 0 30px rgba(224,80,80,0.4); }
-    .mil-phase-badge { display:inline-block; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:4px 10px; border-radius:20px; background:rgba(212,168,0,0.08); border:1px solid rgba(212,168,0,0.2); color:#f5c842; }
-    .mil-secret-box { background:rgba(212,168,0,0.06); border:1px solid rgba(212,168,0,0.2); border-radius:8px; padding:12px 14px; font-size:13px; color:var(--crema-2); line-height:1.8; margin-bottom:14px; }
-    .mil-input { width:100%; box-sizing:border-box; background:var(--negro-3); border:1px solid rgba(200,150,0,0.2); border-radius:5px; padding:9px 12px; color:var(--crema); font-size:13px; font-family:var(--font-body); outline:none; }
-    .mil-select { width:100%; box-sizing:border-box; background:var(--negro-3); border:1px solid rgba(200,150,0,0.2); border-radius:5px; padding:9px 10px; color:var(--crema); font-size:13px; font-family:var(--font-body); outline:none; }
-
-  </style>
-  <style>
-    /* ── Sesión usuarios ── */
-    .sesion-user-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(200,150,0,0.07);
-    }
-    .sesion-user-row:last-child { border-bottom: none; }
-
-    .sesion-presence-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .sesion-presence-dot.online {
-      background: #4caf50;
-      box-shadow: 0 0 6px rgba(76,175,80,0.7);
-    }
-    .sesion-presence-dot.offline {
-      background: rgba(255,255,255,0.15);
-    }
-
-    .sesion-nick {
-      flex: 1;
-      font-size: 14px;
-      color: var(--crema);
-    }
-    .sesion-team-badge {
-      font-size: 16px;
-      width: 24px;
-      text-align: center;
-    }
-    .sesion-team-btns {
-      display: flex;
-      gap: 4px;
-    }
-  </style>
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
+  <link rel="stylesheet" href="css/main.css?v=3" />
+  <link rel="stylesheet" href="css/landing.css" />
 </head>
-<body>
+<body class="checking-session">
 
-  <!-- MAIN -->
-  <main class="admin-main">
+  <!-- Sin sesión activa: se muestra la landing directamente (sin telón).
+       Con sesión activa: el script de abajo redirige antes de pintar nada,
+       salvo que la URL tenga ?ver=1 (así el link "Inicio" del pie de
+       dashboard/juegos puede traer de vuelta a un usuario logueado sin
+       que lo rebote). -->
 
-    <!-- SIDEBAR — navegación fija, pensada para uso en desktop -->
-    <aside class="admin-sidebar">
-      <div class="admin-sidebar-brand">
-        <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
-        <span>EL BURDEL</span>
-      </div>
+  <nav class="landing-nav">
+    <div class="landing-nav-brand">
+      <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+      <span>EL BURDEL</span>
+    </div>
+    <a href="login.html" class="landing-nav-cta" id="nav-cta">Entrar</a>
+  </nav>
 
-      <div class="admin-sidebar-groups">
+  <section class="hero">
+    <div class="hero-drape l"></div>
+    <div class="hero-drape r"></div>
 
-        <div class="admin-sidebar-group">
-          <span class="admin-sidebar-label">Panel</span>
-          <button type="button" class="admin-side-link active-section active" data-section="usuarios">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="16" r="8"/><path d="M8 40c0-8.8 7.2-16 16-16s16 7.2 16 16"/></svg>
-            Usuarios
-          </button>
-          <button type="button" class="admin-side-link active-section" data-section="sesion">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="4" fill="currentColor" stroke="none"/><path d="M17 17a10 10 0 0 0 0 14"/><path d="M31 17a10 10 0 0 1 0 14"/><path d="M11 11a18 18 0 0 0 0 26"/><path d="M37 11a18 18 0 0 1 0 26"/></svg>
-            Sesión
-          </button>
-        </div>
-
-        <div class="admin-sidebar-group">
-          <span class="admin-sidebar-label">Contenido</span>
-          <button type="button" class="admin-side-link active-section" data-section="musica" style="--gc: var(--c-musica);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 32V10l20-4v20"/><circle cx="14" cy="34" r="5" fill="currentColor" stroke="none"/><circle cx="34" cy="30" r="5" fill="currentColor" stroke="none"/></svg>
-            Música
-          </button>
-          <button type="button" class="admin-side-link active-section" data-section="tablon">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="10" width="32" height="24" rx="2"/><line x1="16" y1="18" x2="30" y2="18"/><line x1="16" y1="24" x2="26" y2="24"/><circle cx="24" cy="34" r="2" fill="currentColor" stroke="none"/><line x1="24" y1="36" x2="24" y2="41"/></svg>
-            Tablón
-          </button>
-          <button type="button" class="admin-side-link active-section" data-section="noticias" style="--gc: var(--c-noticias);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="7" y="12" width="28" height="28" rx="2"/><path d="M35 18h6v18a4 4 0 0 1-4 4H12"/><line x1="13" y1="19" x2="24" y2="19"/><line x1="13" y1="25" x2="29" y2="25"/><line x1="13" y1="31" x2="29" y2="31"/></svg>
-            Noticias
-          </button>
-          <button type="button" class="admin-side-link active-section" data-section="galeria" style="--gc: var(--c-galeria);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="8" width="36" height="32" rx="3"/><circle cx="17" cy="19" r="4"/><path d="M6 33l11-11 9 9 6-6 10 10"/></svg>
-            Galería
-          </button>
-          <a class="admin-side-link" href="admin-landing.html" style="--gc: var(--c-galeria);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="10" width="26" height="26" rx="2" transform="rotate(-6 19 23)"/><rect x="16" y="14" width="26" height="26" rx="2" transform="rotate(6 29 27)"/></svg>
-            Landing
-          </a>
-          <a class="admin-side-link" href="admin-horoscopo.html" style="--gc: var(--c-horoscopo);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M29 8a16 16 0 1 0 11 27A12 12 0 0 1 29 8z"/><path d="M38 9l1.4 3.6L43 14l-3.6 1.4L38 19l-1.4-3.6L33 14l3.6-1.4z"/></svg>
-            Horóscopo
-          </a>
-          <a class="admin-side-link" href="admin-awards.html" style="--gc: var(--dorado);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8h20v10a10 10 0 0 1-20 0z"/><path d="M14 11H7v3a7 7 0 0 0 7 7"/><path d="M34 11h7v3a7 7 0 0 1-7 7"/><line x1="24" y1="28" x2="24" y2="36"/><path d="M16 41h16"/><path d="M18 36h12v5H18z"/></svg>
-            BURDEL AWARDS 2026
-          </a>
-        </div>
-
-        <div class="admin-sidebar-group">
-          <span class="admin-sidebar-label">Juegos</span>
-          <a class="admin-side-link" href="admin-taboo.html" style="--gc: var(--c-taboo);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="8" y="9" width="32" height="28" rx="3"/><line x1="14" y1="19" x2="34" y2="19"/><line x1="14" y1="26" x2="27" y2="26"/><line x1="9" y1="41" x2="39" y2="6"/></svg>
-            Taboo
-          </a>
-          <a class="admin-side-link" href="admin-wordle.html" style="--gc: var(--c-wordle);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="20" y="6" width="12" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/><rect x="34" y="6" width="8" height="12" rx="2"/><rect x="6" y="20" width="12" height="12" rx="2"/><rect x="20" y="20" width="12" height="12" rx="2"/><rect x="34" y="20" width="8" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/></svg>
-            Wordle
-          </a>
-          <a class="admin-side-link" href="admin-impostor.html" style="--gc: var(--c-impostor);">
-            <svg viewBox="0 0 48 48" fill="currentColor"><path d="M24 6c-5 0-8 4-8 9 0 3 1 5 2 6-6 2-10 8-10 15v6h32v-6c0-7-4-13-10-15 1-1 2-3 2-6 0-5-3-9-8-9z"/></svg>
-            Impostor
-          </a>
-          <a class="admin-side-link" href="admin-quiensoy-juego.html" style="--gc: var(--c-quiensoy);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><rect x="10" y="6" width="28" height="36" rx="4"/><path d="M19 18c0-3.3 2.2-5.5 5-5.5s5 2.2 5 5.5c0 3-2 4-4 6-1 1-1 2-1 3.2"/><circle cx="24" cy="33.5" r="1.6" fill="currentColor" stroke="none"/></svg>
-            ¿Quién Soy? — Ronda
-          </a>
-          <a class="admin-side-link" href="admin-quiensoy.html" style="--gc: var(--c-quiensoy);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="7" y="12" width="28" height="28" rx="2"/><line x1="13" y1="19" x2="24" y2="19"/><line x1="13" y1="25" x2="29" y2="25"/><line x1="13" y1="31" x2="29" y2="31"/></svg>
-            ¿Quién Soy? — Cartas
-          </a>
-          <a class="admin-side-link" href="admin-millon.html" style="--gc: var(--c-millon);">
-            <svg viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
-            El Millón
-          </a>
-          <a class="admin-side-link" href="admin-ruleta.html" style="--gc: var(--c-ruleta);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/><line x1="24" y1="7" x2="24" y2="41"/><line x1="7" y1="24" x2="41" y2="24"/><line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/><line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/></svg>
-            Ruleta
-          </a>
-          <a class="admin-side-link" href="admin-tests.html" style="--gc: var(--c-tests);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"><path d="M19 6h10"/><path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/><line x1="16.5" y1="29" x2="31.5" y2="29"/></svg>
-            Tests
-          </a>
-          <a class="admin-side-link" href="admin-armaequipo.html" style="--gc: var(--dorado);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="5" width="32" height="38" rx="2"/><line x1="8" y1="24" x2="40" y2="24"/><circle cx="24" cy="24" r="5"/><rect x="16" y="5" width="16" height="8"/><rect x="16" y="35" width="16" height="8"/></svg>
-            Armá tu equipo
-          </a>
-          <a class="admin-side-link" href="admin-asesino.html" style="--gc: var(--rojo-claro);">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M41 7L21 27"/><path d="M41 7l-9 2 7 7z"/><path d="M15 21l12 12"/><path d="M17 31L8 40"/></svg>
-            El asesino
-          </a>
-        </div>
-
-      </div>
-
-      <button type="button" class="admin-side-logout" onclick="handleLogout()">Cerrar sesión</button>
-    </aside>
-
-    <!-- CONTENIDO -->
-    <div class="admin-content">
-
-    <!-- HEADER -->
-    <div class="admin-header">
-      <div class="admin-header-inner">
-        <div>
-          <span class="section-label">Panel de control</span>
-          <h1 class="admin-title">Admin <span id="admin-nick"></span></h1>
-        </div>
-        <div class="admin-status-dot" id="status-dot" title="Conectado a Firebase"></div>
-      </div>
+    <div class="bulb-row">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span>
     </div>
 
-    <!-- SELECTOR JUEGO ACTIVO — siempre visible -->
-    <div class="admin-game-bar">
-      <div class="admin-game-bar-inner">
-        <span class="admin-game-bar-label">Juego activo</span>
-        <span class="admin-game-bar-active" id="active-game-display">🚫 Ninguno</span>
-      </div>
+    <svg class="hero-crown" viewBox="0 0 48 48" fill="currentColor"><path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/></svg>
+    <div class="hero-title">EL<br>BURDEL</div>
+    <div class="hero-sub">La noche empieza acá</div>
+    <p class="hero-copy">Juegos, risas, estrategia y mucha joda. Un lugar para desconectar del día y conectar con la noche.</p>
+
+    <a href="login.html?tab=register" class="hero-btn" id="hero-cta">Entrar al Burdel</a>
+    <div class="hero-ingresa" id="hero-ingresa">¿Ya tenés cuenta? <a href="login.html">Ingresá</a></div>
+
+    <div class="bulb-row">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span>
     </div>
+  </section>
 
-    <!-- SECCIÓN: USUARIOS -->
-    <section class="admin-section" id="section-usuarios">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">Usuarios</h2>
-          <span class="admin-badge" id="badge-pending">0 pendientes</span>
-        </div>
+  <div class="section" id="juegos">
+    <span class="section-label">Jugá. Competí. Divertite.</span>
+    <div class="section-title">¿A qué jugamos hoy?</div>
+    <div class="games-grid">
 
-        <!-- TABS USUARIOS -->
-        <div class="admin-tabs">
-          <button type="button" class="admin-tab active" onclick="filterUsers('pending')">Pendientes</button>
-          <button type="button" class="admin-tab" onclick="filterUsers('active')">Activos</button>
-          <button type="button" class="admin-tab" onclick="filterUsers('paused')">Pausados</button>
-          <button type="button" class="admin-tab" onclick="filterUsers('all')">Todos</button>
-        </div>
-        <div style="margin-bottom:12px;">
-          <input type="text" id="search-usuarios" placeholder="🔍 Buscar por nick o email..."
-            oninput="window.renderUsers()"
-            style="width:100%;box-sizing:border-box;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:6px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;font-family:var(--font-body);" />
-        </div>
+      <a href="taboo.html" class="game-card" style="--gc: var(--c-taboo);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <rect x="8" y="9" width="32" height="28" rx="3"/>
+          <line x1="14" y1="19" x2="34" y2="19"/>
+          <line x1="14" y1="26" x2="27" y2="26"/>
+          <line x1="9" y1="41" x2="39" y2="6"/>
+        </svg>
+        <div class="game-name">Taboo</div>
+        <div class="game-desc">Palabras prohibidas, mucha creatividad</div>
+      </a>
 
-        <div class="users-list" id="users-list">
-          <div class="users-loading">Cargando usuarios...</div>
-        </div>
+      <a href="wordle.html" class="game-card" style="--gc: var(--c-wordle);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="6" y="6" width="12" height="12" rx="2"/>
+          <rect x="20" y="6" width="12" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+          <rect x="34" y="6" width="8" height="12" rx="2"/>
+          <rect x="6" y="20" width="12" height="12" rx="2"/>
+          <rect x="20" y="20" width="12" height="12" rx="2"/>
+          <rect x="34" y="20" width="8" height="12" rx="2" fill="currentColor" fill-opacity="0.25"/>
+        </svg>
+        <div class="game-name">Wordle</div>
+        <div class="game-desc">Adiviná la palabra antes de quedarte sin intentos</div>
+      </a>
 
-        <!-- RECUPERAR CONTRASEÑA -->
-        <div class="admin-card" style="margin-top: 24px;">
-          <div class="admin-card-label">Recuperación de contraseña</div>
-          <p style="font-size:13px;color:var(--crema-3);margin-bottom:12px;line-height:1.5;">
-            Enviá un email de recuperación a cualquier usuario registrado.
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <input
-              type="email"
-              id="input-reset-email"
-              placeholder="Email del usuario"
-              style="flex:1;min-width:200px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.2);border-radius:4px;padding:9px 12px;color:var(--crema);font-size:13px;outline:none;"
-            />
-            <button type="button" class="admin-btn secondary" onclick="sendPasswordReset()">Enviar email</button>
-          </div>
-        </div>
+      <a href="impostor.html" class="game-card" style="--gc: var(--c-impostor);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="currentColor">
+          <path d="M24 6c-5 0-8 4-8 9 0 3 1 5 2 6-6 2-10 8-10 15v6h32v-6c0-7-4-13-10-15 1-1 2-3 2-6 0-5-3-9-8-9z"/>
+        </svg>
+        <div class="game-name">Impostor</div>
+        <div class="game-desc">Mentiras, engaños y deducción</div>
+      </a>
+
+      <a href="quiensoy.html" class="game-card" style="--gc: var(--c-quiensoy);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+          <rect x="10" y="6" width="28" height="36" rx="4"/>
+          <path d="M19 18c0-3.3 2.2-5.5 5-5.5s5 2.2 5 5.5c0 3-2 4-4 6-1 1-1 2-1 3.2"/>
+          <circle cx="24" cy="33.5" r="1.6" fill="currentColor" stroke="none"/>
+        </svg>
+        <div class="game-name">¿Quién Soy?</div>
+        <div class="game-desc">Descubrí tu personaje con preguntas</div>
+      </a>
+
+      <a href="ruleta.html" class="game-card" style="--gc: var(--c-ruleta);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="24" cy="24" r="17"/>
+          <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+          <line x1="24" y1="7" x2="24" y2="41"/>
+          <line x1="7" y1="24" x2="41" y2="24"/>
+          <line x1="12.4" y1="12.4" x2="35.6" y2="35.6"/>
+          <line x1="35.6" y1="12.4" x2="12.4" y2="35.6"/>
+        </svg>
+        <div class="game-name">Ruleta</div>
+        <div class="game-desc">Girá, apostá y que la suerte te acompañe</div>
+      </a>
+
+      <a href="tests.html" class="game-card" style="--gc: var(--c-tests);">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M19 6h10"/>
+          <path d="M21 6v11l-9.5 17.5A4 4 0 0 0 15 40h18a4 4 0 0 0 3.5-5.5L27 17V6"/>
+          <line x1="16.5" y1="29" x2="31.5" y2="29"/>
+        </svg>
+        <div class="game-name">Tests</div>
+        <div class="game-desc">Desafíos para demostrar cuánto sabés</div>
+      </a>
+
+      <div class="game-card" style="--gc: var(--c-millon); cursor: default;">
+        <svg class="game-icon" viewBox="0 0 48 48" fill="currentColor">
+          <path d="M8 34l-3-16 9 7 10-13 10 13 9-7-3 16z"/><rect x="8" y="34" width="32" height="5" rx="1"/>
+        </svg>
+        <div class="game-name">El Millonario</div>
+        <div class="game-desc">Encontrá al millonario entre todos</div>
+        <span class="game-badge">Próximamente</span>
       </div>
-    </section>
 
-    <!-- SECCIÓN: SESIÓN -->
-    <section class="admin-section alt" id="section-sesion">
-      <div class="admin-section-inner">
-        <h2 class="admin-section-title">Sesión activa</h2>
-
-        <!-- CONTROL DE JUEGO ACTIVO -->
-        <div class="admin-card" style="margin-bottom:20px;">
-          <div class="admin-card-label">Juego activo</div>
-          <div class="games-toggle-grid">
-            <button type="button" class="game-toggle" data-game="none" onclick="setActiveGame('none')">
-              <span>🚫</span> Ninguno
-            </button>
-            <button type="button" class="game-toggle" data-game="taboo" onclick="setActiveGame('taboo')">
-              <span>🃏</span> Taboo
-            </button>
-            <button type="button" class="game-toggle" data-game="wordle" onclick="setActiveGame('wordle')">
-              <span>🔤</span> Wordle
-            </button>
-            <button type="button" class="game-toggle" data-game="impostor" onclick="setActiveGame('impostor')">
-              <span>🕵️</span> Impostor
-            </button>
-            <button type="button" class="game-toggle" data-game="quiensoy" onclick="setActiveGame('quiensoy')">
-              <span>🪪</span> ¿Quién Soy?
-            </button>
-            <button type="button" class="game-toggle" data-game="millonario" onclick="setActiveGame('millonario')">
-              <span>💰</span> Millonario
-            </button>
-          </div>
-        </div>
-
-        <!-- USUARIOS EN SESIÓN (presence + equipos) -->
-        <div class="admin-card" id="card-sesion-usuarios">
-          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Usuarios en sesión</span>
-            <span id="online-count" style="font-size:11px;color:var(--crema-3);letter-spacing:1px;">0 online</span>
-          </div>
-          <div style="margin-bottom:10px;">
-            <input type="text" id="search-sesion" placeholder="🔍 Buscar jugador..."
-              oninput="window.renderSesionUsuarios()"
-              style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.15);border-radius:5px;padding:7px 10px;color:var(--crema);font-size:12px;outline:none;font-family:var(--font-body);" />
-          </div>
-          <div id="sesion-usuarios-list" style="margin-bottom:16px;">
-            <p style="font-size:13px;color:var(--crema-3);">Cargando...</p>
-          </div>
-
-          <!-- Editor de nombres de equipo -->
-          <div style="border-top:1px solid rgba(200,150,0,0.1);padding-top:14px;margin-top:4px;">
-            <div class="admin-card-label" style="margin-bottom:10px;">Nombres de equipo</div>
-            <div class="team-name-editor">
-              <div class="team-name-row">
-                <input type="text" class="team-emoji-input" id="input-emoji-rojo" maxlength="2" placeholder="🔴" />
-                <input type="text" class="team-name-input" id="input-name-rojo" maxlength="24" placeholder="Equipo Rojo" />
-              </div>
-              <div class="team-name-row">
-                <input type="text" class="team-emoji-input" id="input-emoji-azul" maxlength="2" placeholder="🔵" />
-                <input type="text" class="team-name-input" id="input-name-azul" maxlength="24" placeholder="Equipo Azul" />
-              </div>
-              <button type="button" class="admin-btn primary small" onclick="saveTeamNames()">Guardar nombres</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ════════════════════════════════════════
-         SECCIÓN MÚSICA
-    ════════════════════════════════════════ -->
-    <section class="admin-section" id="section-musica">
-      <div class="admin-section-inner">
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🎵 Música</h2>
-        </div>
-
-        <!-- Upload -->
-        <div class="admin-card" style="margin-bottom:16px;">
-          <div class="admin-card-label">Subir nuevo tema</div>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-
-            <div>
-              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Título del tema</label>
-              <input type="text" id="music-titulo" maxlength="80" placeholder="Ej: Bienvenidos al Burdel"
-                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
-            </div>
-
-            <div>
-              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Artista / Descripción (opcional)</label>
-              <input type="text" id="music-artista" maxlength="80" placeholder="Ej: Los Burdeleros"
-                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;" />
-            </div>
-
-            <div>
-              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Archivo MP3</label>
-              <input type="file" id="music-file" accept="audio/mpeg,audio/mp3,.mp3" style="display:none;" onchange="musicPreviewFile(this)" />
-              <button type="button" class="admin-btn secondary" onclick="document.getElementById('music-file').click()"
-                style="font-size:12px;padding:8px 14px;width:fit-content;">🎵 Elegir MP3</button>
-              <span id="music-file-name" style="font-size:11px;color:var(--crema-3);display:block;margin-top:4px;"></span>
-            </div>
-
-            <div>
-              <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Letra (opcional)</label>
-              <textarea id="music-letra" maxlength="5000" placeholder="Pegá la letra acá si querés mostrársela a los usuarios..."
-                style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.2);border-radius:5px;padding:8px 10px;color:var(--crema);font-size:13px;outline:none;resize:vertical;min-height:90px;font-family:var(--font-body);"></textarea>
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button type="button" class="admin-btn primary" id="music-upload-btn" onclick="musicUpload()">Subir tema</button>
-              <span id="music-upload-status" style="font-size:12px;color:var(--crema-3);"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Lista de temas -->
-        <div class="admin-card">
-          <div class="admin-card-label" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Temas subidos</span>
-            <a href="musica-admin.html" class="admin-btn secondary small" style="text-decoration:none;">🎵 Gestionar música</a>
-          </div>
-          <div id="music-list">
-            <p style="font-size:12px;color:var(--crema-3);">Cargando...</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <section class="admin-section" id="section-tablon">
-      <div class="admin-section-inner">
-        <h2 class="admin-section-title">Tablón</h2>
-        <div class="admin-card">
-          <div class="admin-card-label">Mensaje visible para todos</div>
-          <textarea class="admin-textarea" id="tablon-input" placeholder="Escribí el mensaje del tablón..." maxlength="300"></textarea>
-          <div class="admin-card-actions">
-            <span class="char-count" id="char-count">0 / 300</span>
-            <button type="button" class="admin-btn primary" onclick="saveTablon()">Publicar</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ════════════════════════════════════════
-         SECCIÓN NOTICIAS
-    ════════════════════════════════════════ -->
-    <section class="admin-section" id="section-noticias">
-      <div class="admin-section-inner">
-
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">📰 Noticias</h2>
-          <button type="button" class="admin-btn primary" onclick="abrirModalNoticia(null)">+ Nueva noticia</button>
-        </div>
-
-        <div id="admin-noticias-timeline" class="admin-noticias-timeline">
-          <div class="admin-noticias-empty">Cargando...</div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Modal noticias -->
-    <div class="noticia-modal-overlay" id="noticia-modal-overlay" style="display:none" onclick="onNoticiaOverlayClick(event)">
-      <div class="noticia-modal">
-        <div class="noticia-modal-header">
-          <h3 id="noticia-modal-titulo">Nueva noticia</h3>
-          <button type="button" class="noticia-modal-cerrar" onclick="cerrarModalNoticia()">✕</button>
-        </div>
-        <div class="noticia-modal-body">
-
-          <div>
-            <label class="noticia-form-label">Fecha de publicación</label>
-            <input type="date" id="n-fecha" class="noticia-form-input" onchange="onFechaChange()">
-          </div>
-
-          <!-- Miniatura del día (se muestra solo si el día no tiene una ya) -->
-          <div id="n-dia-wrap">
-            <label class="noticia-form-label">
-              Miniatura del día
-              <span id="n-dia-status" style="font-size:10px;opacity:.5;margin-left:6px;font-family:var(--font-body);letter-spacing:0;text-transform:none;"></span>
-            </label>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <label class="noticia-img-slot" id="n-dia-slot" title="Imagen que representa este día" style="width:90px;height:90px;">
-                <input type="file" accept="image/*" style="display:none" onchange="onDiaImgChange(event)">
-                <i style="font-style:normal;font-size:22px;">+</i>
-              </label>
-              <span style="font-size:11px;color:var(--crema-3);opacity:.55;line-height:1.5;">Aparece en el índice<br>de días de la página</span>
-            </div>
-          </div>
-
-          <div>
-            <label class="noticia-form-label">Título de la noticia</label>
-            <input type="text" id="n-titulo" class="noticia-form-input" placeholder="Ej: Nueva fecha de evento" maxlength="120">
-          </div>
-
-          <div>
-            <label class="noticia-form-label">Texto</label>
-            <textarea id="n-texto" class="noticia-form-textarea" placeholder="Escribí el contenido..."></textarea>
-          </div>
-
-          <div>
-            <label class="noticia-form-label">Imágenes de la nota (hasta 4)</label>
-            <div class="noticia-img-slots" id="n-img-slots"></div>
-            <div id="n-upload-status" style="font-size:11px;color:var(--crema-3);margin-top:6px;min-height:16px;"></div>
-          </div>
-
-          <div>
-            <label class="noticia-form-label">Visibilidad</label>
-            <div class="noticia-vis-toggle">
-              <label class="noticia-vis-switch">
-                <input type="checkbox" id="n-visible" checked>
-                <span class="noticia-vis-track"></span>
-              </label>
-              <span class="noticia-vis-label" id="n-visible-label">
-                <strong>Publicada</strong> — visible para todos los usuarios
-              </span>
-            </div>
-          </div>
-
-        </div>
-        <div class="noticia-modal-footer">
-          <button type="button" class="admin-btn secondary" onclick="cerrarModalNoticia()">Cancelar</button>
-          <button type="button" class="admin-btn primary" id="btn-guardar-noticia" onclick="guardarNoticia()">Publicar</button>
-        </div>
-      </div>
     </div>
+    <div class="section-cta"><a href="login.html?tab=register" class="hero-btn">¿Listo para la próxima partida?</a></div>
+  </div>
 
-    <!-- ════════════════════════════════════════
-         SECCIÓN GALERÍA
-    ════════════════════════════════════════ -->
-    <section class="admin-section" id="section-galeria">
-      <div class="admin-section-inner">
-
-        <div class="admin-section-header">
-          <h2 class="admin-section-title">🖼️ Galería</h2>
-          <button type="button" class="admin-btn primary" onclick="galeriaAbrirModalAlbum(null)">+ Nuevo álbum</button>
-        </div>
-
-        <!-- Lista de álbumes -->
-        <div id="galeria-albums-list">
-          <div class="admin-noticias-empty">Cargando...</div>
-        </div>
-
+  <div class="section alt">
+    <div class="section-inner datos-grid">
+      <div class="dato-card sabias">
+        <div class="dato-label">¿Sabías que?</div>
+        <div class="dato-texto" id="texto-sabias-que">Cargando...</div>
       </div>
-    </section>
-
-    <!-- Modal galería: crear/editar álbum + subir fotos -->
-    <div class="noticia-modal-overlay" id="galeria-modal-overlay" style="display:none" onclick="galeriaOnOverlayClick(event)">
-      <div class="noticia-modal" style="max-width:640px;">
-        <div class="noticia-modal-header">
-          <h3 id="galeria-modal-titulo">Nuevo álbum</h3>
-          <button type="button" class="noticia-modal-cerrar" onclick="galeriaCerrarModal()">✕</button>
-        </div>
-        <div class="noticia-modal-body">
-
-          <!-- Nombre del álbum -->
-          <div>
-            <label class="noticia-form-label">Nombre del álbum <span style="color:#f09090;">*</span></label>
-            <input type="text" id="gal-nombre" class="noticia-form-input" placeholder="Ej: Fiesta 2025, Noche de Juegos..." maxlength="80">
-            <div style="font-size:11px;color:var(--crema-3);margin-top:4px;line-height:1.5;">
-              Este nombre define la carpeta en Drive: <code style="color:var(--dorado);">Galeria/{nombre}</code>
-            </div>
-          </div>
-
-          <!-- Descripción opcional -->
-          <div>
-            <label class="noticia-form-label">Descripción <span style="font-weight:400;opacity:.5;">(opcional)</span></label>
-            <input type="text" id="gal-descripcion" class="noticia-form-input" placeholder="Ej: Fotos de la primera noche del evento" maxlength="200">
-          </div>
-
-          <!-- Miniatura del álbum -->
-          <div>
-            <label class="noticia-form-label">
-              Miniatura del álbum
-              <span style="font-size:10px;opacity:.5;margin-left:6px;font-family:var(--font-body);letter-spacing:0;text-transform:none;">Aparece en la galería principal</span>
-            </label>
-            <div style="display:flex;align-items:center;gap:14px;">
-              <label class="noticia-img-slot" id="gal-mini-slot" title="Imagen de portada del álbum" style="width:100px;height:100px;flex-shrink:0;">
-                <input type="file" accept="image/*" style="display:none" onchange="galeriaOnMiniChange(event)">
-                <i style="font-style:normal;font-size:24px;">+</i>
-              </label>
-              <span style="font-size:11px;color:var(--crema-3);line-height:1.6;">
-                Elegí la foto más representativa<br>del álbum como portada.<br>
-                <span style="opacity:.6;">Se comprime automáticamente a JPG.</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- Visibilidad -->
-          <div>
-            <label class="noticia-form-label">Visibilidad</label>
-            <div class="noticia-vis-toggle">
-              <label class="noticia-vis-switch">
-                <input type="checkbox" id="gal-visible" checked>
-                <span class="noticia-vis-track"></span>
-              </label>
-              <span class="noticia-vis-label" id="gal-visible-label">
-                <strong>Publicado</strong> — visible para todos los usuarios
-              </span>
-            </div>
-          </div>
-
-          <!-- Fotos del álbum (solo en modo edición) -->
-          <div id="gal-fotos-section" style="display:none;">
-            <label class="noticia-form-label" style="margin-bottom:10px;">
-              Fotos del álbum
-              <span id="gal-fotos-count" style="font-size:11px;font-weight:400;opacity:.5;margin-left:6px;font-family:var(--font-body);letter-spacing:0;text-transform:none;">0 fotos</span>
-            </label>
-
-            <!-- Zona de subida múltiple -->
-            <div id="gal-upload-zone" style="border:2px dashed rgba(200,150,0,0.2);border-radius:10px;padding:18px;margin-bottom:14px;text-align:center;cursor:pointer;transition:border-color .2s;"
-              onclick="document.getElementById('gal-files-input').click()"
-              ondragover="event.preventDefault();this.style.borderColor='rgba(200,150,0,0.5)'"
-              ondragleave="this.style.borderColor='rgba(200,150,0,0.2)'"
-              ondrop="galeriaOnDrop(event)">
-              <input type="file" id="gal-files-input" accept="image/*" multiple style="display:none" onchange="galeriaOnFilesChange(event)">
-              <span style="font-size:28px;display:block;margin-bottom:6px;opacity:.5;">📷</span>
-              <span style="font-size:12px;color:var(--crema-3);">Tocá para elegir fotos o arrastrá acá</span><br>
-              <span style="font-size:11px;color:var(--crema-3);opacity:.6;">Podés subir varias a la vez · Se comprimen a JPG</span>
-            </div>
-
-            <!-- Cola de subida pendiente -->
-            <div id="gal-queue" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-
-            <!-- Grid de fotos ya subidas -->
-            <div id="gal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;"></div>
-
-            <div id="gal-upload-status" style="font-size:12px;color:var(--crema-3);margin-top:8px;min-height:16px;"></div>
-          </div>
-
-        </div>
-        <div class="noticia-modal-footer">
-          <button type="button" class="admin-btn secondary" onclick="galeriaCerrarModal()">Cancelar</button>
-          <button type="button" class="admin-btn primary" id="btn-guardar-album" onclick="galeriaGuardarAlbum()">Crear álbum</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL EDITAR USUARIO -->
-  <div id="edit-user-modal" class="modal-overlay hidden">
-    <div class="modal-box" style="max-width:360px;width:100%;">
-      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--crema-3);margin-bottom:16px;">Editar usuario</div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-        <div>
-          <label style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--crema-3);display:block;margin-bottom:5px;">Nick (admite emojis)</label>
-          <input type="text" id="edit-nick-input" maxlength="24"
-            style="width:100%;box-sizing:border-box;background:var(--negro-3);border:1px solid rgba(200,150,0,0.25);border-radius:5px;padding:9px 12px;color:var(--crema);font-size:15px;outline:none;font-family:var(--font-body);" />
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button type="button" class="admin-btn secondary" style="flex:1;" onclick="closeEditUser()">Cancelar</button>
-        <button type="button" class="admin-btn primary" style="flex:1;" onclick="saveEditUser()">Guardar</button>
+      <div class="dato-card frase">
+        <svg class="suit" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-3 4-8 6-8 11a8 8 0 0 0 16 0c0-5-5-7-8-11z"/></svg>
+        <div class="dato-label">La frase de hoy</div>
+        <div class="dato-texto" id="texto-frase-hoy">Cargando...</div>
+        <div class="dato-footer">Volvé mañana para descubrir otra.</div>
       </div>
     </div>
   </div>
 
-    </div><!-- /.admin-content -->
-</main>
+  <div class="section">
+    <span class="section-label">Acá pasan cosas</span>
+    <div class="collage" id="collage-landing">
+      <p class="collage-empty" id="collage-empty">Fotos de la última noche, muy pronto.</p>
+    </div>
+    <div class="section-cta"><a href="login.html?tab=register" class="hero-btn">Ver más al entrar</a></div>
+  </div>
 
-  <!-- NAV BOTTOM -->
+  <div class="lightbox-overlay" id="lightbox-overlay">
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Cerrar">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  </div>
+
+  <div class="cierre">
+    <div class="door"></div>
+    <div class="cierre-title">¿TODAVÍA ESTÁS AFUERA?</div>
+    <div class="cierre-script">La noche empieza cuando entrás.</div>
+    <a href="login.html?tab=register" class="hero-btn" style="animation:none;">Entrar al Burdel</a>
+  </div>
+
+  <div class="redes">
+    <div class="redes-label">Seguinos</div>
+    <div class="redes-row">
+      <a href="https://instagram.com/elburdel_" target="_blank" rel="noopener" class="red-item">
+        <div class="red-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></div>
+        Instagram
+      </a>
+      <a href="https://discord.gg/elburdel" target="_blank" rel="noopener" class="red-item">
+        <div class="red-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="6"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+        Discord
+      </a>
+    </div>
+    <div class="redes-tag">La noche también sigue afuera.</div>
+  </div>
+
+  <!-- NAV BOTTOM (igual al resto del sitio; pendiente componentizar) -->
   <footer class="nav-bottom">
     <div class="nav-bottom-inner">
       <div class="nav-bottom-links">
-        <a href="index.html?ver=1" class="nav-bottom-link">Inicio</a>
+        <a href="#juegos" class="nav-bottom-link">Juegos</a>
+        <a href="login.html" class="nav-bottom-link">Ingresar</a>
+      </div>
+      <div class="nav-bottom-divider"></div>
+      <div class="nav-bottom-links">
         <a href="terminos.html" class="nav-bottom-link">Términos</a>
         <a href="privacidad.html" class="nav-bottom-link">Privacidad</a>
       </div>
-      <p class="nav-bottom-copy">© 2025 El Burdel — Panel de administración</p>
+      <p class="nav-bottom-copy">© 2026 El Burdel — Todos los derechos reservados</p>
     </div>
   </footer>
-
-  <!-- MODAL CONFIRMAR ACCIÓN -->
-  <div class="modal-overlay hidden" id="modal-overlay">
-    <div class="modal-box">
-      <p class="modal-text" id="modal-text"></p>
-      <div class="modal-actions">
-        <button type="button" class="admin-btn secondary" onclick="closeModal()">Cancelar</button>
-        <button type="button" class="admin-btn primary" id="modal-confirm">Confirmar</button>
-      </div>
-    </div>
-  </div>
-
-
+  <script type="module" src="js/site-credit.js"></script>
 
   <script type="module">
-    import { db, auth } from "./js/firebase-init.js";
-    import { onSession, getUserData, logoutUser, recoverPassword } from "./js/auth.js";
-    import { uploadTrack as musicUploadTrack } from "./games/musica.js";
-    import {
-      uploadNoticiaImg, deleteNoticiaImg,
-      saveNoticia, deleteNoticia, toggleNoticiaVisible, getNoticias,
-      saveDia, getDias
-    } from "./games/noticias.js";
-    import {
-      uploadGaleriaImg, deleteGaleriaImg,
-      saveAlbum, deleteAlbum, toggleAlbumVisible,
-      saveFoto, deleteFoto, setFotoMiniatura,
-      getAlbums, getFotosDeAlbum, onAlbums, onFotos
-    } from "./games/galeria.js";
-    import {
-      ref, onValue, update, get, set, remove
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";    let allUsers = {};
-    let currentFilter = "pending";
-    let activeGame = "none";
-    let teamNames = { rojo: { emoji: "🔴", name: "Equipo Rojo" }, azul: { emoji: "🔵", name: "Equipo Azul" } };
+    import { onSession, redirectByRole } from "./js/auth.js";
+    import { getFraseDelDiaOffset } from "./games/frases.js";
+    import { getCuriosidadDelDia } from "./games/curiosidades.js";
+    import { getLandingFotos } from "./games/landing-galeria.js";
 
-    function teamLabel(color) {
-      const t = teamNames[color];
-      return `${t.emoji} ${t.name}`;
+    // ── Contenido estático del día (sin Firebase) ──
+    document.getElementById("texto-sabias-que").textContent = getCuriosidadDelDia();
+    document.getElementById("texto-frase-hoy").textContent = getFraseDelDiaOffset(180);
+
+    // ── "Acá pasan cosas": fotos cargadas desde admin (Firebase + Drive) ──
+    const lightboxOverlay = document.getElementById("lightbox-overlay");
+    const lightboxImg     = document.getElementById("lightbox-img");
+
+    function abrirLightbox(url) {
+      lightboxImg.src = url;
+      lightboxOverlay.classList.add("open");
     }
+    function cerrarLightbox() {
+      lightboxOverlay.classList.remove("open");
+      lightboxImg.src = "";
+    }
+    document.getElementById("lightbox-close").addEventListener("click", cerrarLightbox);
+    lightboxOverlay.addEventListener("click", (e) => {
+      if (e.target === lightboxOverlay) cerrarLightbox();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") cerrarLightbox();
+    });
 
-    // ── PROTECCIÓN DE RUTA ──
-    let adminUid = null;
+    getLandingFotos().then(fotos => {
+      if (!fotos.length) return; // se queda el mensaje "Fotos de la última noche, muy pronto."
+      const cont = document.getElementById("collage-landing");
+      cont.innerHTML = "";
+      fotos.forEach(foto => {
+        const div = document.createElement("div");
+        div.className = "collage-photo";
+        div.innerHTML = `<img src="${foto.url}" alt="" loading="lazy" />`;
+        div.addEventListener("click", () => abrirLightbox(foto.url));
+        cont.appendChild(div);
+      });
+    }).catch(() => {
+      // Si falla la lectura (ej. reglas de Firebase), dejamos el mensaje por defecto.
+    });
+
+    // ── Sesión: si hay usuario logueado, redirige ANTES de mostrar nada,
+    //    salvo que venga con ?ver=1 (visita explícita a la landing, ej.
+    //    desde el link "Inicio" del pie de página de dashboard/juegos).
+    //    Reutiliza redirectByRole (misma lógica que login.html), así que
+    //    pending/paused/admin/activo se comportan exactamente igual que
+    //    en el resto del sitio. ──
+    const verLandingAunLogueado = new URLSearchParams(location.search).get("ver") === "1";
 
     onSession(async (user) => {
-      if (!user) { window.location.href = "/login.html"; return; }
-      const data = await getUserData(user.uid);
-      if (!data || data.role !== "admin") { window.location.href = "/login.html"; return; }
-      adminUid = user.uid;
-      document.getElementById("admin-nick").textContent = data.nick;
-      initAdmin();
+      if (user && !verLandingAunLogueado) {
+        await redirectByRole(user);
+        return; // nunca se llega a mostrar el telón ni la landing
+      }
+      if (user) {
+        // Logueado, pero visitando la landing a propósito: los CTA de
+        // "Entrar" apuntan al dashboard en vez de a login.html.
+        document.getElementById("nav-cta").textContent = "Mi dashboard";
+        document.getElementById("nav-cta").href = "/dashboard.html";
+        document.getElementById("hero-cta").textContent = "Ir a mi dashboard";
+        document.getElementById("hero-cta").href = "/dashboard.html";
+        document.getElementById("hero-ingresa").style.display = "none";
+      }
+      // Sin sesión (o logueado viendo la landing a propósito): mostramos
+      // la landing (el telón ya está animando por CSS).
+      document.body.classList.remove("checking-session");
     });
-
-    // ── INIT ──
-    function initAdmin() {
-      listenUsers();
-      listenSession();
-      listenTablon();
-      initTablonCounter();
-      listenTeamNames();
-      listenPresence();
-      initMusicAdmin();
-      initGaleria();
-    }
-
-    // ── NOMBRES DE EQUIPOS ──
-    function listenTeamNames() {
-      onValue(ref(db, "session/teams"), (snap) => {
-        const val = snap.val();
-        if (val) {
-          if (val.rojo) teamNames.rojo = { emoji: val.rojo.emoji || "🔴", name: val.rojo.name || "Equipo Rojo" };
-          if (val.azul) teamNames.azul = { emoji: val.azul.emoji || "🔵", name: val.azul.name || "Equipo Azul" };
-        }
-        document.getElementById("input-emoji-rojo").value = teamNames.rojo.emoji;
-        document.getElementById("input-name-rojo").value = teamNames.rojo.name;
-        document.getElementById("input-emoji-azul").value = teamNames.azul.emoji;
-        document.getElementById("input-name-azul").value = teamNames.azul.name;
-        renderEquipos();
-      });
-    }
-
-    window.saveTeamNames = async () => {
-      const emojiRojo = document.getElementById("input-emoji-rojo").value.trim() || "🔴";
-      const nameRojo  = document.getElementById("input-name-rojo").value.trim()  || "Equipo Rojo";
-      const emojiAzul = document.getElementById("input-emoji-azul").value.trim() || "🔵";
-      const nameAzul  = document.getElementById("input-name-azul").value.trim()  || "Equipo Azul";
-      await update(ref(db, "session/teams"), {
-        rojo: { emoji: emojiRojo, name: nameRojo },
-        azul: { emoji: emojiAzul, name: nameAzul }
-      });
-      showToast("Nombres de equipo guardados");
-    };
-
-    // ── USUARIOS EN TIEMPO REAL ──
-    function listenUsers() {
-      onValue(ref(db, "users"), (snap) => {
-        allUsers = snap.val() || {};
-        renderUsers(currentFilter);
-        updatePendingBadge();
-        renderEquipos();
-        renderSesionUsuarios();
-      });
-    }
-
-    function updatePendingBadge() {
-      const pending = Object.values(allUsers).filter(u => u.status === "pending").length;
-      document.getElementById("badge-pending").textContent = `${pending} pendiente${pending !== 1 ? "s" : ""}`;
-      document.getElementById("badge-pending").classList.toggle("has-pending", pending > 0);
-    }
-
-    window.filterUsers = (filter) => {
-      currentFilter = filter;
-      document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
-      const activeBtn = document.querySelector(`.admin-tab[onclick*="'${filter}'"]`);
-      if (activeBtn) activeBtn.classList.add("active");
-      renderUsers(filter);
-    };
-
-    function renderUsers(filter) {
-      const list = document.getElementById("users-list");
-      const query = (document.getElementById("search-usuarios")?.value || "").toLowerCase().trim();
-      let users = Object.entries(allUsers);
-      if (filter !== "all") users = users.filter(([, u]) => u.status === filter);
-      if (query) users = users.filter(([, u]) =>
-        (u.nick || "").toLowerCase().includes(query) ||
-        (u.email || "").toLowerCase().includes(query)
-      );
-      users.sort(([, a], [, b]) => (a.nick || "").localeCompare(b.nick || "", "es", { sensitivity: "base" }));
-      if (users.length === 0) {
-        list.innerHTML = `<div class="users-empty">${query ? "Sin resultados." : "No hay usuarios en esta categoría."}</div>`;
-        return;
-      }
-      list.innerHTML = users.map(([uid, u]) => `
-        <div class="user-row" data-uid="${uid}">
-          <div class="user-avatar">${u.nick ? u.nick.charAt(0) : "?"}</div>
-          <div class="user-info">
-            <span class="user-nick">${u.nick || "—"}</span>
-            <span class="user-email">${u.email || "—"}</span>
-          </div>
-          <div class="user-status status-${u.status}">${statusLabel(u.status)}</div>
-          <div class="user-actions">
-            ${u.status === "pending" ? `<button type="button" class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Aprobar</button>` : ""}
-            ${u.status === "active" ? `<button type="button" class="user-btn pause" onclick="confirmAction('${uid}', 'pause')">Pausar</button>` : ""}
-            ${u.status === "paused" ? `<button type="button" class="user-btn approve" onclick="confirmAction('${uid}', 'approve')">Reactivar</button>` : ""}
-            <button type="button" class="user-btn delete" onclick="confirmAction('${uid}', 'delete')">Eliminar</button>
-            <button type="button" class="user-btn" onclick="openEditUser('${uid}')" style="background:rgba(200,150,0,0.1);border:1px solid rgba(200,150,0,0.25);color:var(--dorado);">✏️</button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function statusLabel(s) {
-      return { pending: "Pendiente", active: "Activo", paused: "Pausado" }[s] || s;
-    }
-
-    // ── EQUIPOS ──
-    // presence data: { uid: { nick, team, connectedAt } }
-    let presenceData = {};
-
-    function listenPresence() {
-      onValue(ref(db, "presence"), (snap) => {
-        presenceData = snap.val() || {};
-        renderSesionUsuarios();
-      });
-    }
-
-    function renderEquipos() {
-      // kept for compatibility — calls the unified render
-      renderSesionUsuarios();
-    }
-
-    function renderSesionUsuarios() {
-      const list = document.getElementById("sesion-usuarios-list");
-      if (!list) return;
-      const query = (document.getElementById("search-sesion")?.value || "").toLowerCase().trim();
-      let activos = Object.entries(allUsers).filter(([, u]) => u.status === "active" && u.role !== "admin");
-      if (activos.length === 0) {
-        list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">No hay usuarios activos.</p>`;
-        document.getElementById("online-count").textContent = "0 online";
-        return;
-      }
-      const onlineUids = new Set(Object.keys(presenceData));
-      const onlineCount = activos.filter(([uid]) => onlineUids.has(uid)).length;
-      document.getElementById("online-count").textContent = `${onlineCount} online`;
-      if (query) activos = activos.filter(([, u]) => (u.nick || "").toLowerCase().includes(query));
-      const sorted = [...activos].sort(([uidA, uA], [uidB, uB]) => {
-        const aOnline = onlineUids.has(uidA) ? 0 : 1;
-        const bOnline = onlineUids.has(uidB) ? 0 : 1;
-        if (aOnline !== bOnline) return aOnline - bOnline;
-        return (uA.nick || "").localeCompare(uB.nick || "", "es", { sensitivity: "base" });
-      });
-      if (!sorted.length) { list.innerHTML = `<p style="font-size:13px;color:var(--crema-3);">Sin resultados.</p>`; return; }
-      list.innerHTML = sorted.map(([uid, u]) => {
-        const isOnline = onlineUids.has(uid);
-        const team = u.team || "sin";
-        const teamEmoji = team === "rojo" ? teamNames.rojo.emoji : team === "azul" ? teamNames.azul.emoji : "⚪";
-        const teamName  = team === "rojo" ? teamLabel("rojo")  : team === "azul" ? teamLabel("azul")  : "Sin equipo";
-        return `
-          <div class="sesion-user-row" data-uid="${uid}">
-            <span class="sesion-presence-dot ${isOnline ? "online" : "offline"}" title="${isOnline ? "Online" : "Offline"}"></span>
-            <span class="sesion-nick">${u.nick}</span>
-            <span class="sesion-team-badge" title="${teamName}">${teamEmoji}</span>
-            <div class="sesion-team-btns">
-              ${team !== "rojo" ? `<button type="button" class="equipo-btn rojo-btn" onclick="setTeam('${uid}', 'rojo')" title="${teamLabel('rojo')}">${teamNames.rojo.emoji}</button>` : ""}
-              ${team !== "azul" ? `<button type="button" class="equipo-btn azul-btn" onclick="setTeam('${uid}', 'azul')" title="${teamLabel('azul')}">${teamNames.azul.emoji}</button>` : ""}
-              ${team !== "sin"  ? `<button type="button" class="equipo-btn sin-btn"  onclick="setTeam('${uid}', null)">⚪</button>` : ""}
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    window.setTeam = async (uid, team) => {
-      await update(ref(db, `users/${uid}`), { team });
-    };
-
-    // ── SESIÓN / JUEGO ACTIVO ──
-    function listenSession() {
-      const GAME_LABELS = { none: "🚫 Ninguno", taboo: "🃏 Taboo", wordle: "🔤 Wordle", impostor: "🕵️ Impostor", quiensoy: "🪪 ¿Quién Soy?", millonario: "💰 Millonario" };
-      onValue(ref(db, "session/activeGame"), (snap) => {
-        activeGame = snap.val() || "none";
-        document.querySelectorAll(".game-toggle").forEach(btn => {
-          btn.classList.toggle("active", btn.dataset.game === activeGame);
-        });
-        const display = document.getElementById("active-game-display");
-        if (display) display.textContent = GAME_LABELS[activeGame] || activeGame;
-      });
-    }
-
-    // Mapa: juego activo → página de administración correspondiente.
-    // Al activar un juego, saltamos directo a su pantalla de control.
-    const GAME_TO_PAGE = {
-      taboo:      "admin-taboo.html",
-      wordle:     "admin-wordle.html",
-      impostor:   "admin-impostor.html",
-      quiensoy:   "admin-quiensoy-juego.html",
-      millonario: "admin-millon.html"
-    };
-
-    window.setActiveGame = async (game) => {
-      await set(ref(db, "session/activeGame"), game);
-      const page = GAME_TO_PAGE[game];
-      if (page) window.location.href = page;
-    };
-
-    // ── TABLÓN ──
-    function listenTablon() {
-      onValue(ref(db, "session/broadcast"), (snap) => {
-        const msg = snap.val() || "";
-        document.getElementById("tablon-input").value = msg;
-        document.getElementById("char-count").textContent = `${msg.length} / 300`;
-      });
-    }
-
-    function initTablonCounter() {
-      document.getElementById("tablon-input").addEventListener("input", (e) => {
-        document.getElementById("char-count").textContent = `${e.target.value.length} / 300`;
-      });
-    }
-
-    window.saveTablon = async () => {
-      const msg = document.getElementById("tablon-input").value.trim();
-      await set(ref(db, "session/broadcast"), msg);
-      showToast("Tablón actualizado");
-    };
-
-    // ── ACCIONES USUARIO ──
-    window.confirmAction = (uid, action) => {
-      const user = allUsers[uid];
-      const labels = {
-        approve: `¿Aprobás a ${user.nick}?`,
-        pause:   `¿Pausás a ${user.nick}?`,
-        delete:  `¿Eliminás a ${user.nick}? Esta acción no se puede deshacer.`
-      };
-      showModal(labels[action], async () => {
-        if (action === "approve") await update(ref(db, `users/${uid}`), { status: "active" });
-        if (action === "pause")   await update(ref(db, `users/${uid}`), { status: "paused" });
-        if (action === "delete") {
-          const nick = (user.nick || "").toLowerCase();
-          await remove(ref(db, `users/${uid}`));
-          if (nick) await remove(ref(db, `nicks/${nick}`));
-          showToast(`${user.nick} eliminado`);
-        }
-        closeModal();
-      });
-    };
-
-    // ── RECUPERAR CONTRASEÑA ──
-    window.sendPasswordReset = async () => {
-      const email = document.getElementById("input-reset-email").value.trim();
-      if (!email) { showToast("Ingresá el email del usuario."); return; }
-      try {
-        await recoverPassword(email);
-        showToast(`Email de recuperación enviado a ${email}`);
-        document.getElementById("input-reset-email").value = "";
-      } catch (e) {
-        const msg = e.code === "auth/user-not-found"
-          ? "No existe una cuenta con ese email."
-          : e.code === "auth/invalid-email"
-          ? "Email inválido."
-          : "No se pudo enviar el email.";
-        showToast(msg);
-      }
-    };
-
-    // ── MODAL ──
-    function showModal(text, onConfirm) {
-      document.getElementById("modal-text").textContent = text;
-      document.getElementById("modal-overlay").classList.remove("hidden");
-      document.getElementById("modal-confirm").onclick = onConfirm;
-    }
-
-    window.closeModal = () => {
-      document.getElementById("modal-overlay").classList.add("hidden");
-    };
-
-    // ── TOAST ──
-    function showToast(msg) {
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.classList.add("show"), 10);
-      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
-    }
-
-
-    // ══════════════════════════════════════
-    // ── NAVEGACIÓN POR SECCIONES ──
-    // ══════════════════════════════════════
-
-    // Únicas secciones que siguen viviendo dentro de admin.html — el resto
-    // (juegos y Horóscopo) son páginas propias, linkeadas directo desde el sidebar.
-    const SECTION_IDS = ["usuarios", "sesion", "musica", "tablon", "noticias", "galeria"];
-
-    function showSection(sectionId) {
-      SECTION_IDS.forEach(id => {
-        const el = document.getElementById(`section-${id}`);
-        if (el) el.style.display = id === sectionId ? "block" : "none";
-      });
-      document.querySelectorAll(".active-section").forEach(link => {
-        link.classList.toggle("active", link.dataset.section === sectionId);
-      });
-      if (sectionId === "noticias") cargarAdminNoticias();
-      if (sectionId === "galeria")  cargarAdminGaleria();
-    }
-    window.showSection = showSection;
-    window.renderSesionUsuarios = () => renderSesionUsuarios();
-    window.renderUsers = () => renderUsers(currentFilter);
-    window.handleLogout = () => logoutUser();
-
-    showSection("usuarios");
-
-    document.querySelectorAll(".active-section").forEach(link => {
-      link.addEventListener("click", () => showSection(link.dataset.section));
-    });
-
-    // Comprimir imagen: canvas → JPEG base64
-    function compressImage(file, maxSize, quality) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            let w = img.width, h = img.height;
-            if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
-            else       { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
-            canvas.width = w; canvas.height = h;
-            const ctx = canvas.getContext("2d");
-            // Fondo blanco para imágenes con transparencia
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, w, h);
-            ctx.drawImage(img, 0, 0, w, h);
-            resolve(canvas.toDataURL("image/jpeg", quality));
-          };
-          img.onerror = reject;
-          img.src = e.target.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // ── EDITAR NICK ──
-    let editingUid = null;
-
-    window.openEditUser = (uid) => {
-      editingUid = uid;
-      const u = allUsers[uid];
-      if (!u) return;
-      document.getElementById("edit-nick-input").value = u.nick || "";
-      document.getElementById("edit-user-modal").classList.remove("hidden");
-    };
-
-    window.closeEditUser = () => {
-      document.getElementById("edit-user-modal").classList.add("hidden");
-      editingUid = null;
-    };
-
-    window.saveEditUser = async () => {
-      if (!editingUid) return;
-      const newNick = document.getElementById("edit-nick-input").value.trim();
-      if (!newNick) { showToast("El nick no puede estar vacío."); return; }
-      if (newNick.length < 2) { showToast("El nick debe tener al menos 2 caracteres."); return; }
-
-      try {
-        // Actualizar nick en users
-        await update(ref(db), { [`users/${editingUid}/nick`]: newNick });
-        showToast(`✅ Nick actualizado: ${newNick}`);
-        closeEditUser();
-      } catch(e) {
-        showToast("Error al guardar. Intentá de nuevo.");
-      }
-    };
-
-    // ── STATUS DOT ──
-    document.getElementById("status-dot").classList.add("online");
-
-    // ════════════════════════════════════════════════════════
-    //  MÚSICA — Admin Logic
-    // ════════════════════════════════════════════════════════
-    function initMusicAdmin() {
-      const list = document.getElementById("music-list");
-      if (list) list.innerHTML = `<p style="font-size:12px;color:var(--crema-3);">Usá el botón "Gestionar música" para ver y eliminar temas.</p>`;
-    }
-
-    window.musicPreviewFile = function(input) {
-      const file = input.files[0];
-      const nameEl = document.getElementById("music-file-name");
-      if (!file) { if (nameEl) nameEl.textContent = ""; return; }
-      if (nameEl) nameEl.textContent = file.name;
-    };
-
-    window.musicUpload = async function() {
-      const titulo  = (document.getElementById("music-titulo").value  || "").trim();
-      const artista = (document.getElementById("music-artista").value || "").trim();
-      const letra   = (document.getElementById("music-letra").value   || "").trim();
-      const file    = document.getElementById("music-file").files[0];
-      const status  = document.getElementById("music-upload-status");
-      const btn     = document.getElementById("music-upload-btn");
-
-      if (!adminUid) { showToast("Sesión no cargada, esperá un momento."); return; }
-      if (!titulo)   { showToast("Poné el título del tema.");              return; }
-      if (!file)     { showToast("Seleccioná un archivo MP3.");            return; }
-      if (file.size > 30 * 1024 * 1024) { showToast("El MP3 no puede superar 30 MB."); return; }
-
-      btn.disabled = true;
-      status.textContent = "Leyendo archivo...";
-
-      try {
-        const b64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload  = (e) => resolve(e.target.result.split(",")[1]);
-          reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
-          reader.readAsDataURL(file);
-        });
-        status.textContent = "Subiendo...";
-        await musicUploadTrack(adminUid, b64, titulo, artista, letra);
-
-        showToast("✅ Tema subido: " + titulo);
-        document.getElementById("music-titulo").value  = "";
-        document.getElementById("music-artista").value = "";
-        document.getElementById("music-letra").value   = "";
-        document.getElementById("music-file").value    = "";
-        document.getElementById("music-file-name").textContent = "";
-        status.textContent = "";
-      } catch(e) {
-        showToast("Error: " + e.message);
-        status.textContent = "";
-      }
-      btn.disabled = false;
-    };
-
-    // ════════════════════════════════════════════
-    //  NOTICIAS — Admin
-    // ════════════════════════════════════════════
-
-    let _nEditId   = null;
-    let _nImgs     = [null,null,null,null]; // {url,fileId,b64,file}|null
-    let _nDiaImg   = null;  // {b64,file,url,fileId} | null — miniatura del día
-    let _diasCache = {};    // cache de días ya guardados
-
-    // ── Toggle label visible ──────────────────
-    function actualizarLabelVis() {
-      const chk   = document.getElementById("n-visible");
-      const label = document.getElementById("n-visible-label");
-      if (!chk||!label) return;
-      label.innerHTML = chk.checked
-        ? `<strong>Publicada</strong> — visible para todos`
-        : `<strong>Oculta</strong> — solo vos la ves en el admin`;
-    }
-
-    // ── Miniatura del día ─────────────────────
-    async function onFechaChange() {
-      const fecha  = document.getElementById("n-fecha").value;
-      const status = document.getElementById("n-dia-status");
-      if (!fecha) return;
-      // consultar si ya tiene miniatura
-      const dias = await getDias();
-      _diasCache = dias;
-      const dia  = dias[fecha];
-      if (dia?.miniatura) {
-        status.textContent = "✓ Este día ya tiene miniatura";
-        renderDiaSlot(dia.miniatura);
-      } else {
-        status.textContent = "Sin miniatura aún";
-        renderDiaSlot(null);
-      }
-    }
-
-    function renderDiaSlot(urlOb64) {
-      const slot = document.getElementById("n-dia-slot");
-      if (!slot) return;
-      const input = slot.querySelector("input");
-      slot.innerHTML = "";
-      slot.appendChild(input);
-      if (urlOb64) {
-        const img = document.createElement("img");
-        img.src = urlOb64;
-        img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;";
-        slot.appendChild(img);
-        const del = document.createElement("button");
-        del.type = "button";
-        del.className = "noticia-slot-del";
-        del.textContent = "✕";
-        del.onclick = e => { e.preventDefault(); e.stopPropagation(); _nDiaImg=null; renderDiaSlot(null); };
-        slot.appendChild(del);
-      } else {
-        const ico = document.createElement("i");
-        ico.style.cssText = "font-style:normal;font-size:22px;";
-        ico.textContent = "+";
-        slot.appendChild(ico);
-      }
-    }
-
-    async function onDiaImgChange(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const b64 = await new Promise(res => {
-        const r = new FileReader();
-        r.onload = ev => res(ev.target.result);
-        r.readAsDataURL(file);
-      });
-      _nDiaImg = { b64, file, url: null, fileId: null };
-      renderDiaSlot(b64);
-      e.target.value = "";
-    }
-    window.onDiaImgChange  = onDiaImgChange;
-    window.onFechaChange   = onFechaChange;
-
-    // ── Slots imágenes de la nota ─────────────
-    function renderNSlots() {
-      const cont = document.getElementById("n-img-slots");
-      if (!cont) return;
-      cont.innerHTML = "";
-      for (let i=0; i<4; i++) {
-        const img = _nImgs[i];
-        if (i>0 && !_nImgs[i-1]) break;
-        const slot = document.createElement("label");
-        slot.className = "noticia-img-slot";
-        if (img) {
-          const el = document.createElement("img");
-          el.src = img.url || img.b64;
-          el.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;";
-          slot.appendChild(el);
-          const del = document.createElement("button");
-          del.className = "noticia-slot-del";
-          del.type = "button";
-          del.textContent = "✕";
-          del.onclick = e => { e.preventDefault(); e.stopPropagation(); quitarNSlot(i); };
-          slot.appendChild(del);
-        } else {
-          const ico = document.createElement("i");
-          ico.style.cssText = "font-style:normal;font-size:20px;";
-          ico.textContent = "+";
-          slot.appendChild(ico);
-          const input = document.createElement("input");
-          input.type = "file"; input.accept = "image/*"; input.style.display = "none";
-          input.onchange = e => onNSlotFile(e, i);
-          slot.appendChild(input);
-        }
-        cont.appendChild(slot);
-      }
-    }
-
-    async function onNSlotFile(e, idx) {
-      const file = e.target.files[0]; if (!file) return;
-      const b64  = await new Promise(res => {
-        const r = new FileReader(); r.onload = ev => res(ev.target.result); r.readAsDataURL(file);
-      });
-      _nImgs[idx] = { b64, file, url:null, fileId:null };
-      renderNSlots(); e.target.value = "";
-    }
-
-    function quitarNSlot(idx) {
-      for (let i=idx; i<3; i++) _nImgs[i] = _nImgs[i+1];
-      _nImgs[3] = null; renderNSlots();
-    }
-
-    // ── Abrir modal ────────────────────────────
-    window.abrirModalNoticia = async function(id, fechaDefault) {
-      _nEditId = id || null;
-      _nImgs   = [null,null,null,null];
-      _nDiaImg = null;
-
-      const overlay  = document.getElementById("noticia-modal-overlay");
-      const tituloEl = document.getElementById("noticia-modal-titulo");
-      const btnG     = document.getElementById("btn-guardar-noticia");
-      document.getElementById("n-upload-status").textContent = "";
-      document.getElementById("n-dia-status").textContent    = "";
-
-      const chk = document.getElementById("n-visible");
-      chk.onchange = actualizarLabelVis;
-
-      if (id) {
-        tituloEl.textContent = "Editar noticia";
-        btnG.textContent     = "Guardar cambios";
-        const lista = await getNoticias();
-        const n = lista.find(x => x.id === id);
-        if (!n) return;
-        document.getElementById("n-fecha").value  = n.fecha  || "";
-        document.getElementById("n-titulo").value = n.titulo || "";
-        document.getElementById("n-texto").value  = n.texto  || "";
-        chk.checked = n.visible !== false;
-        [n.img1,n.img2,n.img3,n.img4].forEach((url,i) => {
-          const fid = [n.img1Id,n.img2Id,n.img3Id,n.img4Id][i] || "";
-          if (url) _nImgs[i] = { url, fileId:fid, b64:null, file:null };
-        });
-        // cargar miniatura del día
-        await onFechaChange();
-      } else {
-        tituloEl.textContent = "Nueva noticia";
-        btnG.textContent     = "Publicar";
-        const hoy = (fechaDefault && fechaDefault !== "sin-fecha")
-          ? fechaDefault : new Date().toISOString().slice(0,10);
-        document.getElementById("n-fecha").value  = hoy;
-        document.getElementById("n-titulo").value = "";
-        document.getElementById("n-texto").value  = "";
-        chk.checked = true;
-        renderDiaSlot(null);
-        await onFechaChange();
-      }
-
-      actualizarLabelVis();
-      renderNSlots();
-      overlay.style.display = "flex";
-    };
-
-    window.cerrarModalNoticia = function() {
-      document.getElementById("noticia-modal-overlay").style.display = "none";
-    };
-    window.onNoticiaOverlayClick = function(e) {
-      if (e.target === document.getElementById("noticia-modal-overlay")) cerrarModalNoticia();
-    };
-
-    // ── Guardar ────────────────────────────────
-    window.guardarNoticia = async function() {
-      const btn    = document.getElementById("btn-guardar-noticia");
-      const status = document.getElementById("n-upload-status");
-      const titulo = document.getElementById("n-titulo").value.trim();
-      const texto  = document.getElementById("n-texto").value.trim();
-      const fecha  = document.getElementById("n-fecha").value;
-      const visible = document.getElementById("n-visible").checked;
-
-      if (!titulo) { showToast("Agregá un título"); return; }
-      if (!fecha)  { showToast("Elegí una fecha"); return; }
-
-      btn.disabled    = true;
-      btn.textContent = "Guardando...";
-
-      try {
-        const uid = auth.currentUser?.uid || "admin";
-
-        // 1. Subir miniatura del día si hay una nueva
-        if (_nDiaImg?.file) {
-          status.textContent = "Subiendo miniatura del día...";
-          try {
-            const res = await uploadNoticiaImg(uid, _nDiaImg.b64, `dia_${fecha}`, fecha);
-            await saveDia(fecha, res.url, res.fileId || "", "");
-            _nDiaImg = { url: res.url, fileId: res.fileId||"", b64:null, file:null };
-          } catch(e) { showToast("Error miniatura: " + e.message); }
-        } else if (_nDiaImg === null) {
-          // Si no hay miniatura nueva pero el día no tiene una, guardar vacío
-          const dia = _diasCache[fecha];
-          if (!dia?.miniatura) await saveDia(fecha, "", "", "").catch(()=>{});
-        }
-
-        // 2. Subir imágenes de la nota
-        const imgsFinales = [];
-        for (let i=0; i<4; i++) {
-          const slot = _nImgs[i];
-          if (!slot) { imgsFinales.push(null); continue; }
-          if (slot.file) {
-            status.textContent = `Subiendo imagen ${i+1}...`;
-            try {
-              const res = await uploadNoticiaImg(uid, slot.b64, `noticia_${Date.now()}_${i}`, fecha);
-              imgsFinales.push(res);
-            } catch(e) {
-              showToast("Error imagen " + (i+1) + ": " + e.message);
-              imgsFinales.push(null);
-            }
-          } else {
-            imgsFinales.push({ url: slot.url, fileId: slot.fileId || "" });
-          }
-        }
-
-        status.textContent = "Publicando...";
-
-        await saveNoticia({
-          id: _nEditId || null,
-          fecha, titulo, texto, visible,
-          imgs: imgsFinales,
-          creadoEn: _nEditId ? Date.now() : undefined  // saveNoticia ya maneja esto
-        });
-
-        showToast(_nEditId ? "Noticia actualizada ✓" : "Noticia publicada ✓");
-        cerrarModalNoticia();
-        cargarAdminNoticias();
-
-      } catch(e) {
-        showToast("Error: " + e.message);
-      } finally {
-        btn.disabled    = false;
-        btn.textContent = _nEditId ? "Guardar cambios" : "Publicar";
-        status.textContent = "";
-      }
-    };
-
-    // ── Toggle visible ─────────────────────────
-    window.toggleNVis = async function(id, actual) {
-      try {
-        await toggleNoticiaVisible(id, !actual);
-        showToast(!actual ? "Noticia publicada ✓" : "Noticia ocultada");
-        cargarAdminNoticias();
-      } catch(e) { showToast("Error: " + e.message); }
-    };
-
-    // ── Eliminar ───────────────────────────────
-    window.confirmarEliminarNoticia = async function(id) {
-      if (!confirm("¿Eliminar esta noticia?")) return;
-      try {
-        const uid = auth.currentUser?.uid || "admin";
-        await deleteNoticia(uid, id);
-        showToast("Noticia eliminada");
-        cargarAdminNoticias();
-      } catch(e) { showToast("Error: " + e.message); }
-    };
-
-    // ── Carga y render ─────────────────────────
-    async function cargarAdminNoticias() {
-      const cont = document.getElementById("admin-noticias-timeline");
-      if (!cont) return;
-      cont.innerHTML = `<div class="admin-noticias-empty">Cargando...</div>`;
-      try {
-        const [lista, dias] = await Promise.all([getNoticias(), getDias()]);
-        _diasCache = dias;
-        renderAdminTimeline(lista, dias);
-      } catch(e) {
-        cont.innerHTML = `<div class="admin-noticias-empty">Error al cargar</div>`;
-      }
-    }
-
-    function renderAdminTimeline(noticias, dias) {
-      const cont = document.getElementById("admin-noticias-timeline");
-      if (!noticias.length) {
-        cont.innerHTML = `<div class="admin-noticias-empty">Sin noticias aún — creá la primera</div>`;
-        return;
-      }
-
-      const porFecha = {};
-      noticias.forEach(n => {
-        const f = n.fecha || "sin-fecha";
-        if (!porFecha[f]) porFecha[f] = [];
-        porFecha[f].push(n);
-      });
-      const fechas = Object.keys(porFecha).sort((a,b) => b.localeCompare(a));
-
-      cont.innerHTML = fechas.map(fecha => {
-        const ns    = porFecha[fecha];
-        const label = formatNFecha(fecha);
-        const dia   = dias[fecha];
-        const miniDia = dia?.miniatura
-          ? `<img src="${dia.miniatura}" class="admin-noticia-thumb" style="width:52px;height:52px;border-radius:8px;object-fit:cover;" alt="">`
-          : `<div class="admin-noticia-thumb" style="width:52px;height:52px;border-radius:8px;background:rgba(200,150,0,0.08);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📅</div>`;
-
-        const rows = ns.map(n => {
-          const imgs   = [n.img1,n.img2,n.img3,n.img4].filter(Boolean);
-          const thumb  = imgs[0]
-            ? `<img class="admin-noticia-thumb" src="${imgs[0]}" alt="" loading="lazy">`
-            : `<div class="admin-noticia-thumb" style="width:44px;height:44px;border-radius:6px;background:rgba(200,150,0,0.05);display:flex;align-items:center;justify-content:center;font-size:16px;">📰</div>`;
-          const visible = n.visible !== false;
-          const badge   = visible
-            ? `<span class="noticia-badge visible">👁 Visible</span>`
-            : `<span class="noticia-badge oculta">🙈 Oculta</span>`;
-          return `
-            <div class="admin-noticia-row${visible?"":" oculta"}">
-              <div class="admin-noticia-thumbs">${thumb}</div>
-              <div class="admin-noticia-info">
-                <div class="admin-noticia-titulo">${escN(n.titulo||"Sin título")}</div>
-                <div class="admin-noticia-preview">${escN((n.texto||"").slice(0,80))}</div>
-              </div>
-              ${badge}
-              <div class="admin-noticia-acciones">
-                <button type="button" class="admin-noticia-btn toggle-vis" title="${visible?"Ocultar":"Publicar"}"
-                  onclick="toggleNVis('${n.id}',${visible})">${visible?"🙈":"👁"}</button>
-                <button type="button" class="admin-noticia-btn" title="Editar"
-                  onclick="abrirModalNoticia('${n.id}')">✏️</button>
-                <button type="button" class="admin-noticia-btn del" title="Eliminar"
-                  onclick="confirmarEliminarNoticia('${n.id}')">🗑️</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        return `
-          <div class="admin-noticias-dia">
-            <div class="admin-noticias-dia-header">
-              ${miniDia}
-              <span class="admin-noticias-dia-label">${label}</span>
-              <div class="admin-noticias-dia-linea"></div>
-              <button type="button" class="admin-noticias-dia-btn"
-                onclick="abrirModalNoticia(null,'${fecha}')">+ Agregar acá</button>
-            </div>
-            ${rows}
-          </div>`;
-      }).join("");
-    }
-
-    function formatNFecha(iso) {
-      if (!iso||iso==="sin-fecha") return "Sin fecha";
-      const [y,m,d] = iso.split("-");
-      const meses = ["enero","febrero","marzo","abril","mayo","junio",
-                     "julio","agosto","septiembre","octubre","noviembre","diciembre"];
-      return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
-    }
-    function escN(s) {
-      return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
-
-    // ════════════════════════════════════════════════════════
-    //  GALERÍA — Admin Logic
-    // ════════════════════════════════════════════════════════
-
-    let _galEditId    = null;   // albumId en edición (null = nuevo)
-    let _galMiniImg   = null;   // { b64, file } | null
-    let _galQueue     = [];     // [{ file, b64, titulo, status }]  — cola de subida
-    let _galAlbumsCache = [];
-
-    // ── Listener en tiempo real ──────────────────────────────
-    function initGaleria() {
-      onAlbums(albums => {
-        _galAlbumsCache = albums;
-        if (document.getElementById("section-galeria").style.display !== "none") {
-          renderGaleriaAlbums(albums);
-        }
-      });
-    }
-
-    // ── Render lista de álbumes ──────────────────────────────
-    async function renderGaleriaAlbums(albums) {
-      const cont = document.getElementById("galeria-albums-list");
-      if (!cont) return;
-      if (!albums.length) {
-        cont.innerHTML = `<div class="admin-noticias-empty">Sin álbumes todavía — creá el primero</div>`;
-        return;
-      }
-      cont.innerHTML = albums.map(a => {
-        const mini = a.miniatura
-          ? `<img src="${a.miniatura}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;" alt="">`
-          : `<div style="width:64px;height:64px;border-radius:8px;background:rgba(200,150,0,0.08);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🖼️</div>`;
-        const vis = a.visible !== false;
-        return `
-          <div class="admin-noticia-row${vis ? "" : " oculta"}" style="align-items:flex-start;gap:14px;padding:14px;">
-            ${mini}
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:14px;font-weight:600;color:var(--crema);margin-bottom:3px;">${escN(a.nombre || "Sin nombre")}</div>
-              ${a.descripcion ? `<div style="font-size:12px;color:var(--crema-3);margin-bottom:4px;">${escN(a.descripcion)}</div>` : ""}
-              <div style="font-size:11px;color:var(--crema-3);">
-                <span id="gal-count-${a.id}">...</span> fotos ·
-                ${vis ? `<span style="color:#81c784;">Visible</span>` : `<span style="color:#f09090;">Oculto</span>`}
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
-              <button type="button" class="admin-noticia-btn toggle-vis" title="${vis ? "Ocultar" : "Publicar"}"
-                onclick="galeriaToggleVis('${a.id}',${vis})">${vis ? "🙈" : "👁"}</button>
-              <button type="button" class="admin-noticia-btn" title="Editar álbum y subir fotos"
-                onclick="galeriaAbrirModalAlbum('${a.id}')">✏️</button>
-              <button type="button" class="admin-noticia-btn del" title="Eliminar álbum completo"
-                onclick="galeriaConfirmarEliminar('${a.id}','${escN(a.nombre || "")}')">🗑️</button>
-            </div>
-          </div>`;
-      }).join("");
-      // Cargar conteo de fotos async
-      albums.forEach(async a => {
-        try {
-          const fotos = await getFotosDeAlbum(a.id);
-          const el = document.getElementById(`gal-count-${a.id}`);
-          if (el) el.textContent = fotos.length;
-        } catch(e) {}
-      });
-    }
-
-    // ── Toggle visible ───────────────────────────────────────
-    window.galeriaToggleVis = async (id, actual) => {
-      try {
-        await toggleAlbumVisible(id, !actual);
-        showToast(!actual ? "Álbum publicado ✓" : "Álbum ocultado");
-      } catch(e) { showToast("Error: " + e.message); }
-    };
-
-    // ── Confirmar eliminar álbum ─────────────────────────────
-    window.galeriaConfirmarEliminar = (id, nombre) => {
-      showModal(`¿Eliminar el álbum "${nombre}" y todas sus fotos? Esta acción no se puede deshacer.`, async () => {
-        try {
-          const uid = auth.currentUser?.uid || "admin";
-          await deleteAlbum(uid, id);
-          closeModal();
-          showToast("Álbum eliminado");
-        } catch(e) { closeModal(); showToast("Error: " + e.message); }
-      });
-    };
-
-    // ── Abrir modal ──────────────────────────────────────────
-    window.galeriaAbrirModalAlbum = async function(id) {
-      _galEditId  = id || null;
-      _galMiniImg = null;
-      _galQueue   = [];
-
-      const overlay  = document.getElementById("galeria-modal-overlay");
-      const tituloEl = document.getElementById("galeria-modal-titulo");
-      const btnG     = document.getElementById("btn-guardar-album");
-      const fotosSection = document.getElementById("gal-fotos-section");
-
-      // Reset visible label
-      const chk = document.getElementById("gal-visible");
-      chk.onchange = galeriaActualizarLabelVis;
-
-      if (id) {
-        tituloEl.textContent = "Editar álbum";
-        btnG.textContent     = "Guardar cambios";
-        fotosSection.style.display = "block";
-
-        const album = _galAlbumsCache.find(a => a.id === id);
-        if (!album) return;
-        document.getElementById("gal-nombre").value      = album.nombre || "";
-        document.getElementById("gal-descripcion").value = album.descripcion || "";
-        chk.checked = album.visible !== false;
-        // Mostrar miniatura existente
-        if (album.miniatura) {
-          galeriaRenderMiniSlot(album.miniatura);
-        } else {
-          galeriaRenderMiniSlot(null);
-        }
-        galeriaActualizarLabelVis();
-        galeriaRenderQueue();
-        await galeriaCargarFotosGrid(id);
-      } else {
-        tituloEl.textContent = "Nuevo álbum";
-        btnG.textContent     = "Crear álbum";
-        fotosSection.style.display = "none";
-        document.getElementById("gal-nombre").value      = "";
-        document.getElementById("gal-descripcion").value = "";
-        chk.checked = true;
-        galeriaRenderMiniSlot(null);
-        galeriaActualizarLabelVis();
-        document.getElementById("gal-queue").innerHTML = "";
-        document.getElementById("gal-fotos-grid").innerHTML = "";
-        document.getElementById("gal-upload-status").textContent = "";
-      }
-
-      overlay.style.display = "flex";
-    };
-
-    window.galeriaCerrarModal = function() {
-      document.getElementById("galeria-modal-overlay").style.display = "none";
-      _galQueue = [];
-    };
-    window.galeriaOnOverlayClick = function(e) {
-      if (e.target === document.getElementById("galeria-modal-overlay")) galeriaCerrarModal();
-    };
-
-    function galeriaActualizarLabelVis() {
-      const chk   = document.getElementById("gal-visible");
-      const label = document.getElementById("gal-visible-label");
-      if (!chk || !label) return;
-      label.innerHTML = chk.checked
-        ? `<strong>Publicado</strong> — visible para todos`
-        : `<strong>Oculto</strong> — solo vos lo ves en el admin`;
-    }
-
-    // ── Miniatura slot ───────────────────────────────────────
-    function galeriaRenderMiniSlot(urlOrB64) {
-      const slot  = document.getElementById("gal-mini-slot");
-      if (!slot) return;
-      const input = slot.querySelector("input");
-      slot.innerHTML = "";
-      slot.appendChild(input);
-      if (urlOrB64) {
-        const img = document.createElement("img");
-        img.src = urlOrB64;
-        img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px;";
-        slot.appendChild(img);
-        const del = document.createElement("button");
-        del.type = "button";
-        del.className = "noticia-slot-del";
-        del.textContent = "✕";
-        del.onclick = e => { e.preventDefault(); e.stopPropagation(); _galMiniImg = null; galeriaRenderMiniSlot(null); };
-        slot.appendChild(del);
-      } else {
-        const ico = document.createElement("i");
-        ico.style.cssText = "font-style:normal;font-size:24px;";
-        ico.textContent = "+";
-        slot.appendChild(ico);
-      }
-    }
-
-    window.galeriaOnMiniChange = async function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const b64 = await compressImage(file, 800, 0.82);
-      _galMiniImg = { b64, file };
-      galeriaRenderMiniSlot(b64);
-      e.target.value = "";
-    };
-
-    // ── Guardar álbum ────────────────────────────────────────
-    window.galeriaGuardarAlbum = async function() {
-      const btn    = document.getElementById("btn-guardar-album");
-      const nombre = document.getElementById("gal-nombre").value.trim();
-      if (!nombre) { showToast("El álbum necesita un nombre."); return; }
-
-      const uid     = auth.currentUser?.uid || "admin";
-      const visible = document.getElementById("gal-visible").checked;
-      const desc    = document.getElementById("gal-descripcion").value.trim();
-
-      btn.disabled    = true;
-      btn.textContent = "Guardando...";
-
-      try {
-        let miniatura   = "";
-        let miniaturaId = "";
-
-        // Si hay miniatura existente (en edición), mantenerla
-        if (_galEditId) {
-          const album = _galAlbumsCache.find(a => a.id === _galEditId);
-          miniatura   = album?.miniatura   || "";
-          miniaturaId = album?.miniaturaId || "";
-        }
-
-        // Si se eligió nueva miniatura, subirla
-        if (_galMiniImg?.file) {
-          btn.textContent = "Subiendo miniatura...";
-          const safeNombre = nombre.replace(/[^a-z0-9áéíóúüñ\s]/gi, "").trim() || "album";
-          const res = await uploadGaleriaImg(uid, _galMiniImg.b64, `mini_${safeNombre}`, nombre);
-          // Eliminar miniatura anterior si existía
-          if (miniaturaId) await deleteGaleriaImg(uid, miniaturaId).catch(() => {});
-          miniatura   = res.url;
-          miniaturaId = res.fileId || "";
-          _galMiniImg = null;
-        }
-
-        const id = await saveAlbum({
-          id:          _galEditId || null,
-          nombre,
-          descripcion: desc,
-          miniatura,
-          miniaturaId,
-          visible
-        });
-
-        // Si es nuevo álbum, reabrir en modo edición para subir fotos
-        if (!_galEditId) {
-          showToast("✅ Álbum creado — ahora podés subir las fotos");
-          _galEditId = id;
-          document.getElementById("galeria-modal-titulo").textContent = "Editar álbum";
-          btn.textContent = "Guardar cambios";
-          document.getElementById("gal-fotos-section").style.display = "block";
-          galeriaRenderQueue();
-          await galeriaCargarFotosGrid(id);
-        } else {
-          showToast("✅ Álbum actualizado");
-          galeriaCerrarModal();
-        }
-
-      } catch(e) {
-        showToast("Error: " + e.message);
-      } finally {
-        btn.disabled    = false;
-        btn.textContent = _galEditId ? "Guardar cambios" : "Crear álbum";
-      }
-    };
-
-    // ── Fotos: drop zone ─────────────────────────────────────
-    window.galeriaOnDrop = async function(e) {
-      e.preventDefault();
-      document.getElementById("gal-upload-zone").style.borderColor = "rgba(200,150,0,0.2)";
-      const files = [...(e.dataTransfer.files || [])].filter(f => f.type.startsWith("image/"));
-      galeriaAgregarAQueue(files);
-    };
-
-    window.galeriaOnFilesChange = function(e) {
-      const files = [...(e.target.files || [])].filter(f => f.type.startsWith("image/"));
-      galeriaAgregarAQueue(files);
-      e.target.value = "";
-    };
-
-    function galeriaAgregarAQueue(files) {
-      files.forEach(f => _galQueue.push({ file: f, b64: null, titulo: "", status: "pending" }));
-      galeriaRenderQueue();
-    }
-
-    function galeriaRenderQueue() {
-      const cont = document.getElementById("gal-queue");
-      if (!cont) return;
-      if (!_galQueue.length) { cont.innerHTML = ""; return; }
-      const pendientes = _galQueue.filter(q => q.status === "pending" || q.status === "uploading");
-      if (!pendientes.length) { cont.innerHTML = ""; return; }
-      cont.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <span style="font-size:12px;color:var(--crema-3);">${pendientes.length} foto${pendientes.length !== 1 ? "s" : ""} en cola</span>
-          <button type="button" class="admin-btn primary small" onclick="galeriaSubirTodo()">⬆️ Subir todo</button>
-        </div>
-        ${pendientes.map((q, i) => `
-          <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--negro-3);border-radius:6px;border:1px solid rgba(200,150,0,0.08);">
-            <span style="font-size:18px;">${q.status === "uploading" ? "⏳" : "📷"}</span>
-            <span style="flex:1;font-size:12px;color:var(--crema-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.file.name}</span>
-            <input type="text" placeholder="Título (opcional)" maxlength="80"
-              value="${q.titulo}"
-              oninput="galeriaTituloChange(${_galQueue.indexOf(q)}, this.value)"
-              style="width:140px;background:var(--negro-2);border:1px solid rgba(200,150,0,0.15);border-radius:4px;padding:5px 8px;color:var(--crema);font-size:12px;outline:none;" />
-            ${q.status === "pending" ? `<button type="button" class="noticia-slot-del" style="position:static;" onclick="galeriaQuitarDeQueue(${_galQueue.indexOf(q)})">✕</button>` : ""}
-          </div>
-        `).join("")}`;
-    }
-
-    window.galeriaTituloChange = function(i, val) {
-      if (_galQueue[i]) _galQueue[i].titulo = val;
-    };
-
-    window.galeriaQuitarDeQueue = function(i) {
-      _galQueue.splice(i, 1);
-      galeriaRenderQueue();
-    };
-
-    // ── Subir todo ───────────────────────────────────────────
-    window.galeriaSubirTodo = async function() {
-      if (!_galEditId) { showToast("Primero guardá el álbum."); return; }
-      const uid = auth.currentUser?.uid || "admin";
-      const status = document.getElementById("gal-upload-status");
-      const pendientes = _galQueue.filter(q => q.status === "pending");
-      if (!pendientes.length) return;
-
-      for (let q of pendientes) {
-        q.status = "uploading";
-        galeriaRenderQueue();
-        try {
-          status.textContent = `Comprimiendo ${q.file.name}...`;
-          const b64 = await compressImage(q.file, 1200, 0.85);
-          status.textContent = `Subiendo ${q.file.name}...`;
-          const nombre = (document.getElementById("gal-nombre").value.trim() || "album");
-          const res = await uploadGaleriaImg(uid, b64, `foto_${Date.now()}`, nombre);
-          await saveFoto({
-            albumId: _galEditId,
-            url:     res.url,
-            fileId:  res.fileId || "",
-            titulo:  q.titulo || ""
-          });
-          q.status = "done";
-          showToast(`✓ ${q.file.name}`);
-        } catch(e) {
-          q.status = "error";
-          showToast(`Error: ${q.file.name} — ${e.message}`);
-        }
-        galeriaRenderQueue();
-      }
-      _galQueue = _galQueue.filter(q => q.status !== "done");
-      status.textContent = "";
-      galeriaRenderQueue();
-      await galeriaCargarFotosGrid(_galEditId);
-    };
-
-    // ── Grid de fotos ya subidas ─────────────────────────────
-    async function galeriaCargarFotosGrid(albumId) {
-      const grid  = document.getElementById("gal-fotos-grid");
-      const count = document.getElementById("gal-fotos-count");
-      if (!grid) return;
-      grid.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">Cargando...</span>`;
-      const fotos = await getFotosDeAlbum(albumId);
-      if (count) count.textContent = `${fotos.length} foto${fotos.length !== 1 ? "s" : ""}`;
-      if (!fotos.length) { grid.innerHTML = `<span style="font-size:12px;color:var(--crema-3);">Sin fotos todavía</span>`; return; }
-
-      // Chequear cuál es la miniatura actual
-      const album = _galAlbumsCache.find(a => a.id === albumId);
-      const miniActual = album?.miniatura || "";
-
-      grid.innerHTML = fotos.map(f => {
-        const esMini = f.url === miniActual;
-        return `
-          <div style="position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;border:2px solid ${esMini ? "var(--dorado)" : "transparent"};" title="${escN(f.titulo || "")}">
-            <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" alt="">
-            ${esMini ? `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);font-size:9px;text-align:center;color:var(--dorado);padding:3px;letter-spacing:1px;">PORTADA</div>` : ""}
-            <div style="position:absolute;top:4px;right:4px;display:flex;gap:4px;">
-              ${!esMini ? `<button type="button" style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:var(--dorado);" title="Usar como portada"
-                onclick="galeriaSetPortada('${albumId}','${f.url}','${f.fileId}')">⭐</button>` : ""}
-              <button type="button" style="background:rgba(0,0,0,0.65);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:14px;color:#f09090;" title="Eliminar foto"
-                onclick="galeriaEliminarFoto('${f.id}','${albumId}')">🗑️</button>
-            </div>
-          </div>`;
-      }).join("");
-    }
-
-    window.galeriaSetPortada = async function(albumId, url, fileId) {
-      try {
-        await setFotoMiniatura(albumId, url, fileId);
-        // Actualizar cache local
-        const album = _galAlbumsCache.find(a => a.id === albumId);
-        if (album) { album.miniatura = url; album.miniaturaId = fileId; }
-        galeriaRenderMiniSlot(url);
-        await galeriaCargarFotosGrid(albumId);
-        showToast("✓ Portada actualizada");
-      } catch(e) { showToast("Error: " + e.message); }
-    };
-
-    window.galeriaEliminarFoto = async function(fotoId, albumId) {
-      try {
-        const uid = auth.currentUser?.uid || "admin";
-        await deleteFoto(uid, fotoId);
-        await galeriaCargarFotosGrid(albumId);
-        showToast("Foto eliminada");
-      } catch(e) { showToast("Error: " + e.message); }
-    };
-
-    // ── Carga inicial de la sección ──────────────────────────
-    async function cargarAdminGaleria() {
-      renderGaleriaAlbums(_galAlbumsCache);
-    }
-
   </script>
 
-<script type="module">
-  import { initNavbar } from "./js/navbar.js";
-  initNavbar();
-</script>
 </body>
 </html>
