@@ -108,6 +108,8 @@
     .aw-badge.gris { background: transparent; color: var(--crema-3); border: 1px solid rgba(200,150,0,0.35); }
     .aw-avatar.mini { width: 30px; height: 30px; }
     .aw-avatar.mini .aw-avatar-ini { font-size: 11px; }
+    .aw-peligro { border-color: rgba(255,138,138,0.4); }
+    .aw-peligro .aw-bloque-titulo { color: #ff8a8a; }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -253,6 +255,22 @@
       <p class="aw-msg" id="aw-v-msg"></p>
     </section>
     <div id="aw-v-lista"></div>
+
+    <section class="aw-bloque aw-peligro hidden" id="aw-reinicio">
+      <h2 class="aw-bloque-titulo">Reiniciar la primera votación</h2>
+      <p class="aw-sub">Borra los votos, el conteo, los finalistas elegidos y lo publicado en la votación pública, y vuelve a «Configuración». <strong>Se conservan</strong> las categorías, los nominados (incluido Burdel de Oro), las personas y las fotos. La segunda votación no se reinicia: solo se puede reiniciar la primera, y solo antes de abrir la segunda.</p>
+      <div class="aw-botones" style="margin-top:10px;">
+        <button type="button" class="aw-btn" id="aw-r-respaldo">Descargar respaldo de los votos</button>
+      </div>
+      <div class="aw-campo" style="margin-top:14px;">
+        <label for="aw-r-texto">Para confirmar, escribí REINICIAR</label>
+        <input type="text" class="aw-input" id="aw-r-texto" autocomplete="off" placeholder="REINICIAR" />
+      </div>
+      <div class="aw-botones">
+        <button type="button" class="aw-btn aw-btn-peligro" id="aw-r-boton" disabled>Reiniciar primera votación</button>
+      </div>
+      <p class="aw-msg" id="aw-r-msg"></p>
+    </section>
   </div>
 
   <!-- ── SEGUNDA VOTACIÓN ── -->
