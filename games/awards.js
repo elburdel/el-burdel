@@ -13,7 +13,7 @@
 
 import { db } from "../js/firebase-init.js";
 import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { leerFase, leerCategorias, fotoValida, nuevoToken, tokenValido } from "./awards-datos.js";
+import { leerFase, leerCategorias, fotoValida, nuevoToken, tokenValido, leerEdicion, leerVotosLocales } from "./awards-datos.js";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, clase, texto) {
@@ -34,9 +34,18 @@ function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /*
 let token = lsGet(LS_TOKEN);
 if (!tokenValido(token)) { token = nuevoToken(); lsSet(LS_TOKEN, token); }
 
-let votosLocales = {};
-try { const o = JSON.parse(lsGet(LS_VOTOS) || "{}"); if (o && typeof o === "object") votosLocales = o; } catch (e) { votosLocales = {}; }
-const guardarVotosLocales = () => lsSet(LS_VOTOS, JSON.stringify(votosLocales));
+// Lo votado se recuerda por «edición»: si el admin reinicia la primera votación, la edición sube y
+// este navegador olvida sus votos anteriores (que ya no existen en Firebase).
+const guardado = leerVotosLocales(lsGet(LS_VOTOS));
+let votosLocales = guardado.v;
+let edicion = guardado.ed;
+let edicionLista = false;
+const guardarVotosLocales = () => lsSet(LS_VOTOS, JSON.stringify({ ed: edicion, v: votosLocales }));
+function sincronizarEdicion(nueva) {
+  if (nueva !== edicion) { votosLocales = {}; pendiente = null; errorVoto = ""; edicion = nueva; }
+  guardarVotosLocales();
+  edicionLista = true;
+}
 
 // ── Estado de la pantalla ──
 let fase = null;
@@ -58,6 +67,7 @@ function aviso(titulo, texto) {
 }
 
 function mostrarSegunFase() {
+  if (fase === null || !edicionLista) return; // esperar la etapa y la edición
   $("awp-aviso").classList.add("hidden");
   if (fase === "ronda1_abierta") {
     $("awp-sub").textContent = cargada
@@ -226,6 +236,14 @@ function renderLista() {
 }
 
 // ── Inicio: la etapa se escucha en vivo (si el admin cierra, la pantalla se actualiza sola) ──
+onValue(ref(db, "awards/edicion"), (snap) => {
+  sincronizarEdicion(leerEdicion(snap.val()));
+  mostrarSegunFase();
+}, () => {
+  sincronizarEdicion(edicion); // sin acceso a la edición (reglas viejas): se sigue con la edición recordada
+  mostrarSegunFase();
+});
+
 onValue(ref(db, "awards/estado"), (snap) => {
   fase = leerFase(snap.val());
   mostrarSegunFase();
