@@ -170,8 +170,8 @@ function tarjeta(c, n) {
     img.src = p.foto;
     foto.appendChild(img);
   }
-  foto.appendChild(el("div", "awp-nombre", p.nombre));
   card.appendChild(foto);
+  card.appendChild(el("div", "awp-nombre", p.nombre)); // el nombre va debajo del círculo
   const acc = el("div", "awp-acc");
   if (elegida) acc.appendChild(el("div", "awp-ok", "✓ Tu voto"));
   else if (votada) { /* ya votó en esta categoría: sin botón */ }
