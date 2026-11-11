@@ -22,6 +22,7 @@ import {
   hayEmpateEnCorte, armarFinalistas,
   armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
   validarPublicacionNuevas, armarPublicacionNuevas,
+  TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
 
@@ -39,6 +40,7 @@ let personas = [];
 let categorias = [];
 let usuarios = []; // [{uid, nick}]
 let publicadas = new Set(); // ids de categorías ya publicadas en la primera votación (awards/ronda1)
+let edicion = 1;            // número de edición de la primera votación (awards/edicion)
 const formP = { editando: null, foto: null, fotoCambiada: false };
 const formC = { editando: null };
 
@@ -80,6 +82,7 @@ async function cargarTodo() {
     get(ref(db, "awards/ronda1")),
   ]);
   publicadas = new Set(Object.keys(rSnap.val() && typeof rSnap.val() === "object" ? rSnap.val() : {}));
+  try { edicion = leerEdicion((await get(ref(db, "awards/edicion"))).val()); } catch (e) { edicion = 1; } // opcional: depende de la regla nueva
   fase = leerFase(fSnap.val());
   personas = leerPersonas(pSnap.val());
   categorias = leerCategorias(cSnap.val());
@@ -864,6 +867,7 @@ function copiarEnlace() {
 }
 
 function renderVotacion() {
+  renderReinicio();
   const lista = $("aw-v-lista");
   lista.textContent = "";
   const abierta = fase === "ronda1_abierta", cerrada = fase === "ronda1_cerrada", definidos = fase === "finalistas_definidos";
@@ -945,6 +949,74 @@ async function confirmarFinalistas() {
     mensaje("aw-etapa-msg", "Finalistas confirmados.", "ok");
     renderTodo();
   } catch (e) { mensaje("aw-etapa-msg", errorLegible(e), "error"); }
+}
+
+// ────────────────────────────────────────────────────────────
+//  Reiniciar la primera votación (la segunda es la definitiva y no se reinicia)
+// ────────────────────────────────────────────────────────────
+function renderReinicio() {
+  const visible = reiniciable(fase);
+  $("aw-reinicio").classList.toggle("hidden", !visible);
+  if (!visible) return;
+  $("aw-r-boton").disabled = $("aw-r-texto").value.trim() !== TEXTO_REINICIO;
+}
+
+async function datosParaRespaldo() {
+  const leer = async (ruta) => { try { return (await get(ref(db, ruta))).val(); } catch (e) { return null; } };
+  const [votos1, resultados1, seleccion, finalistasRaw, ronda1] = await Promise.all([
+    leer("awards/votos1"), leer("awards/resultados/ronda1"), leer("awards/admin/seleccion"), leer("awards/admin/finalistas"), leer("awards/ronda1"),
+  ]);
+  return armarRespaldo({ fase, edicion, votos1, resultados1, seleccion, finalistas: finalistasRaw, ronda1 });
+}
+
+function descargarJSON(objeto, nombre) {
+  const blob = new Blob([JSON.stringify(objeto, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+const nombreRespaldo = () => `respaldo-awards-primera-votacion-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`;
+
+async function descargarRespaldo() {
+  mensaje("aw-r-msg", "Preparando el respaldo...");
+  try {
+    descargarJSON(await datosParaRespaldo(), nombreRespaldo());
+    mensaje("aw-r-msg", "Respaldo descargado.", "ok");
+  } catch (e) { mensaje("aw-r-msg", errorLegible(e), "error"); }
+}
+
+async function reiniciarPrimera() {
+  if (!reiniciable(fase)) return;
+  if ($("aw-r-texto").value.trim() !== TEXTO_REINICIO) return;
+  if (!window.confirm("ÚLTIMA CONFIRMACIÓN\n\nSe borrarán los votos de la primera votación, el conteo y los finalistas elegidos, y el sistema volverá a «Configuración».\nSe conservan las categorías, los nominados, las personas y las fotos.\n\nAntes se descargará un respaldo de los votos. ¿Reiniciar?")) return;
+  $("aw-r-boton").disabled = true;
+  mensaje("aw-r-msg", "Descargando el respaldo...");
+  try {
+    descargarJSON(await datosParaRespaldo(), nombreRespaldo());
+    mensaje("aw-r-msg", "Reiniciando...");
+    const pids = personas.map((x) => x.id);
+    await update(ref(db), armarReinicio(pids, edicion + 1)); // una sola escritura: se hace todo o no se hace nada
+    fase = "configuracion";
+    votacion = { conteo: null, seleccion: {}, cargado: false };
+    finalistas = {};
+    participacion = null;
+    $("aw-r-texto").value = "";
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-etapa-msg", "Primera votación reiniciada. Ya podés editar la configuración y volver a abrirla.", "ok");
+    mensaje("aw-r-msg", "");
+    mostrarTab("categorias");
+  } catch (e) {
+    const permiso = /PERMISSION_DENIED/i.test(String((e && (e.code || e.message)) || ""));
+    mensaje("aw-r-msg", permiso ? "No se pudo reiniciar (no se borró nada). ¿Publicaste las reglas nuevas de Firebase (edición y borrado de votos)?" : errorLegible(e), "error");
+    renderReinicio();
+  }
 }
 
 // ────────────────────────────────────────────────────────────
@@ -1104,6 +1176,9 @@ async function iniciar() {
   $("aw-v-actualizar").addEventListener("click", () => cargarVotacion(true));
   $("aw-v-sugerir").addEventListener("click", usarSugerencia);
   $("aw-v-copiar").addEventListener("click", copiarEnlace);
+  $("aw-r-texto").addEventListener("input", renderReinicio);
+  $("aw-r-respaldo").addEventListener("click", descargarRespaldo);
+  $("aw-r-boton").addEventListener("click", reiniciarPrimera);
   $("aw-v-enlace").value = new URL("awards.html", window.location.href).href;
   $("aw-p-archivo").addEventListener("change", onArchivoPersona);
   $("aw-p-quitar-foto").addEventListener("click", quitarFoto);
