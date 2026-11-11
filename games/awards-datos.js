@@ -487,7 +487,7 @@ export function leerRonda2(raw) {
 // Agregar varios nominados de una sola vez a una categoría.
 // Devuelve {cambios, cantidad}: una escritura multi-ruta con los órdenes seguidos a los ya existentes.
 // Ignora ids repetidos, ya nominados o que no existen.
-export function armarNominados(categoria, pids, personas) {
+export function armarNominados(categoria, pids, personas, espejarRonda1 = false) {
   const existentes = new Set(categoria.nominados.map((n) => n.pid));
   const validos = new Set(personas.map((p) => p.id));
   const nuevos = [];
@@ -496,7 +496,15 @@ export function armarNominados(categoria, pids, personas) {
   }
   let orden = proximoOrden(categoria.nominados);
   const cambios = {};
-  for (const pid of nuevos) cambios[`awards/admin/categorias/${categoria.id}/nominados/${pid}`] = { orden: orden++ };
+  for (const pid of nuevos) {
+    const o = orden++;
+    cambios[`awards/admin/categorias/${categoria.id}/nominados/${pid}`] = { orden: o };
+    // Si la categoría ya está en la votación pública, el nominado nuevo se refleja ahí en la misma escritura.
+    if (espejarRonda1) {
+      cambios[`awards/ronda1/${categoria.id}/nominados/${pid}`] = { orden: o };
+      cambios[`awards/personas/${pid}/r1`] = true;
+    }
+  }
   return { cambios, cantidad: nuevos.length };
 }
 
@@ -619,4 +627,11 @@ export function leerVotosLocales(texto) {
   if (!o || typeof o !== "object" || Array.isArray(o)) return { ed: 1, v: {} };
   if (o.v && typeof o.v === "object" && Number.isInteger(o.ed)) return { ed: o.ed, v: { ...o.v } };
   return { ed: 1, v: { ...o } };
+}
+
+
+// Con la primera votación abierta, las categorías YA publicadas se pueden ampliar (sumar nominados,
+// reordenarlos, cambiar nombre u orden). No se pueden quitar nominados ni borrarlas: se perderían votos.
+export function categoriaAmpliable(fase, c, publicadas) {
+  return leerFase(fase) === "ronda1_abierta" && c.tipo === "normal" && publicadas.has(c.id);
 }
