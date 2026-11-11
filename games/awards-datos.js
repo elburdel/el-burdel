@@ -559,3 +559,64 @@ export function armarPublicacionNuevas(categorias, publicadas) {
   for (const pid of visibles) cambios[`awards/personas/${pid}/r1`] = true;
   return { cambios, ids, visibles: [...visibles] };
 }
+
+// ════════════════════════════════════════════════════════════
+//  Reinicio de la primera votación (la segunda es la definitiva y no se reinicia)
+// ════════════════════════════════════════════════════════════
+
+export const TEXTO_REINICIO = "REINICIAR";
+
+// Solo se puede reiniciar mientras la segunda votación no empezó.
+export function reiniciable(fase) {
+  const f = leerFase(fase);
+  return f === "ronda1_abierta" || f === "ronda1_cerrada" || f === "finalistas_definidos";
+}
+
+// Una sola escritura atómica que deja el sistema listo para abrir la primera votación de nuevo.
+// Se conservan categorías, nominados (incluido Burdel de Oro), personas y fotos.
+// Se borran: votos, conteo, finalistas y su borrador, lo publicado en la votación pública y las marcas de visibilidad.
+// Se sube la «edición» para que los navegadores de los visitantes olviden el voto que recordaban.
+export function armarReinicio(pids, edicionNueva) {
+  const cambios = {
+    "awards/estado": "configuracion",
+    "awards/votos1": null,
+    "awards/resultados/ronda1": null,
+    "awards/admin/seleccion": null,
+    "awards/admin/finalistas": null,
+    "awards/ronda1": null,
+    "awards/edicion": edicionNueva,
+  };
+  for (const pid of pids) cambios[`awards/personas/${pid}/r1`] = null;
+  return cambios;
+}
+
+// Contenido del archivo de respaldo que se descarga antes de borrar.
+export function armarRespaldo({ fase, edicion, votos1, resultados1, seleccion, finalistas, ronda1 }) {
+  return {
+    sistema: NOMBRE_OFICIAL,
+    tipo: "respaldo de la primera votación",
+    exportadoEn: new Date().toISOString(),
+    etapa: leerFase(fase),
+    edicion: Number.isFinite(edicion) ? edicion : 1,
+    votos1: votos1 || null,
+    resultados1: resultados1 || null,
+    seleccionBorrador: seleccion || null,
+    finalistas: finalistas || null,
+    categoriasPublicadas: ronda1 || null,
+  };
+}
+
+// Edición vigente (1 si todavía no existe).
+export function leerEdicion(valor) {
+  return Number.isInteger(valor) && valor >= 1 && valor <= 1000 ? valor : 1;
+}
+
+// Votos recordados en el navegador del visitante: {ed, v:{categoría: persona}}.
+// Acepta el formato anterior (solo {categoría: persona}), que se considera de la edición 1.
+export function leerVotosLocales(texto) {
+  let o = null;
+  try { o = JSON.parse(texto || "{}"); } catch (e) { o = null; }
+  if (!o || typeof o !== "object" || Array.isArray(o)) return { ed: 1, v: {} };
+  if (o.v && typeof o.v === "object" && Number.isInteger(o.ed)) return { ed: o.ed, v: { ...o.v } };
+  return { ed: 1, v: { ...o } };
+}
