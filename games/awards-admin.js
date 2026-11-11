@@ -22,6 +22,7 @@ import {
   hayEmpateEnCorte, armarFinalistas,
   armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
   validarPublicacionNuevas, armarPublicacionNuevas,
+  categoriaAmpliable,
   TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
@@ -48,7 +49,10 @@ const editable = () => estructuraEditable(fase);          // categorías y nomin
 const personasOk = () => personasEditable(fase);           // alta/edición de personas
 const oroOk = () => oroEditable(fase);                     // nominados de Burdel de Oro
 const catEditable = (c) => categoriaEditable(fase, c, publicadas);   // ¿esta categoría se puede editar ahora?
-const puedeNominar = (c) => (c.tipo === "oro" ? oroOk() : catEditable(c));
+const ampliable = (c) => categoriaAmpliable(fase, c, publicadas);     // publicada y con la votación abierta: se puede ampliar
+const puedeNominar = (c) => (c.tipo === "oro" ? oroOk() : (catEditable(c) || ampliable(c)));   // agregar y ordenar nominados
+const puedeQuitar = (c) => (c.tipo === "oro" ? oroOk() : catEditable(c));                      // quitar nominados (no si hay votos en juego)
+const enVotacion = (c) => fase === "ronda1_abierta" && publicadas.has(c.id);                    // los cambios se reflejan en la votación pública
 const votadas = () => categoriasVotadas(categorias, publicadas);      // categorías que están en la votación pública
 const personaPorId = (id) => personas.find((p) => p.id === id) || null;
 const nickDe = (uid) => (usuarios.find((u) => u.uid === uid) || {}).nick || null;
@@ -123,7 +127,7 @@ function renderEstado() {
   const bq = $("aw-bloqueo");
   bq.classList.toggle("hidden", !bloqueado);
   bq.textContent = abierta1
-    ? "Las categorías ya publicadas están bloqueadas para no alterar los votos. Podés crear categorías nuevas, armarles sus nominados y sumarlas con «Publicar categorías nuevas»."
+    ? "Las categorías ya publicadas se pueden ampliar: sumar nominados, reordenarlos y cambiar su nombre u orden (se ve enseguida en la votación). No se pueden quitar nominados ni borrar la categoría, para no perder votos. También podés crear categorías nuevas y sumarlas con «Publicar categorías nuevas»."
     : bloqueoTotal
       ? "La configuración está bloqueada porque la etapa ya no es «Configuración»."
       : "Las categorías y los nominados de la primera votación están bloqueados. Todavía podés cargar personas y armar los nominados de Burdel de Oro.";
@@ -415,7 +419,8 @@ async function guardarCategoria() {
   if ($("aw-c-orden").value.trim() === "") datos.orden = NaN;
   if (formC.editando) {
     const actual = categorias.find((x) => x.id === formC.editando);
-    if (!actual || !catEditable(actual)) { mensaje("aw-c-msg", "Esa categoría ya está publicada y no se puede editar.", "error"); return; }
+    if (!actual || !(catEditable(actual) || ampliable(actual))) { mensaje("aw-c-msg", "Esa categoría no se puede editar en esta etapa.", "error"); return; }
+    if (ampliable(actual)) datos.tipo = "normal"; // una categoría publicada sigue siendo normal
   }
   if (fase === "ronda1_abierta" && datos.tipo !== "normal") { mensaje("aw-c-msg", "Con la votación abierta solo se pueden crear categorías normales. Burdel de Oro se arma después de cerrarla.", "error"); return; }
   const err = validarCategoria(datos, categorias, formC.editando);
@@ -423,7 +428,14 @@ async function guardarCategoria() {
   const id = formC.editando || nuevoId("c");
   $("aw-c-guardar").disabled = true;
   try {
-    if (formC.editando) await update(ref(db, `awards/admin/categorias/${id}`), datos); // no toca los nominados
+    const actualC = formC.editando ? categorias.find((x) => x.id === formC.editando) : null;
+    if (actualC && enVotacion(actualC)) {
+      // Categoría ya publicada: nombre y orden se cambian en la configuración y en la votación pública a la vez.
+      await update(ref(db), {
+        [`awards/admin/categorias/${id}/nombre`]: datos.nombre, [`awards/admin/categorias/${id}/orden`]: datos.orden,
+        [`awards/ronda1/${id}/nombre`]: datos.nombre, [`awards/ronda1/${id}/orden`]: datos.orden,
+      });
+    } else if (formC.editando) await update(ref(db, `awards/admin/categorias/${id}`), datos); // no toca los nominados
     else await set(ref(db, `awards/admin/categorias/${id}`), datos);
     await cargarTodo();
     limpiarFormCategoria();
@@ -455,10 +467,13 @@ async function agregarNominado(cid, pid) {
   const c = categorias.find((x) => x.id === cid);
   if (!c || !puedeNominar(c) || !pid || c.nominados.some((n) => n.pid === pid)) return;
   try {
-    await set(ref(db, `awards/admin/categorias/${cid}/nominados/${pid}`), { orden: proximoOrden(c.nominados) });
+    const o = proximoOrden(c.nominados);
+    const cambios = { [`awards/admin/categorias/${cid}/nominados/${pid}`]: { orden: o } };
+    if (enVotacion(c)) { cambios[`awards/ronda1/${cid}/nominados/${pid}`] = { orden: o }; cambios[`awards/personas/${pid}/r1`] = true; }
+    await update(ref(db), cambios); // una sola escritura: configuración y votación pública a la vez
     await cargarTodo();
     renderTodo();
-    mensaje("aw-c-msg", `Nominado agregado a «${c.nombre}».`, "ok");
+    mensaje("aw-c-msg", `Nominado agregado a «${c.nombre}».` + (enVotacion(c) ? " Ya se ve en la votación." : ""), "ok");
   } catch (e) {
     mensaje("aw-c-msg", errorLegible(e), "error");
   }
@@ -466,7 +481,7 @@ async function agregarNominado(cid, pid) {
 
 async function quitarNominado(cid, pid) {
   const c0 = categorias.find((x) => x.id === cid);
-  if (!c0 || !puedeNominar(c0)) return;
+  if (!c0 || !puedeQuitar(c0)) return;
   try {
     await remove(ref(db, `awards/admin/categorias/${cid}/nominados/${pid}`));
     await cargarTodo();
@@ -483,9 +498,12 @@ async function mover(cid, pid, delta) {
   const ids = Object.keys(cambios);
   if (!ids.length) return;
   const mapa = {};
-  for (const id of ids) mapa[`${id}/orden`] = cambios[id];
+  for (const id of ids) {
+    mapa[`awards/admin/categorias/${cid}/nominados/${id}/orden`] = cambios[id];
+    if (enVotacion(c)) mapa[`awards/ronda1/${cid}/nominados/${id}/orden`] = cambios[id];
+  }
   try {
-    await update(ref(db, `awards/admin/categorias/${cid}/nominados`), mapa);
+    await update(ref(db), mapa);
     await cargarTodo();
     renderTodo();
   } catch (e) {
@@ -540,7 +558,7 @@ function panelVarios(c, libres) {
 async function agregarVarios(cid, pids) {
   const c = categorias.find((x) => x.id === cid);
   if (!c || !puedeNominar(c) || !pids.length) return;
-  const { cambios, cantidad } = armarNominados(c, pids, personas);
+  const { cambios, cantidad } = armarNominados(c, pids, personas, enVotacion(c));
   if (!cantidad) return;
   try {
     await update(ref(db), cambios); // una sola escritura: se agregan todos o ninguno
@@ -574,7 +592,7 @@ function renderCategorias() {
     const acc = el("div", "aw-acciones");
     const be = el("button", "aw-btn", "Editar");
     be.type = "button";
-    be.disabled = !catEditable(c);
+    be.disabled = !(catEditable(c) || ampliable(c));
     be.addEventListener("click", () => editarCategoria(c.id));
     const bd = el("button", "aw-btn aw-btn-peligro", "Eliminar");
     bd.type = "button";
@@ -623,7 +641,7 @@ function renderCategorias() {
       const bq = el("button", "aw-btn aw-btn-mini aw-btn-peligro", "✕");
       bq.type = "button";
       bq.title = "Quitar de la categoría";
-      bq.disabled = !puedeNominar(c);
+      bq.disabled = !puedeQuitar(c);
       bq.addEventListener("click", () => quitarNominado(c.id, n.pid));
       a2.append(bs, bb, bq);
       fila.appendChild(a2);
