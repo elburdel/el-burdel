@@ -22,7 +22,7 @@ import {
   hayEmpateEnCorte, armarFinalistas,
   armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
   validarPublicacionNuevas, armarPublicacionNuevas,
-  categoriaAmpliable,
+  categoriaAmpliable, ordenarAlfabeticamente,
   TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
@@ -511,6 +511,40 @@ async function mover(cid, pid, delta) {
   }
 }
 
+// Ordena alfabéticamente los nominados de una o de todas las categorías (una sola escritura).
+function mapaOrdenAlfabetico(c) {
+  const cambios = ordenarAlfabeticamente(c.nominados, personas);
+  const mapa = {};
+  for (const [pid, orden] of Object.entries(cambios)) {
+    mapa[`awards/admin/categorias/${c.id}/nominados/${pid}/orden`] = orden;
+    if (enVotacion(c)) mapa[`awards/ronda1/${c.id}/nominados/${pid}/orden`] = orden; // se ve enseguida en la votación
+  }
+  return { mapa, cantidad: Object.keys(cambios).length };
+}
+
+async function ordenarAZ(ids) {
+  const mapa = {};
+  let categoriasCambiadas = 0;
+  for (const id of ids) {
+    const c = categorias.find((x) => x.id === id);
+    if (!c || !puedeNominar(c)) continue;
+    const r = mapaOrdenAlfabetico(c);
+    if (r.cantidad) { Object.assign(mapa, r.mapa); categoriasCambiadas++; }
+  }
+  if (!categoriasCambiadas) { mensaje("aw-c-msg", "Ya estaban en orden alfabético.", "ok"); return; }
+  try {
+    await update(ref(db), mapa); // una sola escritura: se ordenan todas o ninguna
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-c-msg", `Ordenado alfabéticamente (${categoriasCambiadas} categoría${categoriasCambiadas === 1 ? "" : "s"}).`, "ok");
+  } catch (e) {
+    mensaje("aw-c-msg", errorLegible(e), "error");
+  }
+}
+
+const ordenarCategoria = (cid) => ordenarAZ([cid]);
+const ordenarTodas = () => ordenarAZ(categorias.map((c) => c.id));
+
 // Panel para tildar varias personas y agregarlas juntas a una categoría.
 function panelVarios(c, libres) {
   const box = el("div", "aw-varios");
@@ -609,6 +643,14 @@ function renderCategorias() {
       bt.type = "button";
       bt.addEventListener("click", () => { if (abierta) expandidas.delete(c.id); else expandidas.add(c.id); renderCategorias(); });
       barra.appendChild(bt);
+      if (c.nominados.length >= 2) {
+        const ba = el("button", "aw-btn", "Ordenar A-Z");
+        ba.type = "button";
+        ba.title = "Ordenar los nominados por orden alfabético";
+        ba.disabled = !puedeNominar(c);
+        ba.addEventListener("click", () => ordenarCategoria(c.id));
+        barra.appendChild(ba);
+      }
       if (!abierta) {
         // Con la lista oculta se ve una tira de fotos para reconocer de un vistazo quiénes están.
         const tira = el("div", "aw-tira");
@@ -1191,6 +1233,7 @@ async function iniciar() {
   $("aw-v2-actualizar").addEventListener("click", () => cargarVotacion2(true));
   $("aw-c-expandir").addEventListener("click", () => { for (const c of categorias) expandidas.add(c.id); renderCategorias(); });
   $("aw-c-contraer").addEventListener("click", () => { expandidas.clear(); renderCategorias(); });
+  $("aw-c-ordenar").addEventListener("click", () => { if (window.confirm("¿Ordenar alfabéticamente los nominados de TODAS las categorías que se puedan editar ahora?")) ordenarTodas(); });
   $("aw-v-actualizar").addEventListener("click", () => cargarVotacion(true));
   $("aw-v-sugerir").addEventListener("click", usarSugerencia);
   $("aw-v-copiar").addEventListener("click", copiarEnlace);
