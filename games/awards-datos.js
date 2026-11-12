@@ -635,3 +635,14 @@ export function leerVotosLocales(texto) {
 export function categoriaAmpliable(fase, c, publicadas) {
   return leerFase(fase) === "ronda1_abierta" && c.tipo === "normal" && publicadas.has(c.id);
 }
+
+
+// Orden alfabético de los nominados de una categoría (sin distinguir mayúsculas ni acentos).
+// Devuelve {pid: nuevoOrden} solo con los que cambian de lugar (órdenes 1..n); vacío si ya estaban ordenados.
+export function ordenarAlfabeticamente(nominados, personas) {
+  const nombre = (pid) => { const p = personas.find((x) => x.id === pid); return p ? p.nombre : "\uffff"; };
+  const lista = [...nominados].sort((a, b) => nombre(a.pid).localeCompare(nombre(b.pid), "es", { sensitivity: "base" }) || a.pid.localeCompare(b.pid));
+  const cambios = {};
+  lista.forEach((n, i) => { if (n.orden !== i + 1) cambios[n.pid] = i + 1; });
+  return cambios;
+}
