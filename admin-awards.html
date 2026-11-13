@@ -110,6 +110,19 @@
     .aw-avatar.mini .aw-avatar-ini { font-size: 11px; }
     .aw-peligro { border-color: rgba(255,138,138,0.4); }
     .aw-peligro .aw-bloque-titulo { color: #ff8a8a; }
+    .aw-res-cat { background: var(--negro-2); border: 1px solid rgba(200,150,0,0.15); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+    .aw-res-cat.oro { border-color: var(--dorado); }
+    .aw-corona { display: inline-block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; background: var(--dorado); color: var(--negro); border-radius: 999px; padding: 2px 8px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+    .aw-corona.of { background: #2e9b57; color: #fff; }
+    .aw-oficial { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--crema-2); flex: none; cursor: pointer; }
+    .aw-oficial input { width: 20px; height: 20px; accent-color: var(--dorado); }
+    .aw-nota { font-size: 12px; color: var(--dorado-claro); margin: 0 0 10px; }
+    .aw-publicar { border-color: rgba(46,155,87,0.5); }
+    .aw-publicar .aw-bloque-titulo { color: #5fd38a; }
+    .aw-usr { background: var(--negro-3); border: 1px solid rgba(200,150,0,0.12); border-radius: 10px; margin-bottom: 6px; }
+    .aw-usr summary { cursor: pointer; padding: 9px 12px; font-size: 14px; color: var(--crema); display: flex; justify-content: space-between; gap: 10px; }
+    .aw-usr .aw-usr-det { padding: 4px 12px 10px; font-size: 13px; color: var(--crema-2); }
+    .aw-usr .aw-usr-det div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-top: 1px solid rgba(200,150,0,0.08); }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -148,6 +161,7 @@
     <button type="button" class="aw-tab" id="aw-tab-personas" role="tab" aria-selected="false">Personas</button>
     <button type="button" class="aw-tab" id="aw-tab-votacion" role="tab" aria-selected="false">1ª votación</button>
     <button type="button" class="aw-tab" id="aw-tab-votacion2" role="tab" aria-selected="false">2ª votación</button>
+    <button type="button" class="aw-tab" id="aw-tab-resultados" role="tab" aria-selected="false">Resultados</button>
   </div>
 
   <!-- ── CATEGORÍAS ── -->
@@ -285,6 +299,48 @@
       <p class="aw-msg" id="aw-v2-msg"></p>
     </section>
     <div id="aw-v2-lista"></div>
+  </div>
+
+  <!-- ── RESULTADOS Y GANADORES (solo admin) ── -->
+  <div id="aw-pane-resultados" class="hidden">
+    <section class="aw-bloque">
+      <h2 class="aw-bloque-titulo">Resultados de la segunda votación</h2>
+      <p class="aw-sub" id="aw-res-estado"></p>
+      <div class="aw-botones" style="margin-top:10px;">
+        <button type="button" class="aw-btn" id="aw-res-actualizar">Actualizar</button>
+        <button type="button" class="aw-btn hidden" id="aw-res-aceptar">Aceptar ganadores por votos</button>
+      </div>
+      <p class="aw-msg" id="aw-res-msg"></p>
+    </section>
+    <div id="aw-res-lista"></div>
+
+    <section class="aw-bloque aw-publicar hidden" id="aw-res-publicar">
+      <h2 class="aw-bloque-titulo" id="aw-pub-titulo">Publicar resultados oficiales</h2>
+      <p class="aw-sub" id="aw-pub-texto-ayuda"></p>
+      <div id="aw-pub-form">
+        <div class="aw-campo" style="margin-top:12px;">
+          <label for="aw-pub-texto">Para confirmar, escribí PUBLICAR</label>
+          <input type="text" class="aw-input" id="aw-pub-texto" autocomplete="off" placeholder="PUBLICAR" />
+        </div>
+        <div class="aw-botones">
+          <button type="button" class="aw-btn aw-btn-primario" id="aw-pub-boton" disabled>PUBLICAR RESULTADOS OFICIALES</button>
+        </div>
+      </div>
+      <div class="aw-botones hidden" id="aw-pub-retirar-caja" style="margin-top:10px;">
+        <button type="button" class="aw-btn aw-btn-peligro" id="aw-pub-retirar">Retirar publicación</button>
+      </div>
+      <p class="aw-msg" id="aw-pub-msg"></p>
+    </section>
+
+    <section class="aw-bloque hidden" id="aw-res-usuarios">
+      <h2 class="aw-bloque-titulo">Qué votó cada usuario</h2>
+      <p class="aw-sub">Solo lo ves vos: esta información nunca se muestra a los usuarios.</p>
+      <div class="aw-campo" style="margin-top:10px;">
+        <input type="search" class="aw-input" id="aw-res-buscar" placeholder="Buscar usuario..." autocomplete="off" />
+      </div>
+      <p class="aw-resumen" id="aw-res-usuarios-resumen"></p>
+      <div id="aw-res-usuarios-lista"></div>
+    </section>
   </div>
 
 </main>
