@@ -646,3 +646,118 @@ export function ordenarAlfabeticamente(nominados, personas) {
   lista.forEach((n, i) => { if (n.orden !== i + 1) cambios[n.pid] = i + 1; });
   return cambios;
 }
+
+// ════════════════════════════════════════════════════════════
+//  ETAPAS 5 y 6 — Resultados, ganador oficial y publicación
+// ════════════════════════════════════════════════════════════
+
+export const TEXTO_PUBLICAR = "PUBLICAR";
+
+// Adapta las categorías de la 2ª ronda (finalistas) al formato que usa el conteo (nominados).
+const comoNominados = (cats) => cats.map((c) => ({ id: c.id, nominados: c.finalistas }));
+
+// raw = awards/votos2 → {cid: {total, conteo:{pid:n}}} (solo cuenta votos a finalistas reales de cada categoría).
+export function contarVotos2(raw, cats) {
+  return contarVotos(raw, comoNominados(cats));
+}
+
+export function rankingRonda2(cat, datos) {
+  return armarRanking({ nominados: cat.finalistas }, datos);
+}
+
+// Quiénes ganaron por votos: todos los que comparten el máximo (más de uno = empate). Sin votos → nadie.
+export function lideresPorVotos(ranking) {
+  if (!ranking.length || ranking[0].votos <= 0) return [];
+  return ranking.filter((r) => r.votos === ranking[0].votos).map((r) => r.pid);
+}
+
+// Completa los ganadores oficiales con el ganador por votos, solo donde no hay empate ni elección previa.
+// Devuelve {cambios, cantidad, empates:[nombre de categoría], sinVotos:[nombre]}.
+export function aceptarGanadoresPorVotos(cats, conteos, oficiales) {
+  const cambios = {};
+  const empates = [];
+  const sinVotos = [];
+  let cantidad = 0;
+  for (const c of cats) {
+    if (oficiales && oficiales[c.id] && oficiales[c.id].pid) continue; // lo ya elegido por el admin no se pisa
+    const lideres = lideresPorVotos(rankingRonda2(c, conteos[c.id]));
+    if (!lideres.length) sinVotos.push(c.nombre);
+    else if (lideres.length > 1) empates.push(c.nombre);
+    else { cambios[`awards/resultados/oficiales/${c.id}`] = { pid: lideres[0], porVotos: true }; cantidad++; }
+  }
+  return { cambios, cantidad, empates, sinVotos };
+}
+
+// Controles antes de publicar: toda categoría de la 2ª ronda necesita un ganador oficial que sea finalista.
+export function validarPublicacionFinal(cats, oficiales, personas) {
+  const ids = new Set(personas.map((p) => p.id));
+  const faltan = [];
+  for (const c of cats) {
+    const o = oficiales && oficiales[c.id];
+    if (!o || !o.pid || !c.finalistas.some((f) => f.pid === o.pid) || !ids.has(o.pid)) faltan.push(c.nombre);
+  }
+  if (!cats.length) return { error: "No hay categorías en la segunda votación.", faltan };
+  if (faltan.length) return { error: `Falta definir el ganador oficial de: ${faltan.join(", ")}.`, faltan };
+  return { error: null, faltan: [] };
+}
+
+// Escritura atómica de la publicación:
+//  - awards/publicados/{cid}: SOLO lo que verán los usuarios (categoría, ganador, foto). Nunca votos ni empates.
+//  - awards/resultados/ronda2/{cid}: registro interno con el ganador según la votación y el oficial, por separado.
+//  - awards/estado = publicado.
+export function armarPublicacionFinal(cats, oficiales, conteos, personas, marcaDeTiempo) {
+  const publicados = {};
+  const interno = {};
+  let total = 0;
+  for (const c of cats) {
+    const o = oficiales[c.id];
+    const p = personas.find((x) => x.id === o.pid);
+    const doc = { categoria: c.nombre, tipo: c.tipo, orden: c.orden, pid: o.pid, nombre: p.nombre };
+    if (p.foto) doc.foto = p.foto;
+    publicados[c.id] = doc;
+    const datos = conteos[c.id] || { total: 0, conteo: {} };
+    const lideres = lideresPorVotos(rankingRonda2(c, datos));
+    total += datos.total;
+    interno[c.id] = { total: datos.total, conteo: datos.conteo, ganadoresPorVotos: lideres, oficial: o.pid, manual: !lideres.includes(o.pid) };
+  }
+  return {
+    cambios: {
+      "awards/publicados": publicados,
+      "awards/resultados/ronda2": { total, categorias: interno, publicadoEn: marcaDeTiempo },
+      "awards/estado": "publicado",
+    },
+  };
+}
+
+// Votos de cada usuario registrado (solo admin): [{uid, nick, total, votos:{cid: pid}}] ordenado por nick.
+export function votosPorUsuario(raw, cats, nicks) {
+  const porUsuario = {};
+  for (const c of cats) {
+    const validos = new Set(c.finalistas.map((f) => f.pid));
+    const votos = raw && typeof raw === "object" && raw[c.id] && typeof raw[c.id] === "object" ? raw[c.id] : {};
+    for (const [uid, v] of Object.entries(votos)) {
+      if (v && typeof v.p === "string" && validos.has(v.p)) {
+        (porUsuario[uid] = porUsuario[uid] || {})[c.id] = v.p;
+      }
+    }
+  }
+  return Object.entries(porUsuario)
+    .map(([uid, votos]) => ({ uid, nick: (nicks && nicks[uid]) || "", total: Object.keys(votos).length, votos }))
+    .sort((a, b) => (a.nick || a.uid).localeCompare(b.nick || b.uid, "es", { sensitivity: "base" }));
+}
+
+// Lo que ve el usuario registrado cuando se publican los resultados: [{id, categoria, tipo, orden, pid, nombre, foto}].
+// Burdel de Oro primero (premio principal), después las demás por orden.
+export function leerPublicados(raw) {
+  const lista = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return lista;
+  for (const [id, v] of Object.entries(raw)) {
+    if (!RE_ID.test(id) || !v || typeof v !== "object") continue;
+    const nombre = typeof v.nombre === "string" ? v.nombre.trim().slice(0, 40) : "";
+    const categoria = typeof v.categoria === "string" ? v.categoria.trim().slice(0, 60) : "";
+    if (!nombre || !categoria) continue;
+    lista.push({ id, categoria, nombre, tipo: v.tipo === "oro" ? "oro" : "normal", orden: Number.isFinite(v.orden) ? v.orden : 9999, foto: fotoValida(v.foto) ? v.foto : null });
+  }
+  lista.sort((a, b) => ((b.tipo === "oro") - (a.tipo === "oro")) || (a.orden - b.orden) || a.categoria.localeCompare(b.categoria, "es"));
+  return lista;
+}
