@@ -14,7 +14,7 @@ import { initNavbar } from "../js/navbar.js";
 import { onSession, getUserData } from "../js/auth.js";
 import { db } from "../js/firebase-init.js";
 import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { leerFase, leerRonda2, fotoValida } from "./awards-datos.js";
+import { leerFase, leerRonda2, fotoValida, leerPublicados } from "./awards-datos.js";
 
 const $ = (id) => document.getElementById(id);
 function el(tag, clase, texto) {
@@ -35,6 +35,7 @@ let cargando = false;
 let pendiente = null;  // {cid, pid} esperando confirmación
 let enviando = false;
 let errorVoto = "";
+let ganadoresCargados = false;
 
 function aviso(titulo, texto) {
   const a = $("awp-aviso");
@@ -55,9 +56,57 @@ function mostrarSegunFase() {
   $("awp-lista").textContent = "";
   $("awp-progreso").classList.add("hidden");
   $("awp-sub").textContent = "Los premios de El Burdel.";
+  if (fase === "publicado") { cargarGanadores(); return; }
+  ganadoresCargados = false;
   if (fase === "ronda2_cerrada") aviso("La votación ya cerró", "¡Gracias por votar! Los resultados se conocerán en la entrega de premios.");
-  else if (fase === "publicado") aviso("Los resultados ya fueron publicados", "Muy pronto vas a poder ver acá a todos los ganadores.");
   else aviso("Todavía no hay votación abierta", "Cuando se abra la votación final, la vas a encontrar acá.");
+}
+
+// ── Ganadores (cuando el admin publica los resultados oficiales) ──
+async function cargarGanadores() {
+  $("awp-sub").textContent = "Cargando a los ganadores...";
+  try {
+    const snap = await get(ref(db, "awards/publicados"));
+    const lista = leerPublicados(snap.val());
+    if (fase !== "publicado") return; // se retiró la publicación mientras cargaba
+    if (!lista.length) { $("awp-sub").textContent = ""; aviso("Resultados publicados", "Todavía no hay ganadores para mostrar."); return; }
+    $("awp-sub").textContent = "¡Los ganadores de esta edición!";
+    renderGanadores(lista);
+    ganadoresCargados = true;
+  } catch (e) {
+    $("awp-sub").textContent = "";
+    aviso("No se pudo cargar", "Revisá tu conexión y recargá la página.");
+  }
+}
+
+function renderGanadores(lista) {
+  const cont = $("awp-lista");
+  cont.textContent = "";
+  const grid = el("div", "awp-ganadores");
+  for (const g of lista) {
+    const card = el("section", "awp-gan" + (g.tipo === "oro" ? " oro" : ""));
+    card.appendChild(el("h2", "awp-gan-cat", g.categoria));
+    const foto = el("div", "awp-gan-foto");
+    foto.appendChild(el("div", "awp-ini", iniciales(g.nombre)));
+    if (g.foto) {
+      const img = document.createElement("img");
+      img.className = "awp-gan-img";
+      img.alt = "";
+      img.src = g.foto;
+      foto.appendChild(img);
+    }
+    // Trofeo como marca de agua sobre la foto (plateado en todas las categorías, dorado en Burdel de Oro).
+    const tro = document.createElement("img");
+    tro.className = "awp-gan-trofeo";
+    tro.alt = "";
+    tro.src = g.tipo === "oro" ? "assets/img/awards/trofeo-oro.png" : "assets/img/awards/trofeo-plata.png";
+    tro.addEventListener("error", () => tro.remove()); // si falta el archivo, la foto se ve igual
+    foto.appendChild(tro);
+    card.appendChild(foto);
+    card.appendChild(el("div", "awp-gan-nombre", g.nombre));
+    grid.appendChild(card);
+  }
+  cont.appendChild(grid);
 }
 
 async function cargarRonda2() {
