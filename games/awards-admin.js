@@ -23,6 +23,7 @@ import {
   armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
   validarPublicacionNuevas, armarPublicacionNuevas,
   categoriaAmpliable, ordenarAlfabeticamente,
+  TEXTO_PUBLICAR, contarVotos2, rankingRonda2, lideresPorVotos, aceptarGanadoresPorVotos, validarPublicacionFinal, armarPublicacionFinal, votosPorUsuario,
   TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
 } from "./awards-datos.js";
@@ -732,8 +733,8 @@ const AYUDA_ETAPA = {
   ronda1_cerrada: "La votación pública está cerrada. Revisá los votos en la pestaña «1ª votación», elegí los finalistas de cada categoría y confirmalos.",
   finalistas_definidos: "Finalistas definidos. Armá los nominados de Burdel de Oro en la pestaña «Categorías» y revisá la pestaña «2ª votación». Cuando estés listo, abrí la segunda votación (solo usuarios registrados).",
   ronda2_abierta: "Segunda votación abierta: solo la ven y la votan los usuarios registrados, desde su panel. Cerrala cuando quieras.",
-  ronda2_cerrada: "Segunda votación cerrada. Los resultados siguen secretos: solo vos podés verlos. (La revisión de resultados y la publicación llegan en la próxima etapa.)",
-  publicado: "Resultados publicados.",
+  ronda2_cerrada: "Segunda votación cerrada. Los resultados siguen secretos: solo vos podés verlos. Elegí el ganador oficial de cada categoría en la pestaña «Resultados» y, después del vivo, publicalos desde ahí.",
+  publicado: "Resultados publicados: los usuarios registrados ya ven a los ganadores en su panel. Si fue un error, podés retirar la publicación en la pestaña «Resultados».",
 };
 
 function botonEtapa(texto, fn, clase) {
@@ -885,7 +886,6 @@ async function cargarVotacion(forzar) {
     mensaje("aw-v-msg", errorLegible(e), "error");
   }
   renderVotacion();
-  renderVotacion2();
 }
 
 function seleccionEfectiva(cat, ranking) {
@@ -1194,6 +1194,215 @@ function renderVotacion2() {
 }
 
 // ────────────────────────────────────────────────────────────
+//  Resultados, ganador oficial y publicación (todo solo admin)
+// ────────────────────────────────────────────────────────────
+let res = { conteo: null, votosRaw: null, oficiales: {}, cargado: false };
+
+const catsRonda2 = () => ordenarRonda2(categoriasRonda2(categorias, finalistas));
+const nombrePersona = (pid) => (personaPorId(pid) || { nombre: "(persona eliminada)" }).nombre;
+const nickPorUid = () => Object.fromEntries(usuarios.map((u) => [u.uid, u.nick]));
+const enResultados = () => fase === "ronda2_abierta" || fase === "ronda2_cerrada" || fase === "publicado";
+
+async function cargarResultados(forzar) {
+  if (!enResultados()) { renderResultados(); return; }
+  if (res.cargado && !forzar) { renderResultados(); return; }
+  mensaje("aw-res-msg", "Leyendo los votos...");
+  try {
+    await cargarFinalistas();
+    const [v, o] = await Promise.all([get(ref(db, "awards/votos2")), get(ref(db, "awards/resultados/oficiales"))]); // colecciones completas: solo el admin
+    res.votosRaw = v.val();
+    const ofRaw = o.val() && typeof o.val() === "object" ? o.val() : {};
+    res.oficiales = {};
+    for (const [cid, x] of Object.entries(ofRaw)) if (x && typeof x.pid === "string") res.oficiales[cid] = { pid: x.pid, porVotos: x.porVotos === true };
+    res.conteo = contarVotos2(res.votosRaw, catsRonda2());
+    res.cargado = true;
+    mensaje("aw-res-msg", "");
+  } catch (e) {
+    mensaje("aw-res-msg", errorLegible(e), "error");
+  }
+  renderResultados();
+}
+
+function renderResultados() {
+  const lista = $("aw-res-lista");
+  lista.textContent = "";
+  const estados = {
+    ronda2_abierta: "La segunda votación sigue abierta: estos números son provisorios. El ganador oficial se elige cuando la cierres.",
+    ronda2_cerrada: "Votación cerrada. Para cada categoría tildá el ganador oficial (podés elegir uno distinto al más votado). Los usuarios no ven nada de esto hasta que publiques.",
+    publicado: "Resultados publicados. Esto es lo que se publicó; para cambiar algo hay que retirar la publicación.",
+  };
+  $("aw-res-estado").textContent = estados[fase] || "Los resultados aparecen cuando se abre la segunda votación.";
+  $("aw-res-actualizar").classList.toggle("hidden", !enResultados());
+  $("aw-res-aceptar").classList.toggle("hidden", fase !== "ronda2_cerrada");
+  renderPublicar();
+  renderUsuariosVotos();
+  if (!enResultados() || !res.conteo) return;
+  const cats = catsRonda2();
+  const decide = fase === "ronda2_cerrada";
+  for (const c of cats) {
+    const datos = res.conteo[c.id] || { total: 0, conteo: {} };
+    const ranking = rankingRonda2(c, datos);
+    const lideres = lideresPorVotos(ranking);
+    const oficial = res.oficiales[c.id] ? res.oficiales[c.id].pid : null;
+    const caja = el("section", "aw-res-cat" + (c.tipo === "oro" ? " oro" : ""));
+    const cab = el("div", "aw-rk-cab");
+    cab.appendChild(el("span", "aw-cat-nombre", c.nombre));
+    cab.appendChild(el("span", "aw-sub", `${datos.total} voto(s)`));
+    caja.appendChild(cab);
+    if (lideres.length > 1) caja.appendChild(el("div", "aw-empate", `Empate en el primer puesto (${lideres.map(nombrePersona).join(", ")}): elegí vos al ganador.`));
+    else if (!lideres.length) caja.appendChild(el("div", "aw-empate", "Todavía no hay votos en esta categoría."));
+    if (oficial && !lideres.includes(oficial)) caja.appendChild(el("p", "aw-nota", "Ganador oficial elegido por vos: no coincide con el más votado."));
+    const maximo = ranking.length ? Math.max(1, ranking[0].votos) : 1;
+    for (const r of ranking) {
+      const p = personaPorId(r.pid);
+      const fila = el("div", "aw-rk" + (oficial === r.pid ? " sel" : ""));
+      fila.appendChild(el("div", "aw-rk-pos", String(r.puesto)));
+      fila.appendChild(avatar(p ? p.nombre : "?", p ? p.foto : null));
+      const d = el("div", "aw-datos");
+      const nom = el("div", "aw-nombre", p ? p.nombre : "(persona eliminada)");
+      if (lideres.includes(r.pid)) nom.appendChild(el("span", "aw-corona", lideres.length > 1 ? "Empate" : "Más votado"));
+      if (oficial === r.pid) nom.appendChild(el("span", "aw-corona of", "Oficial"));
+      d.appendChild(nom);
+      const barra = el("div", "aw-rk-barra");
+      const i = document.createElement("i");
+      i.style.width = Math.round((r.votos / maximo) * 100) + "%";
+      barra.appendChild(i);
+      d.appendChild(barra);
+      fila.appendChild(d);
+      fila.appendChild(el("div", "aw-rk-num", `${r.votos} · ${r.pct}%`));
+      const lab = el("label", "aw-oficial");
+      const rd = document.createElement("input");
+      rd.type = "radio";
+      rd.name = "oficial-" + c.id;
+      rd.checked = oficial === r.pid;
+      rd.disabled = !decide;
+      rd.title = "Ganador oficial";
+      rd.addEventListener("change", () => { if (rd.checked) setOficial(c.id, r.pid); });
+      lab.append(rd, document.createTextNode("Oficial"));
+      fila.appendChild(lab);
+      caja.appendChild(fila);
+    }
+    lista.appendChild(caja);
+  }
+}
+
+async function setOficial(cid, pid) {
+  if (fase !== "ronda2_cerrada") return;
+  const c = catsRonda2().find((x) => x.id === cid);
+  if (!c || !c.finalistas.some((f) => f.pid === pid)) return;
+  const lideres = lideresPorVotos(rankingRonda2(c, res.conteo[cid] || { total: 0, conteo: {} }));
+  try {
+    await set(ref(db, `awards/resultados/oficiales/${cid}`), { pid, porVotos: lideres.includes(pid) });
+    res.oficiales[cid] = { pid, porVotos: lideres.includes(pid) };
+    mensaje("aw-res-msg", "");
+  } catch (e) { mensaje("aw-res-msg", errorLegible(e), "error"); }
+  renderResultados();
+}
+
+async function aceptarPorVotos() {
+  if (fase !== "ronda2_cerrada" || !res.conteo) return;
+  const r = aceptarGanadoresPorVotos(catsRonda2(), res.conteo, res.oficiales);
+  if (!r.cantidad) {
+    mensaje("aw-res-msg", "No hay nada para completar" + (r.empates.length ? `: hay empate en ${r.empates.join(", ")}` : "") + ".", r.empates.length ? "error" : "ok");
+    return;
+  }
+  try {
+    await update(ref(db), r.cambios);
+    for (const [ruta, v] of Object.entries(r.cambios)) res.oficiales[ruta.split("/").pop()] = { pid: v.pid, porVotos: true };
+    const extra = [];
+    if (r.empates.length) extra.push(`Empate (decidís vos): ${r.empates.join(", ")}.`);
+    if (r.sinVotos.length) extra.push(`Sin votos: ${r.sinVotos.join(", ")}.`);
+    mensaje("aw-res-msg", `Se definieron ${r.cantidad} ganador(es) según los votos. ` + extra.join(" "), "ok");
+  } catch (e) { mensaje("aw-res-msg", errorLegible(e), "error"); }
+  renderResultados();
+}
+
+function renderPublicar() {
+  const caja = $("aw-res-publicar");
+  const visible = fase === "ronda2_cerrada" || fase === "publicado";
+  caja.classList.toggle("hidden", !visible);
+  if (!visible) return;
+  const publicado = fase === "publicado";
+  $("aw-pub-form").classList.toggle("hidden", publicado);
+  $("aw-pub-retirar-caja").classList.toggle("hidden", !publicado);
+  $("aw-pub-titulo").textContent = publicado ? "Resultados publicados" : "Publicar resultados oficiales";
+  const cats = catsRonda2();
+  const definidos = cats.filter((c) => res.oficiales[c.id]).length;
+  $("aw-pub-texto-ayuda").textContent = publicado
+    ? "Los usuarios registrados ya ven a los ganadores en su panel."
+    : `Ganadores oficiales definidos: ${definidos} de ${cats.length}. Hasta que publiques, ningún usuario ve resultados ni ganadores. Hacelo después del vivo.`;
+  $("aw-pub-boton").disabled = publicado || $("aw-pub-texto").value.trim() !== TEXTO_PUBLICAR;
+}
+
+async function publicarResultados() {
+  if (fase !== "ronda2_cerrada") return;
+  if ($("aw-pub-texto").value.trim() !== TEXTO_PUBLICAR) return;
+  $("aw-pub-boton").disabled = true;
+  mensaje("aw-pub-msg", "Revisando los votos...");
+  try {
+    await cargarResultados(true); // datos frescos antes de publicar
+    const cats = catsRonda2();
+    const v = validarPublicacionFinal(cats, res.oficiales, personas);
+    if (v.error) { mensaje("aw-pub-msg", v.error, "error"); renderPublicar(); return; }
+    const resumen = cats.map((c) => `• ${c.nombre}: ${nombrePersona(res.oficiales[c.id].pid)}`).join("\n");
+    if (!window.confirm("Vas a PUBLICAR los resultados. Desde ese momento todos los usuarios registrados verán a estos ganadores:\n\n" + resumen + "\n\n¿Publicar ahora?")) { mensaje("aw-pub-msg", ""); renderPublicar(); return; }
+    const pub = armarPublicacionFinal(cats, res.oficiales, res.conteo, personas, serverTimestamp());
+    await update(ref(db), pub.cambios); // una sola escritura: se publica todo o nada
+    fase = "publicado";
+    $("aw-pub-texto").value = "";
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-etapa-msg", "Resultados publicados.", "ok");
+    mensaje("aw-pub-msg", "");
+  } catch (e) {
+    mensaje("aw-pub-msg", errorLegible(e), "error");
+    renderPublicar();
+  }
+}
+
+async function retirarPublicacion() {
+  if (fase !== "publicado") return;
+  if (!window.confirm("¿Retirar la publicación? Los usuarios dejan de ver a los ganadores y el sistema vuelve a «Segunda votación cerrada». Tus ganadores oficiales elegidos se conservan.")) return;
+  try {
+    await update(ref(db), { "awards/estado": "ronda2_cerrada", "awards/publicados": null });
+    fase = "ronda2_cerrada";
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-etapa-msg", "Publicación retirada.", "ok");
+  } catch (e) { mensaje("aw-pub-msg", errorLegible(e), "error"); }
+}
+
+function renderUsuariosVotos() {
+  const caja = $("aw-res-usuarios");
+  caja.classList.toggle("hidden", !enResultados() || !res.cargado);
+  const cont = $("aw-res-usuarios-lista");
+  cont.textContent = "";
+  if (!enResultados() || !res.cargado) return;
+  const cats = catsRonda2();
+  const todos = votosPorUsuario(res.votosRaw, cats, nickPorUid());
+  const q = $("aw-res-buscar").value.trim().toLowerCase();
+  const lista = todos.filter((u) => !q || (u.nick || u.uid).toLowerCase().includes(q));
+  $("aw-res-usuarios-resumen").textContent = `${todos.length} usuario(s) votaron.` + (q ? ` Mostrando ${lista.length}.` : "");
+  for (const u of lista) {
+    const d = document.createElement("details");
+    d.className = "aw-usr";
+    const s = document.createElement("summary");
+    s.appendChild(el("span", "", u.nick || `(sin nick) ${u.uid.slice(0, 8)}`));
+    s.appendChild(el("span", "aw-sub", `${u.total} de ${cats.length} categorías`));
+    d.appendChild(s);
+    const det = el("div", "aw-usr-det");
+    for (const c of cats) {
+      const fila = document.createElement("div");
+      fila.appendChild(el("span", "", c.nombre));
+      fila.appendChild(el("span", "", u.votos[c.id] ? nombrePersona(u.votos[c.id]) : "— no votó —"));
+      det.appendChild(fila);
+    }
+    d.appendChild(det);
+    cont.appendChild(d);
+  }
+}
+
+// ────────────────────────────────────────────────────────────
 //  Pantalla
 // ────────────────────────────────────────────────────────────
 function errorLegible(e) {
@@ -1210,19 +1419,21 @@ function renderTodo() {
   renderFormCategoria();
   if (plantel) renderPlantel();
   renderVotacion();
+  renderVotacion2();
+  renderResultados();
 }
 
 function mostrarTab(cual) {
-  $("aw-pane-categorias").classList.toggle("hidden", cual !== "categorias");
-  $("aw-pane-personas").classList.toggle("hidden", cual !== "personas");
-  $("aw-pane-votacion").classList.toggle("hidden", cual !== "votacion");
-  $("aw-pane-votacion2").classList.toggle("hidden", cual !== "votacion2");
-  for (const [id, k] of [["aw-tab-categorias", "categorias"], ["aw-tab-personas", "personas"], ["aw-tab-votacion", "votacion"], ["aw-tab-votacion2", "votacion2"]]) {
-    $(id).classList.toggle("active", cual === k);
-    $(id).setAttribute("aria-selected", cual === k ? "true" : "false");
+  const panes = { categorias: "aw-pane-categorias", personas: "aw-pane-personas", votacion: "aw-pane-votacion", votacion2: "aw-pane-votacion2", resultados: "aw-pane-resultados" };
+  for (const [k, id] of Object.entries(panes)) {
+    $(id).classList.toggle("hidden", cual !== k);
+    const tab = $("aw-tab-" + k);
+    tab.classList.toggle("active", cual === k);
+    tab.setAttribute("aria-selected", cual === k ? "true" : "false");
   }
   if (cual === "votacion") cargarVotacion();
   if (cual === "votacion2") cargarVotacion2();
+  if (cual === "resultados") cargarResultados();
 }
 
 async function iniciar() {
@@ -1230,6 +1441,13 @@ async function iniciar() {
   $("aw-tab-personas").addEventListener("click", () => mostrarTab("personas"));
   $("aw-tab-votacion").addEventListener("click", () => mostrarTab("votacion"));
   $("aw-tab-votacion2").addEventListener("click", () => mostrarTab("votacion2"));
+  $("aw-tab-resultados").addEventListener("click", () => mostrarTab("resultados"));
+  $("aw-res-actualizar").addEventListener("click", () => cargarResultados(true));
+  $("aw-res-aceptar").addEventListener("click", aceptarPorVotos);
+  $("aw-res-buscar").addEventListener("input", renderUsuariosVotos);
+  $("aw-pub-texto").addEventListener("input", renderPublicar);
+  $("aw-pub-boton").addEventListener("click", publicarResultados);
+  $("aw-pub-retirar").addEventListener("click", retirarPublicacion);
   $("aw-v2-actualizar").addEventListener("click", () => cargarVotacion2(true));
   $("aw-c-expandir").addEventListener("click", () => { for (const c of categorias) expandidas.add(c.id); renderCategorias(); });
   $("aw-c-contraer").addEventListener("click", () => { expandidas.clear(); renderCategorias(); });
