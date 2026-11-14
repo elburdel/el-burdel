@@ -187,7 +187,16 @@ function tarjeta(c, f) {
     img.src = p.foto;
     foto.appendChild(img);
   }
-  card.appendChild(foto);
+  // Foto definitiva con el trofeo chico abajo a la derecha (plateado; dorado en Burdel de Oro).
+  const envoltorio = el("div", "awp-foto-wrap");
+  envoltorio.appendChild(foto);
+  const mini = document.createElement("img");
+  mini.className = "awp-mini-trofeo";
+  mini.alt = "";
+  mini.src = c.tipo === "oro" ? "assets/img/awards/trofeo-oro.png" : "assets/img/awards/trofeo-plata.png";
+  mini.addEventListener("error", () => mini.remove());
+  envoltorio.appendChild(mini);
+  card.appendChild(envoltorio);
   card.appendChild(el("div", "awp-nombre", p.nombre)); // el nombre va debajo del círculo
   const acc = el("div", "awp-acc");
   if (elegida) acc.appendChild(el("div", "awp-ok", "✓ Tu voto"));
