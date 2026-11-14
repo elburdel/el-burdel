@@ -57,18 +57,21 @@
 .awp-aviso a { color: var(--dorado-claro); }
 
 /* ── Ganadores publicados (solo usuarios registrados) ── */
-.awp-ganadores { display: grid; grid-template-columns: 1fr; gap: 34px 22px; justify-items: center; }
-@media (min-width: 640px) { .awp-ganadores { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 960px) { .awp-ganadores { grid-template-columns: repeat(3, 1fr); } }
-.awp-gan { width: 100%; max-width: 320px; text-align: center; }
+.awp-ganadores { display: flex; flex-wrap: wrap; justify-content: center; gap: 34px 22px; }
+.awp-gan { flex: 0 1 320px; width: 100%; max-width: 320px; text-align: center; }
 .awp-gan-cat { font-family: var(--font-title); font-weight: 400; font-size: 24px; letter-spacing: 2px; line-height: 1.1; color: var(--dorado); margin-bottom: 10px; min-height: 2.2em; display: flex; align-items: center; justify-content: center; }
 .awp-gan-foto { position: relative; width: 100%; height: 0; padding-bottom: 125%; overflow: hidden; border-radius: 18px; background: var(--negro-2); border: 3px solid rgba(245,200,66,0.8); box-shadow: 0 0 26px rgba(200,150,0,0.35); }
 .awp-gan-foto .awp-ini { font-size: 72px; }
 .awp-gan-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
-.awp-gan-trofeo { position: absolute; right: 4%; bottom: 3%; width: 36%; height: auto; opacity: 0.42; pointer-events: none; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7)); }
+.awp-gan-trofeo { position: absolute; right: 3%; bottom: 2%; width: 20%; height: auto; opacity: 0.95; pointer-events: none; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.8)); }
 .awp-gan-nombre { margin-top: 12px; font-family: var(--font-title); font-size: 36px; letter-spacing: 2px; line-height: 1; color: var(--crema); overflow-wrap: anywhere; }
-.awp-gan.oro { grid-column: 1 / -1; max-width: 420px; }
+.awp-gan.oro { flex: 1 1 100%; max-width: 420px; }
 .awp-gan.oro .awp-gan-cat { font-size: 32px; color: var(--dorado-claro); text-shadow: 0 0 22px rgba(245,200,66,0.5); }
 .awp-gan.oro .awp-gan-foto { border-color: var(--dorado-claro); box-shadow: 0 0 40px rgba(245,200,66,0.55); }
-.awp-gan.oro .awp-gan-trofeo { opacity: 0.5; }
+.awp-gan.oro .awp-gan-trofeo { width: 22%; opacity: 1; }
 .awp-gan.oro .awp-gan-nombre { font-size: 46px; color: var(--dorado-claro); }
+
+/* Trofeo chico abajo a la derecha de cada foto en la segunda votación */
+.awp-foto-wrap { position: relative; width: 84px; margin: 0 auto; }
+@media (min-width: 560px) { .awp-foto-wrap { width: 92px; } }
+.awp-mini-trofeo { position: absolute; right: -8px; bottom: -3px; width: 22px; height: auto; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
