@@ -23,6 +23,7 @@ import {
   armarNominados, categoriaEditable, puedeCrearCategoria, categoriasVotadas, categoriasPendientes,
   validarPublicacionNuevas, armarPublicacionNuevas,
   categoriaAmpliable, ordenarAlfabeticamente,
+  personasRonda2, armarFotoDefinitiva,
   TEXTO_PUBLICAR, contarVotos2, rankingRonda2, lideresPorVotos, aceptarGanadoresPorVotos, validarPublicacionFinal, armarPublicacionFinal, votosPorUsuario,
   TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
@@ -1083,6 +1084,7 @@ async function reiniciarPrimera() {
 //  Segunda votación (solo usuarios registrados)
 // ────────────────────────────────────────────────────────────
 let finalistas = {};   // awards/admin/finalistas ya leído
+let fotosDef = new Set(); // personas a las que ya se les cargó la foto definitiva (awards/admin/fotosDefinitivas)
 let participacion = null;
 
 async function cargarFinalistas() {
@@ -1090,12 +1092,17 @@ async function cargarFinalistas() {
   finalistas = leerFinalistas(snap.val());
 }
 
+const nombrePersonaChico = (pid) => (personaPorId(pid) || { nombre: "?" }).nombre;
+
 async function abrirSegunda() {
   if (fase !== "finalistas_definidos") return;
   try { await cargarFinalistas(); } catch (e) { mensaje("aw-etapa-msg", errorLegible(e), "error"); return; }
   const v = validarApertura2(categorias, personas, finalistas);
   if (v.error) { mensaje("aw-etapa-msg", v.error, "error"); return; }
   const cats = ordenarRonda2(categoriasRonda2(categorias, finalistas));
+  try { fotosDef = new Set(Object.keys((await get(ref(db, "awards/admin/fotosDefinitivas"))).val() || {})); } catch (e) { fotosDef = new Set(); }
+  const sinFoto = personasRonda2(categorias, finalistas).filter((g) => !fotosDef.has(g.id)).map((g) => nombrePersonaChico(g.id));
+  if (sinFoto.length) v.avisos.push(`Falta cargar la foto definitiva de ${sinFoto.length} persona(s): ${sinFoto.slice(0, 8).join(", ")}${sinFoto.length > 8 ? "…" : ""}.`);
   const texto = "Vas a ABRIR la segunda votación (solo usuarios registrados) con:\n" + cats.map((c) => `• ${c.nombre}: ${c.finalistas.length}`).join("\n") + "\n\n" +
     (v.avisos.length ? v.avisos.map((a) => "• " + a).join("\n") + "\n\n" : "") +
     "Cada usuario tendrá un voto por categoría que no podrá cambiar. Los resultados seguirán secretos. ¿Abrir ahora?";
@@ -1138,6 +1145,7 @@ async function cargarVotacion2(forzar) {
   if (fase !== "finalistas_definidos" && fase !== "ronda2_abierta" && fase !== "ronda2_cerrada") { renderVotacion2(); return; }
   try {
     await cargarFinalistas();
+    try { fotosDef = new Set(Object.keys((await get(ref(db, "awards/admin/fotosDefinitivas"))).val() || {})); } catch (e) { fotosDef = new Set(); }
     if (fase === "ronda2_abierta" || fase === "ronda2_cerrada") {
       mensaje("aw-v2-msg", forzar ? "Leyendo votos..." : "");
       const snap = await get(ref(db, "awards/votos2")); // colección completa: solo el admin puede leerla
@@ -1151,6 +1159,7 @@ async function cargarVotacion2(forzar) {
 }
 
 function renderVotacion2() {
+  renderFotosDefinitivas();
   const lista = $("aw-v2-lista");
   lista.textContent = "";
   const estados = {
@@ -1191,6 +1200,60 @@ function renderVotacion2() {
     caja.appendChild(fl);
     lista.appendChild(caja);
   }
+}
+
+// Fotos definitivas: las que se ven en la segunda votación y en los ganadores (con el trofeo chico).
+// Reemplazan a la foto anterior de la persona.
+function renderFotosDefinitivas() {
+  const caja = $("aw-fd");
+  const visible = fase === "finalistas_definidos";
+  caja.classList.toggle("hidden", !visible);
+  const grid = $("aw-fd-grid");
+  grid.textContent = "";
+  if (!visible) return;
+  const gente = personasRonda2(categorias, finalistas);
+  const hechas = gente.filter((g) => fotosDef.has(g.id)).length;
+  $("aw-fd-ayuda").textContent = `Subí la foto definitiva de cada persona antes de abrir la segunda votación. Reemplaza a la anterior y es la que se verá en la votación y en los ganadores. Cargadas: ${hechas} de ${gente.length}.`;
+  const q = $("aw-fd-buscar").value.trim().toLowerCase();
+  const soloPend = $("aw-fd-pendientes").checked;
+  for (const g of gente) {
+    const p = personaPorId(g.id);
+    if (!p) continue;
+    if (q && !p.nombre.toLowerCase().includes(q)) continue;
+    const lista = fotosDef.has(g.id);
+    if (soloPend && lista) continue;
+    const item = el("div", "aw-fd-item" + (lista ? " ok" : ""));
+    item.appendChild(avatar(p.nombre, p.foto, "grande"));
+    item.appendChild(el("div", "aw-fd-nombre", p.nombre));
+    item.appendChild(el("div", "aw-fd-estado", lista ? "Definitiva cargada ✓" : "Pendiente"));
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", () => { if (input.files && input.files[0]) subirFotoDefinitiva(g.id, input.files[0]); });
+    const b = el("button", "aw-btn" + (lista ? "" : " aw-btn-primario"), lista ? "Cambiar foto" : "Subir foto");
+    b.type = "button";
+    b.addEventListener("click", () => input.click());
+    item.append(input, b);
+    grid.appendChild(item);
+  }
+  if (!grid.children.length) grid.appendChild(el("p", "aw-vacio", soloPend && !q ? "No quedan fotos pendientes." : "Ninguna persona coincide."));
+}
+
+async function subirFotoDefinitiva(pid, file) {
+  if (fase !== "finalistas_definidos") return;
+  const p = personaPorId(pid);
+  if (!p) return;
+  mensaje("aw-fd-msg", `Procesando la foto de ${p.nombre}...`);
+  try {
+    const foto = await fotoDesdeArchivo(file);
+    await update(ref(db), armarFotoDefinitiva(pid, foto)); // foto y marca, juntas
+    p.foto = foto;
+    fotosDef.add(pid);
+    mensaje("aw-fd-msg", `Foto definitiva de ${p.nombre} guardada.`, "ok");
+  } catch (e) {
+    mensaje("aw-fd-msg", e && e.message && !/PERMISSION/i.test(e.message) ? e.message : errorLegible(e), "error");
+  }
+  renderFotosDefinitivas();
 }
 
 // ────────────────────────────────────────────────────────────
@@ -1449,6 +1512,8 @@ async function iniciar() {
   $("aw-pub-boton").addEventListener("click", publicarResultados);
   $("aw-pub-retirar").addEventListener("click", retirarPublicacion);
   $("aw-v2-actualizar").addEventListener("click", () => cargarVotacion2(true));
+  $("aw-fd-buscar").addEventListener("input", renderFotosDefinitivas);
+  $("aw-fd-pendientes").addEventListener("change", renderFotosDefinitivas);
   $("aw-c-expandir").addEventListener("click", () => { for (const c of categorias) expandidas.add(c.id); renderCategorias(); });
   $("aw-c-contraer").addEventListener("click", () => { expandidas.clear(); renderCategorias(); });
   $("aw-c-ordenar").addEventListener("click", () => { if (window.confirm("¿Ordenar alfabéticamente los nominados de TODAS las categorías que se puedan editar ahora?")) ordenarTodas(); });
