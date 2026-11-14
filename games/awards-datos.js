@@ -593,6 +593,7 @@ export function armarReinicio(pids, edicionNueva) {
     "awards/admin/finalistas": null,
     "awards/ronda1": null,
     "awards/edicion": edicionNueva,
+    "awards/admin/fotosDefinitivas": null,
   };
   for (const pid of pids) cambios[`awards/personas/${pid}/r1`] = null;
   return cambios;
@@ -760,4 +761,30 @@ export function leerPublicados(raw) {
   }
   lista.sort((a, b) => ((b.tipo === "oro") - (a.tipo === "oro")) || (a.orden - b.orden) || a.categoria.localeCompare(b.categoria, "es"));
   return lista;
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  Fotos definitivas de la segunda votación
+// ════════════════════════════════════════════════════════════
+
+// Personas que participan de la segunda votación (finalistas de cada categoría + nominados de Burdel de Oro),
+// sin repetir. Devuelve [{id, categorias:[nombre...]}] en el orden en que aparecen.
+export function personasRonda2(categorias, finalistas) {
+  const mapa = new Map();
+  for (const c of categoriasRonda2(categorias, finalistas)) {
+    for (const f of c.finalistas) {
+      if (!mapa.has(f.pid)) mapa.set(f.pid, { id: f.pid, categorias: [] });
+      mapa.get(f.pid).categorias.push(c.nombre);
+    }
+  }
+  return [...mapa.values()];
+}
+
+// Una sola escritura: reemplaza la foto de la persona y deja marcado que ya se cargó la definitiva.
+export function armarFotoDefinitiva(pid, foto) {
+  return {
+    [`awards/personas/${pid}/foto`]: foto,
+    [`awards/admin/fotosDefinitivas/${pid}`]: true,
+  };
 }
