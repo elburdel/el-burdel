@@ -123,6 +123,14 @@
     .aw-usr summary { cursor: pointer; padding: 9px 12px; font-size: 14px; color: var(--crema); display: flex; justify-content: space-between; gap: 10px; }
     .aw-usr .aw-usr-det { padding: 4px 12px 10px; font-size: 13px; color: var(--crema-2); }
     .aw-usr .aw-usr-det div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; border-top: 1px solid rgba(200,150,0,0.08); }
+    .aw-fd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+    .aw-fd-item { background: var(--negro-3); border: 1px solid rgba(200,150,0,0.15); border-radius: 10px; padding: 10px 8px; text-align: center; }
+    .aw-fd-item.ok { border-color: rgba(46,155,87,0.6); }
+    .aw-fd-item .aw-avatar { width: 76px; height: 76px; margin: 0 auto 6px; display: block; }
+    .aw-fd-nombre { font-size: 13px; color: var(--crema); overflow-wrap: anywhere; }
+    .aw-fd-estado { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin: 3px 0 8px; color: var(--crema-3); }
+    .aw-fd-item.ok .aw-fd-estado { color: #5fd38a; }
+    .aw-fd-item input[type=file] { display: none; }
     .hidden { display: none !important; }
     /* La pantalla no se ve hasta confirmar que quien entró es el administrador. */
     body.aw-oculto { visibility: hidden; }
@@ -299,6 +307,17 @@
       <p class="aw-msg" id="aw-v2-msg"></p>
     </section>
     <div id="aw-v2-lista"></div>
+
+    <section class="aw-bloque hidden" id="aw-fd">
+      <h2 class="aw-bloque-titulo">Fotos definitivas</h2>
+      <p class="aw-sub" id="aw-fd-ayuda"></p>
+      <div class="aw-campos" style="margin:10px 0 0; grid-template-columns: 1fr auto; align-items: center;">
+        <input type="search" class="aw-input" id="aw-fd-buscar" placeholder="Buscar persona..." autocomplete="off" />
+        <label class="aw-oficial"><input type="checkbox" id="aw-fd-pendientes" /> Solo pendientes</label>
+      </div>
+      <div class="aw-fd-grid" id="aw-fd-grid"></div>
+      <p class="aw-msg" id="aw-fd-msg"></p>
+    </section>
   </div>
 
   <!-- ── RESULTADOS Y GANADORES (solo admin) ── -->
