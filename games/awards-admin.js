@@ -24,6 +24,7 @@ import {
   validarPublicacionNuevas, armarPublicacionNuevas,
   categoriaAmpliable, ordenarAlfabeticamente,
   personasRonda2, armarFotoDefinitiva,
+  TEXTO_REINICIO_TODO, reiniciableTodo, armarReinicioTotal, armarRespaldoCompleto,
   TEXTO_PUBLICAR, contarVotos2, rankingRonda2, lideresPorVotos, aceptarGanadoresPorVotos, validarPublicacionFinal, armarPublicacionFinal, votosPorUsuario,
   TEXTO_REINICIO, reiniciable, armarReinicio, armarRespaldo, leerEdicion,
   oroEditable, personasEditable, leerFinalistas, categoriasRonda2, validarApertura2, armarApertura2, ordenarRonda2, contarParticipacion,
@@ -1081,6 +1082,71 @@ async function reiniciarPrimera() {
 }
 
 // ────────────────────────────────────────────────────────────
+//  Reiniciar TODO (primera y segunda votación)
+// ────────────────────────────────────────────────────────────
+function renderReinicioTodo() {
+  const visible = reiniciableTodo(fase);
+  $("aw-reinicio-todo").classList.toggle("hidden", !visible);
+  if (!visible) return;
+  $("aw-rt-boton").disabled = $("aw-rt-texto").value.trim() !== TEXTO_REINICIO_TODO;
+}
+
+async function datosParaRespaldoCompleto() {
+  const leer = async (ruta) => { try { return (await get(ref(db, ruta))).val(); } catch (e) { return null; } };
+  const [votos1, votos2, resultados, publicados, finalistasRaw, seleccion, ronda1, ronda2] = await Promise.all([
+    leer("awards/votos1"), leer("awards/votos2"), leer("awards/resultados"), leer("awards/publicados"),
+    leer("awards/admin/finalistas"), leer("awards/admin/seleccion"), leer("awards/ronda1"), leer("awards/ronda2"),
+  ]);
+  return { votos2, datos: armarRespaldoCompleto({ fase, edicion, votos1, votos2, resultados, publicados, finalistas: finalistasRaw, seleccion, ronda1, ronda2 }) };
+}
+
+const nombreRespaldoCompleto = () => `respaldo-completo-awards-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`;
+
+async function descargarRespaldoCompleto() {
+  mensaje("aw-rt-msg", "Preparando el respaldo...");
+  try {
+    descargarJSON((await datosParaRespaldoCompleto()).datos, nombreRespaldoCompleto());
+    mensaje("aw-rt-msg", "Respaldo descargado.", "ok");
+  } catch (e) { mensaje("aw-rt-msg", errorLegible(e), "error"); }
+}
+
+async function reiniciarTodo() {
+  if (!reiniciableTodo(fase)) return;
+  if ($("aw-rt-texto").value.trim() !== TEXTO_REINICIO_TODO) return;
+  if (!window.confirm("ÚLTIMA CONFIRMACIÓN\n\nSe borrarán los votos de la primera Y de la segunda votación, los resultados, los ganadores oficiales y lo publicado, y el sistema volverá a «Configuración».\nSe conservan las categorías, los nominados, las personas y las fotos.\n\nAntes se descargará un respaldo completo. ¿Reiniciar todo?")) return;
+  $("aw-rt-boton").disabled = true;
+  try {
+    if (fase === "ronda2_abierta") {
+      // Primero se cierra la votación: así no puede entrar ningún voto nuevo mientras se borra.
+      mensaje("aw-rt-msg", "Cerrando la segunda votación...");
+      await set(ref(db, "awards/estado"), "ronda2_cerrada");
+      fase = "ronda2_cerrada";
+    }
+    mensaje("aw-rt-msg", "Descargando el respaldo...");
+    const { votos2, datos } = await datosParaRespaldoCompleto();
+    descargarJSON(datos, nombreRespaldoCompleto());
+    mensaje("aw-rt-msg", "Reiniciando...");
+    await update(ref(db), armarReinicioTotal(personas.map((x) => x.id), votos2, edicion + 1)); // una sola escritura: todo o nada
+    fase = "configuracion";
+    votacion = { conteo: null, seleccion: {}, cargado: false };
+    res = { conteo: null, votosRaw: null, oficiales: {}, cargado: false };
+    finalistas = {};
+    fotosDef = new Set();
+    participacion = null;
+    $("aw-rt-texto").value = "";
+    await cargarTodo();
+    renderTodo();
+    mensaje("aw-etapa-msg", "Todo reiniciado. El sistema volvió a «Configuración».", "ok");
+    mensaje("aw-rt-msg", "");
+    mostrarTab("categorias");
+  } catch (e) {
+    const permiso = /PERMISSION_DENIED/i.test(String((e && (e.code || e.message)) || ""));
+    mensaje("aw-rt-msg", permiso ? "No se pudo reiniciar (no se borró nada). ¿Publicaste las reglas de Firebase más recientes?" : errorLegible(e), "error");
+    renderTodo();
+  }
+}
+
+// ────────────────────────────────────────────────────────────
 //  Segunda votación (solo usuarios registrados)
 // ────────────────────────────────────────────────────────────
 let finalistas = {};   // awards/admin/finalistas ya leído
@@ -1287,6 +1353,7 @@ async function cargarResultados(forzar) {
 }
 
 function renderResultados() {
+  renderReinicioTodo();
   const lista = $("aw-res-lista");
   lista.textContent = "";
   const estados = {
@@ -1511,6 +1578,9 @@ async function iniciar() {
   $("aw-pub-texto").addEventListener("input", renderPublicar);
   $("aw-pub-boton").addEventListener("click", publicarResultados);
   $("aw-pub-retirar").addEventListener("click", retirarPublicacion);
+  $("aw-rt-texto").addEventListener("input", renderReinicioTodo);
+  $("aw-rt-respaldo").addEventListener("click", descargarRespaldoCompleto);
+  $("aw-rt-boton").addEventListener("click", reiniciarTodo);
   $("aw-v2-actualizar").addEventListener("click", () => cargarVotacion2(true));
   $("aw-fd-buscar").addEventListener("input", renderFotosDefinitivas);
   $("aw-fd-pendientes").addEventListener("change", renderFotosDefinitivas);
