@@ -122,6 +122,7 @@ function dejarDeEscucharRonda1() {
   if (typeof offRonda1 === "function") offRonda1();
   offRonda1 = null;
   cargada = false;
+  personas = {}; // al reabrirse se vuelven a leer (los nombres o fotos pudieron cambiar)
   versionRonda1++;
 }
 
