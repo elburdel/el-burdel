@@ -56,6 +56,8 @@ function mostrarSegunFase() {
   $("awp-lista").textContent = "";
   $("awp-progreso").classList.add("hidden");
   $("awp-sub").textContent = "Los premios de El Burdel.";
+  // Si la votación se cierra o se reinicia, se olvida lo cargado: al reabrirse se lee todo de nuevo.
+  cargada = false; categorias = []; personas = {}; misVotos = {}; pendiente = null; errorVoto = "";
   if (fase === "publicado") { cargarGanadores(); return; }
   ganadoresCargados = false;
   if (fase === "ronda2_cerrada") aviso("La votación ya cerró", "¡Gracias por votar! Los resultados se conocerán en la entrega de premios.");
