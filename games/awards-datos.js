@@ -788,3 +788,65 @@ export function armarFotoDefinitiva(pid, foto) {
     [`awards/admin/fotosDefinitivas/${pid}`]: true,
   };
 }
+
+
+// ════════════════════════════════════════════════════════════
+//  Reiniciar TODO (primera y segunda votación) — para empezar de cero después de un ensayo
+// ════════════════════════════════════════════════════════════
+
+export const TEXTO_REINICIO_TODO = "REINICIAR TODO";
+
+// Se puede usar cuando la segunda votación ya empezó (antes de eso alcanza con reiniciar la primera).
+export function reiniciableTodo(fase) {
+  const f = leerFase(fase);
+  return f === "ronda2_abierta" || f === "ronda2_cerrada" || f === "publicado";
+}
+
+// Una sola escritura atómica. Se conservan categorías, nominados (incluido Burdel de Oro), personas y fotos.
+// Se borran: votos de las dos rondas, lo publicado en ambas, resultados, ganadores oficiales, finalistas y borradores,
+// marcas de visibilidad y de fotos definitivas. Se sube la «edición» para que los navegadores olviden lo votado.
+// Los votos de la segunda ronda se borran uno por uno (cada uno con su ruta) a partir de lo leído.
+export function armarReinicioTotal(pids, votos2Raw, edicionNueva) {
+  const cambios = {
+    "awards/estado": "configuracion",
+    "awards/votos1": null,
+    "awards/ronda1": null,
+    "awards/ronda2": null,
+    "awards/publicados": null,
+    "awards/resultados": null,
+    "awards/admin/seleccion": null,
+    "awards/admin/finalistas": null,
+    "awards/admin/fotosDefinitivas": null,
+    "awards/edicion": edicionNueva,
+  };
+  for (const pid of pids) {
+    cambios[`awards/personas/${pid}/r1`] = null;
+    cambios[`awards/personas/${pid}/r2`] = null;
+  }
+  if (votos2Raw && typeof votos2Raw === "object") {
+    for (const [cid, porUsuario] of Object.entries(votos2Raw)) {
+      if (!porUsuario || typeof porUsuario !== "object") continue;
+      for (const uid of Object.keys(porUsuario)) cambios[`awards/votos2/${cid}/${uid}`] = null;
+    }
+  }
+  return cambios;
+}
+
+// Archivo de respaldo con todo lo que se borra (sin las fotos, que no se tocan).
+export function armarRespaldoCompleto(d) {
+  return {
+    sistema: NOMBRE_OFICIAL,
+    tipo: "respaldo completo antes de reiniciar todo",
+    exportadoEn: new Date().toISOString(),
+    etapa: leerFase(d.fase),
+    edicion: Number.isFinite(d.edicion) ? d.edicion : 1,
+    votos1: d.votos1 || null,
+    votos2: d.votos2 || null,
+    resultados: d.resultados || null,
+    publicados: d.publicados || null,
+    finalistas: d.finalistas || null,
+    seleccionBorrador: d.seleccion || null,
+    categoriasPublicadas1: d.ronda1 || null,
+    categoriasPublicadas2: d.ronda2 || null,
+  };
+}
